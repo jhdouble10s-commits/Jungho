@@ -172,15 +172,42 @@ window.addEventListener('DOMContentLoaded', () => {
     htmlEditor.dispatchEvent(new Event('input', { bubbles: true }));
     refreshPreview();
   };
+  const blockTags = new Set(['address', 'article', 'blockquote', 'div', 'figure', 'figcaption', 'h1', 'h2', 'h3', 'h4', 'h5', 'hr', 'li', 'ol', 'p', 'pre', 'section', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'ul']);
+  const prettyHtml = (source) => {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = source;
+    const attributes = (element) => Array.from(element.attributes).map((attr) => ` ${attr.name}="${attr.value}"`).join('');
+    const render = (node, depth = 0) => {
+      const indent = '  '.repeat(depth);
+      if (node.nodeType === Node.TEXT_NODE) return node.textContent.trim() ? `${indent}${node.textContent.trim()}` : '';
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+      const tag = node.tagName.toLowerCase();
+      if (!blockTags.has(tag)) return `${indent}${node.outerHTML}`;
+      if (['img', 'br', 'hr'].includes(tag)) return `${indent}${node.outerHTML}`;
+      const children = Array.from(node.childNodes).filter((child) => child.nodeType !== Node.TEXT_NODE || child.textContent.trim());
+      const hasBlockChild = children.some((child) => child.nodeType === Node.ELEMENT_NODE && blockTags.has(child.tagName.toLowerCase()));
+      if (!hasBlockChild) return `${indent}<${tag}${attributes(node)}>${node.innerHTML.trim()}</${tag}>`;
+      const inner = children.map((child) => render(child, depth + 1)).filter(Boolean).join('\n');
+      return `${indent}<${tag}${attributes(node)}>\n${inner}\n${indent}</${tag}>`;
+    };
+    return Array.from(wrapper.childNodes).map((node) => render(node)).filter(Boolean).join('\n');
+  };
   const setMode = (nextMode) => {
     const visual = nextMode === 'visual';
     if (visual) visualEditor.innerHTML = htmlEditor.value;
-    else syncFromVisual();
+    else {
+      syncFromVisual();
+      htmlEditor.value = prettyHtml(htmlEditor.value);
+      htmlEditor.dispatchEvent(new Event('input', { bubbles: true }));
+    }
     htmlField.hidden = visual;
     richToolbar.hidden = !visual;
     visualEditor.hidden = !visual;
     mode.querySelectorAll('button').forEach((button) => button.classList.toggle('active', button.dataset.mode === nextMode));
   };
+  htmlEditor.addEventListener('input', () => {
+    if (!htmlField.hidden) refreshPreview();
+  });
   mode.addEventListener('click', (event) => {
     const button = event.target.closest('[data-mode]');
     if (button) setMode(button.dataset.mode);
