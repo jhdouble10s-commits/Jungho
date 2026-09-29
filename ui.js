@@ -198,15 +198,43 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const refreshPreview = () => $('#previewBtn').click();
   const normaliseParagraphs = () => {
+    const selection = window.getSelection();
+    const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+    const captureCaret = (node) => {
+      if (!range || (!node.contains(range.startContainer) && node !== range.startContainer)) return null;
+      const before = range.cloneRange();
+      before.selectNodeContents(node);
+      before.setEnd(range.startContainer, range.startOffset);
+      return before.toString().length;
+    };
+    const restoreCaret = (node, offset) => {
+      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+      let remaining = offset;
+      let textNode = walker.nextNode();
+      while (textNode && remaining > textNode.textContent.length) {
+        remaining -= textNode.textContent.length;
+        textNode = walker.nextNode();
+      }
+      const target = textNode || node;
+      const nextRange = document.createRange();
+      nextRange.setStart(target, textNode ? Math.min(remaining, textNode.textContent.length) : 0);
+      nextRange.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(nextRange);
+    };
     Array.from(visualEditor.childNodes).forEach((node) => {
       if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+        const caretOffset = captureCaret(node);
         const paragraph = document.createElement('p');
         paragraph.textContent = node.textContent;
         node.replaceWith(paragraph);
+        if (caretOffset !== null) restoreCaret(paragraph, caretOffset);
       } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'DIV') {
+        const caretOffset = captureCaret(node);
         const paragraph = document.createElement('p');
         paragraph.innerHTML = node.innerHTML;
         node.replaceWith(paragraph);
+        if (caretOffset !== null) restoreCaret(paragraph, caretOffset);
       }
     });
   };
@@ -375,15 +403,24 @@ window.addEventListener('DOMContentLoaded', () => {
     } else range.deleteContents();
     const lastNode = fragment.lastChild;
     range.insertNode(fragment);
+    const pasteEnd = document.createComment('paste-end');
     if (lastNode) {
       const caret = document.createRange();
       caret.setStartAfter(lastNode);
       caret.collapse(true);
       selection.removeAllRanges();
       selection.addRange(caret);
+      caret.insertNode(pasteEnd);
     }
     normaliseParagraphs();
     syncFromVisual();
+    let pastedBlock = pasteEnd.previousSibling;
+    if (pastedBlock?.nodeType === Node.ELEMENT_NODE && !pastedBlock.matches(previewBlockSelector)) {
+      pastedBlock = Array.from(pastedBlock.querySelectorAll(previewBlockSelector)).at(-1) || pastedBlock;
+    }
+    const pastedIndex = Array.from(visualEditor.querySelectorAll(previewBlockSelector)).indexOf(pastedBlock);
+    if (pastedIndex >= 0) focusPreviewBlock(pastedIndex, pastedBlock.textContent.length);
+    pasteEnd.remove();
     updateToolbarState();
   });
   const updateToolbarState = () => {
