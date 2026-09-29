@@ -8,6 +8,7 @@ uiStyle.textContent = `
   .side { position:relative; padding:72px 16px 20px!important; background:var(--surface)!important; border-right:1px solid var(--line); }
   .brand { color:var(--text); padding:0 12px 28px!important; }.brand small,.tip { color:var(--sub)!important; }
   .tab { background:var(--accent-soft)!important; color:var(--text)!important; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); }
+  .drafts-panel { display:grid; gap:5px; margin:12px 0 0; padding:0 2px; }.drafts-panel[hidden] { display:none; }.drafts-title { padding:0 10px 4px; color:var(--sub); font-size:11px; font-weight:700; }.draft-item { width:100%; overflow:hidden; border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:transparent; color:var(--text); font:600 12px inherit; text-align:left; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }.draft-item:hover { border-color:var(--accent); color:var(--accent); }
   .sidebar-toggle { position:absolute; top:18px; right:16px; width:32px; height:32px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2); color:var(--text); font-size:18px; cursor:pointer; z-index:20; }
   .theme-settings { margin-top:auto; padding:16px 10px; border-top:1px solid var(--line); color:var(--sub); font-size:12px; font-weight:700; }
   .theme-settings div { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }.theme-settings button { border:1px solid var(--line); border-radius:7px; padding:7px 4px; background:var(--surface-2); color:var(--text); font:600 11px inherit; cursor:pointer; }.theme-settings button:hover { border-color:var(--accent); color:var(--accent); }
@@ -331,6 +332,109 @@ window.addEventListener('DOMContentLoaded', () => {
   richToolbar.addEventListener('scroll', updateToolbarNavigation);
   new ResizeObserver(updateToolbarNavigation).observe(richToolbar);
   requestAnimationFrame(updateToolbarNavigation);
+
+  const draftStorageKey = 'epub-builder-drafts-v1';
+  const draftButton = document.createElement('button');
+  draftButton.type = 'button';
+  draftButton.className = 'secondary';
+  draftButton.textContent = '임시저장';
+  exportButton.before(draftButton);
+  const draftsPanel = document.createElement('div');
+  draftsPanel.className = 'drafts-panel';
+  const editorTab = side.querySelector('.tab[data-view="editorView"]');
+  editorTab?.parentElement.insertAdjacentElement('afterend', draftsPanel);
+  const getDrafts = () => {
+    try { return JSON.parse(localStorage.getItem(draftStorageKey) || '[]'); } catch { return []; }
+  };
+  const setStatus = (message, type = 'ok') => {
+    const status = $('#status');
+    status.textContent = message;
+    status.className = `status ${type}`;
+  };
+  const setCurrentChapter = (chapter) => {
+    $('#ctitle').value = chapter.title;
+    $('#clevel').value = chapter.level;
+    htmlEditor.value = chapter.body;
+    htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
+  };
+  const collectDraft = () => {
+    if (!visualEditor.hidden) syncFromVisual();
+    const activeIndex = Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
+    const count = chapterList.querySelectorAll('.chapter[data-i]').length;
+    const chapters = [];
+    for (let index = 0; index < count; index += 1) {
+      chapterList.querySelector(`.chapter[data-i="${index}"]`)?.click();
+      chapters.push({ title: $('#ctitle').value, level: Number($('#clevel').value), body: htmlEditor.value });
+    }
+    chapterList.querySelector(`.chapter[data-i="${activeIndex}"]`)?.click();
+    return {
+      title: $('#title').value.trim(),
+      author: $('#author').value,
+      language: $('#language').value,
+      css: $('#css').value,
+      chapters,
+      activeIndex,
+      coverSource: coverPreview.getAttribute('src') || '',
+    };
+  };
+  const loadDraft = (draft) => {
+    if (!draft?.chapters?.length) return;
+    while (chapterList.querySelectorAll('.chapter[data-i]').length > 1) $('#del').click();
+    setCurrentChapter(draft.chapters[0]);
+    draft.chapters.slice(1).forEach((chapter) => {
+      addChapter.click();
+      setCurrentChapter(chapter);
+    });
+    $('#title').value = draft.title;
+    $('#author').value = draft.author || '';
+    $('#language').value = draft.language || 'ko';
+    $('#css').value = draft.css || '';
+    const selected = Math.max(0, Math.min(draft.activeIndex || 0, draft.chapters.length - 1));
+    chapterList.querySelector(`.chapter[data-i="${selected}"]`)?.click();
+    if (draft.coverSource) {
+      coverPreview.src = draft.coverSource;
+      coverPreview.hidden = false;
+    }
+    if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
+    refreshPreview();
+    setStatus(`“${draft.title}” 임시저장본을 불러왔습니다.`);
+  };
+  const renderDrafts = () => {
+    const drafts = getDrafts();
+    draftsPanel.hidden = !drafts.length;
+    draftsPanel.replaceChildren();
+    if (!drafts.length) return;
+    const heading = document.createElement('div');
+    heading.className = 'drafts-title';
+    heading.textContent = '임시저장한 책';
+    draftsPanel.append(heading);
+    drafts.forEach((draft) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'draft-item';
+      button.textContent = draft.title;
+      button.title = draft.title;
+      button.addEventListener('click', () => loadDraft(draft));
+      draftsPanel.append(button);
+    });
+  };
+  draftButton.addEventListener('click', () => {
+    const draft = collectDraft();
+    if (!draft.title) { setStatus('책 제목을 입력한 뒤 임시저장하세요.', 'error'); return; }
+    const drafts = getDrafts();
+    if (drafts.some((item) => item.title === draft.title)) {
+      setStatus('같은 책 제목의 임시저장본이 이미 있습니다.', 'error');
+      return;
+    }
+    try {
+      localStorage.setItem(draftStorageKey, JSON.stringify([...drafts, draft]));
+      renderDrafts();
+      setStatus(`“${draft.title}”을(를) 임시저장했습니다.`);
+    } catch {
+      setStatus('임시저장 공간이 부족합니다. 이미지 용량을 줄인 뒤 다시 시도하세요.', 'error');
+    }
+  });
+  renderDrafts();
 
   const refreshPreview = () => $('#previewBtn').click();
   const normaliseParagraphs = () => {
