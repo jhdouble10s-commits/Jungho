@@ -261,6 +261,54 @@ window.addEventListener('DOMContentLoaded', () => {
   visualEditor.addEventListener('click', (event) => {
     activeTable = event.target.closest('table');
   });
+  const makePasteFragment = (clipboard) => {
+    const sourceHtml = clipboard.getData('text/html');
+    const plainText = clipboard.getData('text/plain');
+    const container = document.createElement('div');
+    if (sourceHtml) container.innerHTML = sourceHtml;
+    else {
+      plainText.split(/\r?\n\s*\r?\n/).filter(Boolean).forEach((paragraph) => {
+        const p = document.createElement('p');
+        p.innerHTML = paragraph.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\r?\n/g, '<br>');
+        container.append(p);
+      });
+    }
+    container.querySelectorAll('script,style,link,meta,iframe,object,embed').forEach((node) => node.remove());
+    container.querySelectorAll('*').forEach((node) => Array.from(node.attributes).forEach((attribute) => {
+      if (attribute.name.toLowerCase().startsWith('on')) node.removeAttribute(attribute.name);
+    }));
+    const fragment = document.createDocumentFragment();
+    Array.from(container.childNodes).forEach((node) => fragment.append(node));
+    return fragment;
+  };
+  visualEditor.addEventListener('paste', (event) => {
+    const selection = window.getSelection();
+    if (!selection?.rangeCount) return;
+    event.preventDefault();
+    const fragment = makePasteFragment(event.clipboardData);
+    const hasContent = fragment.childNodes.length > 0;
+    if (!hasContent) return;
+    const range = selection.getRangeAt(0);
+    const startNode = range.startContainer.nodeType === Node.ELEMENT_NODE ? range.startContainer : range.startContainer.parentElement;
+    const heading = startNode?.closest('h1,h2,h3,h4,h5');
+    const containsBlock = Array.from(fragment.childNodes).some((node) => node.nodeType === Node.ELEMENT_NODE && blockTags.has(node.tagName.toLowerCase()));
+    if (heading && containsBlock) {
+      range.setStartAfter(heading);
+      range.collapse(true);
+    } else range.deleteContents();
+    const lastNode = fragment.lastChild;
+    range.insertNode(fragment);
+    if (lastNode) {
+      const caret = document.createRange();
+      caret.setStartAfter(lastNode);
+      caret.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(caret);
+    }
+    normaliseParagraphs();
+    syncFromVisual();
+    updateToolbarState();
+  });
   const updateToolbarState = () => {
     const selection = window.getSelection();
     const node = selection?.anchorNode?.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
