@@ -28,7 +28,7 @@ uiStyle.textContent = `
   @media(max-width:1550px) { .grid { grid-template-columns:minmax(210px,var(--chapter-width)) minmax(0,1fr)!important; }.panel-resize-handle { display:none; }.preview-card { grid-column:1/-1; position:static; max-height:none; }.preview-card .preview { margin:auto; }.book-inline { min-width:0; overflow:hidden; } }
   @media(max-width:1050px) { .grid { grid-template-columns:240px minmax(0,1fr)!important; }.panel-resize-handle { display:none; }.preview-card { grid-column:1/-1; }.book-inline .field:nth-child(3) { display:none; } }
   @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:wrap; }.left-panel#cssPanel .css { height:260px!important; } }
-  .side nav { position:relative; }.new-book { position:absolute; top:7px; right:7px; z-index:2; width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--surface); color:var(--accent); font-size:19px; line-height:20px; cursor:pointer; }.new-book:hover { background:var(--accent-soft); }.chapter { padding-left:10px!important; padding-right:38px!important; }.chapter::after { content:''; position:absolute; right:11px; top:50%; width:16px; height:16px; transform:translateY(-50%); background:var(--accent); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.chapter.is-toc-hidden::after { background:var(--sub); opacity:.55; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.editor > .toolbar label[for="image"] { display:none!important; }.css-save { width:100%; margin:0 0 10px; padding:8px; font-size:12px; }.status.ok,.status.error { position:fixed!important; top:20px; right:20px; z-index:1000; display:flex!important; align-items:center; min-height:46px; max-width:min(440px,calc(100vw - 40px)); margin:0!important; padding:12px 44px 12px 15px!important; border:1px solid var(--line); border-radius:11px; background:var(--surface)!important; color:var(--text)!important; box-shadow:0 14px 36px #00000045; opacity:1; transform:translateY(0); transition:opacity .28s ease,transform .28s ease; }.status.error { border-color:#b94b35; }.status.is-leaving { opacity:0; transform:translateY(-8px); }
+  .side nav { position:relative; }.new-book { position:absolute; top:7px; right:7px; z-index:2; width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--surface); color:var(--accent); font-size:19px; line-height:20px; cursor:pointer; }.new-book:hover { background:var(--accent-soft); }.chapter { padding-left:10px!important; padding-right:38px!important; }.chapter::after { content:''; position:absolute; right:11px; top:50%; width:16px; height:16px; transform:translateY(-50%); background:var(--accent); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.chapter.is-toc-hidden { color:var(--sub)!important; background:transparent!important; }.chapter.is-toc-hidden::after { background:#777; opacity:1; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.asset-rename { width:28px; height:28px; border:1px solid var(--line); border-radius:7px; background:var(--surface-2); color:var(--sub); font-size:15px; cursor:pointer; }.asset-rename:hover { border-color:var(--accent); color:var(--accent); }.fields select { height:36px; width:100%; border:1px solid var(--line); border-radius:8px; padding:0 30px 0 10px; background:var(--bg); color:var(--text); font:600 13px inherit; cursor:pointer; appearance:auto; }.fields select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; outline:0; }.editor > .toolbar label[for="image"] { display:none!important; }.css-save { width:100%; margin:0 0 10px; padding:8px; font-size:12px; }.status.ok,.status.error { position:fixed!important; top:20px; right:20px; z-index:1000; display:flex!important; align-items:center; min-height:46px; max-width:min(440px,calc(100vw - 40px)); margin:0!important; padding:12px 44px 12px 15px!important; border:1px solid #ffffff52; border-radius:11px; background:#ffffff4d!important; color:#151515!important; box-shadow:0 14px 36px #00000028; -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px); opacity:1; transform:translateY(0); transition:opacity .28s ease,transform .28s ease; }.status.error { border-color:#ff5f3d99; }.status.is-leaving { opacity:0; transform:translateY(-8px); }
   @media(min-width:1921px) {
     main { max-width:none!important; width:100%!important; margin:0!important; padding:clamp(28px,2vw,72px)!important; }
     .grid { --chapter-width:clamp(270px,16vw,480px); --preview-width:minmax(480px,1fr); grid-template-columns:var(--chapter-width) minmax(620px,1.65fr) var(--preview-width)!important; gap:clamp(16px,1vw,30px)!important; }
@@ -339,6 +339,21 @@ window.addEventListener('DOMContentLoaded', () => {
   htmlEditor.before(codeEditor);
   codeEditor.append(lineNumbers, htmlEditor);
   const previewAssets = new Map();
+  const cleanAssetName = (value) => value.trim().replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ');
+  const uniqueAssetName = (value, exclude = '') => {
+    const cleaned = cleanAssetName(value) || 'image.png';
+    const dot = cleaned.lastIndexOf('.');
+    const base = dot > 0 ? cleaned.slice(0, dot) : cleaned;
+    const extension = dot > 0 ? cleaned.slice(dot) : '';
+    let candidate = `${base}${extension}`;
+    let number = 2;
+    while (previewAssets.has(candidate) && candidate !== exclude) {
+      candidate = `${base}-${number}${extension}`;
+      number += 1;
+    }
+    return candidate;
+  };
+  const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const sanitiseSvg = (source) => source
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/\son[a-z]+\s*=\s*(["']).*?\1/gi, '')
@@ -387,15 +402,20 @@ window.addEventListener('DOMContentLoaded', () => {
       insert.textContent = '+';
       insert.title = '현재 커서 위치에 이미지 삽입';
       insert.addEventListener('click', () => insertImageTag(name));
-      item.append(button, insert);
+      const rename = document.createElement('button');
+      rename.type = 'button';
+      rename.className = 'asset-rename';
+      rename.textContent = '✎';
+      rename.title = '이미지 파일명 변경';
+      rename.addEventListener('click', () => renameAsset(name));
+      item.append(button, insert, rename);
       list.append(item);
     });
   };
   imageInput.onchange = async (event) => {
     const files = Array.from(event.target.files || []);
     for (const file of files) {
-      const extension = (file.name.split('.').pop() || 'png').toLowerCase();
-      const name = `${file.name.replace(/\.[^.]+$/, '')}-${crypto.randomUUID().slice(0, 8)}.${extension}`;
+      const name = uniqueAssetName(file.name);
       previewAssets.set(name, await toPreviewAsset(file));
     }
     renderAssetShelf();
@@ -427,6 +447,22 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     document.execCommand('insertHTML', false, markup);
     syncFromVisual();
+    refreshPreview();
+  };
+  const renameAsset = (oldName) => {
+    const requested = window.prompt('이미지 파일명을 입력하세요.', oldName);
+    if (requested === null) return;
+    const extension = oldName.includes('.') ? oldName.slice(oldName.lastIndexOf('.')) : '';
+    const nextName = uniqueAssetName(requested.includes('.') ? requested : `${requested}${extension}`, oldName);
+    if (nextName === oldName) return;
+    const asset = previewAssets.get(oldName);
+    if (!asset) return;
+    previewAssets.delete(oldName);
+    previewAssets.set(nextName, asset);
+    htmlEditor.value = htmlEditor.value.replace(new RegExp(`images/${escapeRegExp(oldName)}`, 'g'), `images/${nextName}`);
+    if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
+    htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
+    renderAssetShelf();
     refreshPreview();
   };
   const richToolbar = document.createElement('div');
