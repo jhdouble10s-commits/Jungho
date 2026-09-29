@@ -9,6 +9,7 @@ uiStyle.textContent = `
   .brand { color:var(--text); padding:0 12px 28px!important; }.brand small,.tip { color:var(--sub)!important; }
   .tab { background:var(--accent-soft)!important; color:var(--text)!important; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); }
   .drafts-panel { display:grid; gap:5px; margin:12px 0 0; padding:0 2px; }.drafts-panel[hidden] { display:none; }.drafts-title { padding:0 10px 4px; color:var(--sub); font-size:11px; font-weight:700; }.draft-item { width:100%; overflow:hidden; border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:transparent; color:var(--text); font:600 12px inherit; text-align:left; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }.draft-item:hover { border-color:var(--accent); color:var(--accent); }
+  .html-validation { max-width:300px; overflow:hidden; color:#ff9c75; font-size:11px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }.html-validation[hidden] { display:none; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
   .sidebar-toggle { position:absolute; top:18px; right:16px; width:32px; height:32px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2); color:var(--text); font-size:18px; cursor:pointer; z-index:20; }
   .theme-settings { margin-top:auto; padding:16px 10px; border-top:1px solid var(--line); color:var(--sub); font-size:12px; font-weight:700; }
   .theme-settings div { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }.theme-settings button { border:1px solid var(--line); border-radius:7px; padding:7px 4px; background:var(--surface-2); color:var(--text); font:600 11px inherit; cursor:pointer; }.theme-settings button:hover { border-color:var(--accent); color:var(--accent); }
@@ -173,6 +174,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const coverLabel = coverField.querySelector('label');
   coverLabel.classList.add('cover-upload-button');
   coverLabel.textContent = '표지 이미지';
+  const htmlValidation = document.createElement('span');
+  htmlValidation.className = 'html-validation';
+  htmlValidation.hidden = true;
+  coverField.append(htmlValidation);
   const showCoverPreview = () => {
     const coverSource = coverPreview.getAttribute('src');
     if (!coverSource) return;
@@ -253,6 +258,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const htmlEditor = $('#body');
   const htmlField = htmlEditor.closest('.full');
   const editorFields = htmlEditor.closest('.fields');
+  const codeEditor = document.createElement('div');
+  codeEditor.className = 'code-editor';
+  const lineNumbers = document.createElement('pre');
+  lineNumbers.className = 'line-numbers';
+  htmlEditor.before(codeEditor);
+  codeEditor.append(lineNumbers, htmlEditor);
   const visualEditor = document.createElement('div');
   visualEditor.className = 'rich-editor';
   visualEditor.contentEditable = 'true';
@@ -576,6 +587,41 @@ window.addEventListener('DOMContentLoaded', () => {
     };
     return Array.from(wrapper.childNodes).map((node) => render(node)).filter(Boolean).join('\n');
   };
+  const updateLineNumbers = () => {
+    const count = Math.max(1, htmlEditor.value.split('\n').length);
+    lineNumbers.textContent = Array.from({ length:count }, (_, index) => index + 1).join('\n');
+    lineNumbers.style.transform = `translateY(-${htmlEditor.scrollTop}px)`;
+  };
+  const validateHtml = () => {
+    const source = htmlEditor.value;
+    const stack = [];
+    const voidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+    const tags = /<\/?([a-zA-Z][\w:-]*)\b[^>]*>/g;
+    let match;
+    let error = null;
+    while ((match = tags.exec(source))) {
+      const token = match[0];
+      const tag = match[1].toLowerCase();
+      const line = source.slice(0, match.index).split('\n').length;
+      if (token.startsWith('</')) {
+        const opened = stack.at(-1);
+        if (!opened) { error = { line, message:`</${tag}>에 대응하는 여는 태그가 없습니다.` }; break; }
+        if (opened.tag !== tag) { error = { line, message:`</${tag}> 대신 </${opened.tag}>가 필요합니다.` }; break; }
+        stack.pop();
+      } else if (!voidTags.has(tag) && !token.endsWith('/>')) {
+        stack.push({ tag, line });
+      }
+    }
+    if (!error && stack.length) {
+      const opened = stack.at(-1);
+      error = { line:opened.line, message:`<${opened.tag}> 태그가 닫히지 않았습니다.` };
+    }
+    htmlValidation.hidden = !error;
+    if (error) {
+      htmlValidation.textContent = `HTML 오류 · ${error.line}행: ${error.message}`;
+      htmlValidation.title = htmlValidation.textContent;
+    }
+  };
   const setMode = (nextMode) => {
     const visual = nextMode === 'visual';
     if (visual) visualEditor.innerHTML = htmlEditor.value;
@@ -590,10 +636,35 @@ window.addEventListener('DOMContentLoaded', () => {
     mode.querySelectorAll('button').forEach((button) => button.classList.toggle('active', button.dataset.mode === nextMode));
   };
   htmlEditor.addEventListener('input', () => {
+    updateLineNumbers();
+    validateHtml();
     if (!htmlField.hidden) { refreshPreview(); syncHtmlPreview(); }
   });
+  htmlEditor.addEventListener('scroll', updateLineNumbers);
   htmlEditor.addEventListener('click', syncHtmlPreview);
   htmlEditor.addEventListener('keyup', syncHtmlPreview);
+  const statusBox = $('#status');
+  const decorateStatus = () => {
+    if (!statusBox.classList.contains('ok') && !statusBox.classList.contains('error')) return;
+    if (statusBox.querySelector('.status-close')) return;
+    let message = statusBox.textContent.trim();
+    if (message === 'EPUB 3.0 파일을 만들었습니다. 다운로드 폴더를 확인하세요.') {
+      const title = $('#title').value.trim() || '새 전자책';
+      message = `[${title}] EPUB 3.0 파일을 다운로드했습니다. 다운로드 폴더를 확인하세요.`;
+    }
+    statusBox.replaceChildren(document.createTextNode(message));
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'status-close';
+    close.setAttribute('aria-label', '알림 닫기');
+    close.textContent = '×';
+    close.addEventListener('click', () => {
+      statusBox.textContent = '';
+      statusBox.className = 'status';
+    });
+    statusBox.append(close);
+  };
+  new MutationObserver(decorateStatus).observe(statusBox, { childList:true, characterData:true, attributes:true });
   mode.addEventListener('click', (event) => {
     const button = event.target.closest('[data-mode]');
     if (button) setMode(button.dataset.mode);
@@ -797,4 +868,6 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 0));
   setMode('visual');
   chapterControls.classList.add('active');
+  updateLineNumbers();
+  validateHtml();
 });
