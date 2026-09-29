@@ -602,6 +602,28 @@ window.addEventListener('DOMContentLoaded', () => {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
+  const supabaseUrl = 'https://htzojicodwueivybovhy.supabase.co';
+  const supabasePublishableKey = 'sb_publishable_tgU1Ue4yOSJxG2Z6CTunPw_gvKhXtpq';
+  let supabaseClient = null;
+  let supabaseUser = null;
+  const cloudReady = (async () => {
+    try {
+      const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0/+esm');
+      supabaseClient = createClient(supabaseUrl, supabasePublishableKey);
+      let { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        const { data, error } = await supabaseClient.auth.signInAnonymously();
+        if (error) throw error;
+        session = data.session;
+      }
+      supabaseUser = session?.user || null;
+      return supabaseClient;
+    } catch (error) {
+      console.warn('Supabase 연결을 사용할 수 없습니다.', error);
+      return null;
+    }
+  })();
+  const cloudAssetPath = (title, name) => `${supabaseUser.id}/${encodeURIComponent(title)}/${encodeURIComponent(name)}`;
   const saveDraftAssets = async (title) => {
     const database = await assetDatabase;
     const transaction = database.transaction('assets', 'readwrite');
@@ -615,6 +637,13 @@ window.addEventListener('DOMContentLoaded', () => {
     const store = database.transaction('assets', 'readonly').objectStore('assets');
     for (const asset of draft.assets || []) {
       const blob = await new Promise((resolve) => { const request = store.get(`${draft.title}:${asset.name}`); request.onsuccess = () => resolve(request.result); request.onerror = () => resolve(null); });
+      if (!blob) {
+        const client = await cloudReady;
+        if (client && supabaseUser) {
+          const { data } = await client.storage.from('epub-assets').download(cloudAssetPath(draft.title, asset.name));
+          blob = data || null;
+        }
+      }
       if (blob) previewAssets.set(asset.name, { type:asset.type, blob, url:URL.createObjectURL(blob) });
     }
     renderAssetShelf();
@@ -625,6 +654,33 @@ window.addEventListener('DOMContentLoaded', () => {
     const store = transaction.objectStore('assets');
     (draft.assets || []).forEach((asset) => store.delete(`${draft.title}:${asset.name}`));
     await new Promise((resolve, reject) => { transaction.oncomplete = resolve; transaction.onerror = () => reject(transaction.error); });
+  };
+  const saveCloudDraft = async (draft) => {
+    const client = await cloudReady;
+    if (!client || !supabaseUser) return;
+    for (const asset of draft.assets) {
+      const stored = previewAssets.get(asset.name);
+      if (!stored?.blob) continue;
+      const { error } = await client.storage.from('epub-assets').upload(
+        cloudAssetPath(draft.title, asset.name), stored.blob,
+        { contentType:asset.type, upsert:true },
+      );
+      if (error) throw error;
+    }
+    const { error } = await client.from('epub_drafts').upsert({
+      owner_id:supabaseUser.id,
+      title:draft.title,
+      payload:draft,
+      updated_at:new Date().toISOString(),
+    }, { onConflict:'owner_id,title' });
+    if (error) throw error;
+  };
+  const deleteCloudDraft = async (draft) => {
+    const client = await cloudReady;
+    if (!client || !supabaseUser) return;
+    const paths = (draft.assets || []).map((asset) => cloudAssetPath(draft.title, asset.name));
+    if (paths.length) await client.storage.from('epub-assets').remove(paths);
+    await client.from('epub_drafts').delete().eq('owner_id', supabaseUser.id).eq('title', draft.title);
   };
   const deleteDraftAssetNames = async (title, names) => {
     if (!names.length) return;
@@ -800,6 +856,7 @@ window.addEventListener('DOMContentLoaded', () => {
         event.stopPropagation();
         if (!window.confirm(`“${draft.title}” 임시저장본을 정말 삭제할까요?`)) return;
         await deleteDraftAssets(draft);
+        await deleteCloudDraft(draft).catch((error) => console.warn('Supabase 삭제 동기화 실패', error));
         localStorage.setItem(draftStorageKey, JSON.stringify(getDrafts().filter((item) => item.title !== draft.title)));
         if (openedDraftTitle === draft.title) {
           openedDraftTitle = null;
@@ -811,6 +868,24 @@ window.addEventListener('DOMContentLoaded', () => {
       row.append(button, remove);
       draftsPanel.append(row);
     });
+  };
+  const restoreCloudDrafts = async () => {
+    const client = await cloudReady;
+    if (!client || !supabaseUser) return;
+    const { data, error } = await client
+      .from('epub_drafts')
+      .select('payload')
+      .eq('owner_id', supabaseUser.id)
+      .order('updated_at', { ascending:false });
+    if (error || !data?.length) return;
+    const merged = getDrafts();
+    data.map((row) => row.payload).filter((draft) => draft?.title).forEach((draft) => {
+      const index = merged.findIndex((item) => item.title === draft.title);
+      if (index >= 0) merged[index] = draft;
+      else merged.push(draft);
+    });
+    localStorage.setItem(draftStorageKey, JSON.stringify(merged));
+    renderDrafts();
   };
   draftButton.addEventListener('click', async () => {
     const draft = collectDraft();
@@ -838,12 +913,19 @@ window.addEventListener('DOMContentLoaded', () => {
         setStatus(`“${draft.title}”을(를) 임시저장했습니다.`);
       }
       renderDrafts();
+      try {
+        await saveCloudDraft(draft);
+      } catch (error) {
+        console.warn('Supabase 저장 동기화 실패', error);
+        setStatus('브라우저에는 저장했지만 서버 동기화에 실패했습니다.', 'error');
+      }
     } catch {
       setStatus('임시저장 공간이 부족합니다. 이미지 용량을 줄인 뒤 다시 시도하세요.', 'error');
     }
   });
   cssSaveButton.addEventListener('click', () => draftButton.click());
   renderDrafts();
+  void restoreCloudDrafts();
 
   const refreshPreview = () => $('#previewBtn').click();
   const normaliseParagraphs = () => {
