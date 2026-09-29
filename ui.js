@@ -409,7 +409,9 @@ window.addEventListener('DOMContentLoaded', () => {
   }, true);
   new MutationObserver(() => setTimeout(refreshChapterControls, 0)).observe(chapterList, { childList:true, subtree:true });
   refreshChapterControls();
+  const useAssetAwareExporter = true;
   exportButton.addEventListener('click', () => {
+    if (useAssetAwareExporter) return;
     if (!tocExcluded.size && !parentTocMap.size) return;
     const originalMap = Array.prototype.map;
     Array.prototype.map = function patchedMap(callback, thisArg) {
@@ -854,6 +856,112 @@ window.addEventListener('DOMContentLoaded', () => {
       assets: Array.from(previewAssets.entries()).map(([name, asset]) => ({ name, type:asset.type })),
     };
   };
+  const epubText = (value) => new TextEncoder().encode(value);
+  const epubEscape = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&apos;' }[character]));
+  const epubCrcTable = (() => {
+    const table = new Uint32Array(256);
+    for (let index = 0; index < 256; index += 1) {
+      let value = index;
+      for (let bit = 0; bit < 8; bit += 1) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+      table[index] = value >>> 0;
+    }
+    return table;
+  })();
+  const epubCrc = (bytes) => {
+    let value = 0xffffffff;
+    bytes.forEach((byte) => { value = epubCrcTable[(value ^ byte) & 255] ^ (value >>> 8); });
+    return (value ^ 0xffffffff) >>> 0;
+  };
+  const epubU16 = (value) => [value & 255, value >>> 8 & 255];
+  const epubU32 = (value) => [value & 255, value >>> 8 & 255, value >>> 16 & 255, value >>> 24 & 255];
+  const createEpubZip = (files) => {
+    const output = [];
+    const directory = [];
+    let offset = 0;
+    files.forEach((file) => {
+      const name = epubText(file.name);
+      const data = file.data;
+      const crc = epubCrc(data);
+      const header = new Uint8Array([...epubU32(0x04034b50), ...epubU16(20), ...epubU16(0), ...epubU16(0), ...epubU16(0), ...epubU16(0), ...epubU32(crc), ...epubU32(data.length), ...epubU32(data.length), ...epubU16(name.length), ...epubU16(0), ...name]);
+      output.push(header, data);
+      directory.push(new Uint8Array([...epubU32(0x02014b50), ...epubU16(20), ...epubU16(20), ...epubU16(0), ...epubU16(0), ...epubU16(0), ...epubU16(0), ...epubU32(crc), ...epubU32(data.length), ...epubU32(data.length), ...epubU16(name.length), ...epubU16(0), ...epubU16(0), ...epubU16(0), ...epubU16(0), ...epubU32(0), ...epubU32(offset), ...name]));
+      offset += header.length + data.length;
+    });
+    const directorySize = directory.reduce((total, item) => total + item.length, 0);
+    output.push(...directory, new Uint8Array([...epubU32(0x06054b50), ...epubU16(0), ...epubU16(0), ...epubU16(files.length), ...epubU16(files.length), ...epubU32(directorySize), ...epubU32(offset), ...epubU16(0)]));
+    return new Blob(output, { type:'application/epub+zip' });
+  };
+  const makeEpubNav = (chapters) => {
+    const included = chapters.filter((_, index) => !tocExcluded.has(index));
+    const visible = new Set(included.map((_, index) => chapters.indexOf(included[index])));
+    const parentFor = (index) => {
+      const seen = new Set([index]);
+      let parent = parentTocMap.get(index);
+      while (parent !== undefined && !seen.has(parent)) {
+        if (visible.has(parent)) return parent;
+        seen.add(parent);
+        parent = parentTocMap.get(parent);
+      }
+      return null;
+    };
+    const items = included.map((chapter) => ({ chapter, index:chapters.indexOf(chapter) }));
+    const render = (parent) => items.filter((item) => parentFor(item.index) === parent).map((item) => {
+      const children = render(item.index);
+      const link = `<a href="text/chapter-${String(item.index + 1).padStart(3, '0')}.xhtml">${epubEscape(item.chapter.title || '제목 없는 장')}</a>`;
+      return `<li>${link}${children ? `<ol>${children}</ol>` : ''}</li>`;
+    }).join('');
+    return `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>목차</title></head><body><nav epub:type="toc"><h1>목차</h1><ol>${render(null)}</ol></nav></body></html>`;
+  };
+  const exportAssetAwareEpub = async () => {
+    const draft = collectDraft();
+    const title = draft.title || '새 전자책';
+    const language = draft.language || 'ko';
+    const files = [
+      { name:'mimetype', data:epubText('application/epub+zip') },
+      { name:'META-INF/container.xml', data:epubText('<?xml version="1.0" encoding="UTF-8"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="EPUB/package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>') },
+      { name:'EPUB/styles/book.css', data:epubText(draft.css) },
+    ];
+    const manifest = ['<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>', '<item id="css" href="styles/book.css" media-type="text/css"/>'];
+    const spine = [];
+    if (draft.coverSource) {
+      const coverBlob = await fetch(draft.coverSource).then((response) => response.blob());
+      const coverExtension = coverBlob.type === 'image/png' ? 'png' : 'jpg';
+      const coverName = `cover.${coverExtension}`;
+      files.push({ name:`EPUB/images/${coverName}`, data:new Uint8Array(await coverBlob.arrayBuffer()) });
+      files.push({ name:'EPUB/text/cover.xhtml', data:epubText(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>표지</title><link rel="stylesheet" type="text/css" href="../styles/book.css"/></head><body><img src="../images/${coverName}" alt="표지"/></body></html>`) });
+      manifest.push(`<item id="cover-image" href="images/${coverName}" media-type="${coverBlob.type}" properties="cover-image"/>`, '<item id="cover-page" href="text/cover.xhtml" media-type="application/xhtml+xml"/>');
+      spine.push('<itemref idref="cover-page" linear="no"/>');
+    }
+    for (let index = 0; index < draft.chapters.length; index += 1) {
+      const chapter = draft.chapters[index];
+      const filename = `chapter-${String(index + 1).padStart(3, '0')}.xhtml`;
+      const body = chapter.body.replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[\da-f]+;)/gi, '&amp;').replace(/src=(['"])images\//g, 'src=$1../images/');
+      files.push({ name:`EPUB/text/${filename}`, data:epubText(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${epubEscape(language)}"><head><meta charset="UTF-8"/><title>${epubEscape(chapter.title || title)}</title><link rel="stylesheet" type="text/css" href="../styles/book.css"/></head><body>${body}</body></html>`) });
+      manifest.push(`<item id="chapter-${index + 1}" href="text/${filename}" media-type="application/xhtml+xml"/>`);
+      spine.push(`<itemref idref="chapter-${index + 1}"/>`);
+    }
+    for (let index = 0; index < draft.assets.length; index += 1) {
+      const asset = draft.assets[index];
+      const stored = previewAssets.get(asset.name);
+      if (!stored?.blob) continue;
+      files.push({ name:`EPUB/images/${asset.name}`, data:new Uint8Array(await stored.blob.arrayBuffer()) });
+      manifest.push(`<item id="image-${index + 1}" href="images/${epubEscape(asset.name)}" media-type="${epubEscape(asset.type || 'image/png')}"/>`);
+    }
+    files.push({ name:'EPUB/nav.xhtml', data:epubText(makeEpubNav(draft.chapters)) });
+    files.push({ name:'EPUB/package.opf', data:epubText(`<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="${epubEscape(language)}"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="pub-id">urn:uuid:${crypto.randomUUID()}</dc:identifier><dc:title>${epubEscape(title)}</dc:title>${draft.author ? `<dc:creator>${epubEscape(draft.author)}</dc:creator>` : ''}<dc:language>${epubEscape(language)}</dc:language><meta property="dcterms:modified">${new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')}</meta></metadata><manifest>${manifest.join('')}</manifest><spine>${spine.join('')}</spine></package>`) });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(createEpubZip(files));
+    link.download = `${title.replace(/[\\/:*?"<>|]/g, '-')}.epub`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1500);
+    setStatus(`[${title}] EPUB 3.0 파일을 다운로드했습니다. 다운로드 폴더를 확인하세요.`);
+  };
+  exportButton.addEventListener('click', (event) => {
+    if (!useAssetAwareExporter) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    exportAssetAwareEpub().catch((error) => setStatus(error.message || 'EPUB 파일을 만들지 못했습니다.', 'error'));
+  }, true);
   const loadDraft = async (draft) => {
     if (!draft?.chapters?.length) return;
     while (chapterList.querySelectorAll('.chapter[data-i]').length > 1) $('#del').click();
