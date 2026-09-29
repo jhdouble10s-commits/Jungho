@@ -19,7 +19,7 @@ uiStyle.textContent = `
   .primary { padding:8px 12px!important; border-radius:8px!important; background:var(--accent)!important; color:#fff!important; font-size:12px!important; line-height:1.2; box-shadow:none!important; }.primary:hover { transform:none!important; filter:brightness(1.08); }
   .book-inline { flex:1; margin-right:14px; }.book-inline .settings { max-width:none!important; padding:0!important; background:none!important; border:0!important; box-shadow:none!important; }.book-inline section { display:flex; align-items:center; gap:10px; }.book-inline .field { display:flex; align-items:center; gap:7px; margin:0!important; }.book-inline label { margin:0!important; white-space:nowrap; color:var(--sub)!important; font-size:clamp(12px,.73vw,18px)!important; }.book-inline input { width:130px!important; padding:3.5px 8px!important; }.book-inline .field:first-child input { width:195px!important; }.book-inline .cover { display:contents!important; border:0!important; padding:0!important; }.book-inline #coverInput,.book-inline .cover img { display:none!important; }.book-inline .cover-upload-button { display:inline-flex!important; align-items:center; height:29px; padding:0 10px; border:1px solid var(--accent)!important; border-radius:7px; background:var(--accent-soft); color:var(--accent)!important; font-size:12px!important; font-weight:700; cursor:pointer; }.book-inline .hint { display:none; }
   .grid { --chapter-width:270px; --preview-width:440px; min-width:0; max-width:100%; position:relative; grid-template-columns:var(--chapter-width) minmax(420px,1fr) var(--preview-width)!important; gap:16px!important; }.panel-resize-handle { position:absolute; top:0; bottom:0; z-index:10; width:14px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.panel-resize-handle::after { content:''; position:absolute; top:20%; bottom:20%; left:6px; width:2px; border-radius:2px; background:transparent; transition:background .15s; }.panel-resize-handle:hover::after,.panel-resize-handle.is-resizing::after { background:var(--accent); }.card { min-width:0; background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { min-width:0; padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
-  .chapter-card { display:flex; flex-direction:column; }.left-tabs { grid-template-columns:repeat(3,1fr)!important; }.left-panel-host { position:relative; flex:1; min-height:0; overflow:hidden; }.left-panel { display:none!important; position:absolute; inset:0; overflow:auto; }.left-panel.active { display:block!important; }.chapters { padding:8px!important; }.add { width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:transparent!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel,.left-panel#assetsPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel #images { display:none!important; }.left-panel#cssPanel .hint,.asset-hint { color:var(--sub)!important; }.asset-upload { display:flex; align-items:center; justify-content:center; width:100%; margin-bottom:10px; border:1px dashed var(--accent); border-radius:8px; padding:10px; color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; }.asset-hint { margin:0 0 10px; font-size:11px; line-height:1.5; }.cover-chapter { display:flex!important; align-items:center; gap:8px; }.cover-chapter::before { content:'▧'; color:var(--accent); font-size:14px; }
+  .chapter-card { display:flex; flex-direction:column; }.left-tabs { grid-template-columns:repeat(3,1fr)!important; }.left-panel-host { position:relative; flex:1; min-height:0; overflow:hidden; }.left-panel { display:none!important; position:absolute; inset:0; overflow:auto; }.left-panel.active { display:block!important; }.chapters { padding:8px!important; }.chapter { position:relative; padding-left:34px!important; }.toc-eye { position:absolute; left:7px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:var(--sub); cursor:pointer; }.toc-eye.is-hidden { opacity:.35; }.add { width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:transparent!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel,.left-panel#assetsPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel #images { display:none!important; }.left-panel#cssPanel .hint,.asset-hint { color:var(--sub)!important; }.asset-upload { display:flex; align-items:center; justify-content:center; width:100%; margin-bottom:10px; border:1px dashed var(--accent); border-radius:8px; padding:10px; color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; }.asset-hint { margin:0 0 10px; font-size:11px; line-height:1.5; }.asset-row { display:flex; align-items:center; gap:6px; margin:5px 0; }.asset-row .draft-item { flex:1; }.asset-insert { width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--accent-soft); color:var(--accent); font-size:18px; cursor:pointer; }.draft-row { display:flex; gap:4px; }.draft-row .draft-item { flex:1; }.draft-delete { width:30px; border:1px solid var(--line); border-radius:8px; background:transparent; color:#ff9c75; cursor:pointer; }.cover-chapter { display:flex!important; align-items:center; gap:8px; }.cover-chapter::before { content:'▧'; color:var(--accent); font-size:14px; }
   .editor-controls { min-width:0; display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.toolbar-viewport { position:relative; min-width:0; flex:1; overflow:hidden; }.rich-toolbar { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow:hidden; padding:5px 44px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); scrollbar-width:none; }.rich-toolbar::-webkit-scrollbar { display:none; }.toolbar-viewport::before,.toolbar-viewport::after { display:none; content:''; pointer-events:none; position:absolute; top:1px; bottom:1px; z-index:1; width:44px; }.toolbar-viewport.show-previous::before,.toolbar-viewport.show-next::after { display:block; }.toolbar-viewport::before { left:38px; background:linear-gradient(90deg,var(--surface-2),transparent); }.toolbar-viewport::after { right:38px; background:linear-gradient(90deg,transparent,var(--surface-2)); }.toolbar-previous,.toolbar-next { position:absolute; top:50%; z-index:2; width:29px; height:29px; transform:translateY(-50%); border:1px solid var(--accent); border-radius:7px; background:var(--surface-2); color:var(--accent); font:700 20px/22px system-ui; cursor:pointer; }.toolbar-previous { left:5px; }.toolbar-next { right:5px; }.toolbar-previous:hover,.toolbar-next:hover { background:var(--accent-soft); }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
   .preview-card .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }.device-controls { display:flex; align-items:center; gap:6px; }.device-controls select { max-width:118px; height:28px; border:1px solid var(--line); border-radius:6px; padding:0 5px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.preview-card { overflow:hidden; }.preview .cover-preview-page { display:flex; align-items:center; justify-content:center; min-height:100%; }.preview .cover-preview-page img { display:block; max-width:100%; max-height:100%; object-fit:contain; }.preview[data-device-preview="true"] { box-sizing:content-box; flex:none; margin:0 auto; border:8px solid #1b1b1e!important; border-radius:22px; box-shadow:0 10px 30px #00000045; transition:width .2s,height .2s; }
   .rich-toolbar button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }.rich-toolbar button svg { display:block; width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }.rich-toolbar input[data-font-size] { width:62px!important; height:29px; flex:none; font-size:11px!important; }.rich-toolbar input[data-table-color] { width:29px!important; height:29px; flex:none; }.table-color-control { display:flex; align-items:center; gap:4px; height:29px; flex:none; }.rich-toolbar .tool-label { flex:none; color:var(--sub); font-size:12px; line-height:29px; white-space:nowrap; }
@@ -28,6 +28,7 @@ uiStyle.textContent = `
   @media(max-width:1550px) { .grid { grid-template-columns:minmax(210px,var(--chapter-width)) minmax(0,1fr)!important; }.panel-resize-handle { display:none; }.preview-card { grid-column:1/-1; position:static; max-height:none; }.preview-card .preview { margin:auto; }.book-inline { min-width:0; overflow:hidden; } }
   @media(max-width:1050px) { .grid { grid-template-columns:240px minmax(0,1fr)!important; }.panel-resize-handle { display:none; }.preview-card { grid-column:1/-1; }.book-inline .field:nth-child(3) { display:none; } }
   @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:wrap; }.left-panel#cssPanel .css { height:260px!important; } }
+  .side nav { position:relative; }.new-book { position:absolute; top:7px; right:7px; z-index:2; width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--surface); color:var(--accent); font-size:19px; line-height:20px; cursor:pointer; }.new-book:hover { background:var(--accent-soft); }.chapter::before { content:'◉'; position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--accent); font-size:13px; }.chapter.is-toc-hidden::before { content:'○'; color:var(--sub); }.editor > .toolbar label[for="image"] { display:none!important; }.css-save { width:100%; margin:0 0 10px; padding:8px; font-size:12px; }
   @media(min-width:1921px) {
     main { max-width:none!important; width:100%!important; margin:0!important; padding:clamp(28px,2vw,72px)!important; }
     .grid { --chapter-width:clamp(270px,16vw,480px); --preview-width:minmax(480px,1fr); grid-template-columns:var(--chapter-width) minmax(620px,1.65fr) var(--preview-width)!important; gap:clamp(16px,1vw,30px)!important; }
@@ -236,7 +237,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const assetsPanel = document.createElement('div');
   assetsPanel.id = 'assetsPanel';
   assetsPanel.className = 'left-panel';
-  assetsPanel.innerHTML = '<label class="asset-upload" for="image">이미지·아이콘 업로드</label><p class="asset-hint">PNG, JPG, GIF, SVG 파일을 업로드해 본문 또는 아이콘으로 사용하세요.</p><ul id="assetList" class="images"></ul>';
+  assetsPanel.innerHTML = '<label class="asset-upload" for="image">이미지·아이콘 업로드</label><p class="asset-hint">PNG, JPG, GIF, SVG 파일을 업로드해 본문 또는 아이콘으로 사용하세요.</p><p class="asset-hint">본문 삽입 예시: <code>&lt;img src="images/파일명.png" alt="이미지 설명"&gt;</code></p><ul id="assetList" class="images"></ul>';
   panelHost.append(chapterControls, cssSettings, assetsPanel);
   chapterCard.append(panelHost);
 
@@ -266,33 +267,66 @@ window.addEventListener('DOMContentLoaded', () => {
   const editorFields = htmlEditor.closest('.fields');
   const tocLevel = $('#clevel');
   const tocField = tocLevel.parentElement;
-  tocField.querySelector('label').textContent = '목차 표시';
+  tocField.querySelector('label').textContent = '상위 목차';
   tocLevel.hidden = true;
   tocLevel.value = 1;
-  const tocToggle = document.createElement('input');
-  tocToggle.type = 'checkbox';
-  tocToggle.checked = true;
-  tocToggle.setAttribute('aria-label', '목차에 표시');
-  tocField.append(tocToggle);
+  const parentToc = document.createElement('select');
+  parentToc.setAttribute('aria-label', '상위 목차 선택');
+  tocField.append(parentToc);
   const tocExcluded = new Set();
-  const syncTocToggle = () => {
-    const index = Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
-    tocToggle.checked = !tocExcluded.has(index);
+  const parentTocMap = new Map();
+  const activeChapterIndex = () => {
+    return Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
   };
-  tocToggle.addEventListener('change', () => {
+  const refreshChapterControls = () => {
+    const activeIndex = activeChapterIndex();
+    const chapters = Array.from(chapterList.querySelectorAll('.chapter[data-i]'));
+    parentToc.replaceChildren(new Option('최상위 목차', ''));
+    chapters.forEach((chapter) => {
+      const index = Number(chapter.dataset.i);
+      if (index === activeIndex) return;
+      parentToc.add(new Option(chapter.textContent.trim(), String(index)));
+      const visible = !tocExcluded.has(index);
+      chapter.title = visible ? '왼쪽 눈 아이콘을 눌러 목차에서 숨길 수 있습니다.' : '왼쪽 눈 아이콘을 눌러 목차에 다시 표시할 수 있습니다.';
+      chapter.classList.toggle('is-toc-hidden', !visible);
+    });
+    parentToc.value = parentTocMap.get(activeIndex) ?? '';
+  };
+  parentToc.addEventListener('change', () => {
     const index = Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
-    if (tocToggle.checked) tocExcluded.delete(index);
-    else tocExcluded.add(index);
+    if (parentToc.value) parentTocMap.set(index, Number(parentToc.value));
+    else parentTocMap.delete(index);
   });
-  chapterList.addEventListener('click', () => setTimeout(syncTocToggle, 0));
+  chapterList.addEventListener('click', () => setTimeout(refreshChapterControls, 0));
+  chapterList.addEventListener('click', (event) => {
+    const chapter = event.target.closest('.chapter[data-i]');
+    if (!chapter || event.clientX - chapter.getBoundingClientRect().left > 34) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const index = Number(chapter.dataset.i);
+    if (tocExcluded.has(index)) tocExcluded.delete(index);
+    else tocExcluded.add(index);
+    refreshChapterControls();
+  }, true);
+  new MutationObserver(() => setTimeout(refreshChapterControls, 0)).observe(chapterList, { childList:true, subtree:true });
+  refreshChapterControls();
   exportButton.addEventListener('click', () => {
-    if (!tocExcluded.size) return;
+    if (!tocExcluded.size && !parentTocMap.size) return;
     const originalMap = Array.prototype.map;
     Array.prototype.map = function patchedMap(callback, thisArg) {
       const looksLikeChapters = this.length && this.every((item) => item && typeof item.title === 'string' && typeof item.body === 'string');
-      return looksLikeChapters
-        ? originalMap.call(this.filter((_, index) => !tocExcluded.has(index)), callback, thisArg)
-        : originalMap.call(this, callback, thisArg);
+      if (!looksLikeChapters) return originalMap.call(this, callback, thisArg);
+      const items = originalMap.call(this, (chapter, index) => ({
+        index,
+        markup: callback.call(thisArg, chapter, index),
+      })).filter((item) => !tocExcluded.has(item.index));
+      const renderChildren = (parent) => items
+        .filter((item) => (parentTocMap.get(item.index) ?? null) === parent)
+        .map((item) => {
+          const children = renderChildren(item.index);
+          return children ? item.markup.replace(/<\/li>$/, `<ol>${children}</ol></li>`) : item.markup;
+        }).join('');
+      return [renderChildren(null)];
     };
     setTimeout(() => { Array.prototype.map = originalMap; }, 0);
   }, true);
@@ -344,7 +378,14 @@ window.addEventListener('DOMContentLoaded', () => {
         image.alt = name;
         preview.append(image);
       });
-      item.append(button);
+      item.className = 'asset-row';
+      const insert = document.createElement('button');
+      insert.type = 'button';
+      insert.className = 'asset-insert';
+      insert.textContent = '+';
+      insert.title = '현재 커서 위치에 이미지 삽입';
+      insert.addEventListener('click', () => insertImageTag(name));
+      item.append(button, insert);
       list.append(item);
     });
   };
@@ -363,6 +404,29 @@ window.addEventListener('DOMContentLoaded', () => {
   visualEditor.contentEditable = 'true';
   visualEditor.setAttribute('aria-label', '일반 편집기');
   visualEditor.hidden = true;
+  let lastVisualRange = null;
+  const rememberVisualRange = () => {
+    const selection = window.getSelection();
+    if (selection?.rangeCount) lastVisualRange = selection.getRangeAt(0).cloneRange();
+  };
+  const insertImageTag = (name) => {
+    const markup = `<img src="images/${name}" alt="">`;
+    if (visualEditor.hidden) {
+      htmlEditor.setRangeText(markup, htmlEditor.selectionStart, htmlEditor.selectionEnd, 'end');
+      htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
+      htmlEditor.focus();
+      return;
+    }
+    visualEditor.focus();
+    if (lastVisualRange) {
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(lastVisualRange);
+    }
+    document.execCommand('insertHTML', false, markup);
+    syncFromVisual();
+    refreshPreview();
+  };
   const richToolbar = document.createElement('div');
   richToolbar.className = 'rich-toolbar';
   richToolbar.hidden = true;
@@ -462,14 +526,33 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     renderAssetShelf();
   };
+  const deleteDraftAssets = async (draft) => {
+    const database = await assetDatabase;
+    const transaction = database.transaction('assets', 'readwrite');
+    const store = transaction.objectStore('assets');
+    (draft.assets || []).forEach((asset) => store.delete(`${draft.title}:${asset.name}`));
+    await new Promise((resolve, reject) => { transaction.oncomplete = resolve; transaction.onerror = () => reject(transaction.error); });
+  };
   const draftButton = document.createElement('button');
   draftButton.type = 'button';
   draftButton.className = 'secondary';
   draftButton.textContent = '임시저장';
   exportButton.before(draftButton);
+  const cssSaveButton = document.createElement('button');
+  cssSaveButton.type = 'button';
+  cssSaveButton.className = 'secondary css-save';
+  cssSaveButton.textContent = '공통 CSS 저장';
+  cssSettings.querySelector('section')?.prepend(cssSaveButton);
   const draftsPanel = document.createElement('div');
   draftsPanel.className = 'drafts-panel';
   const editorTab = side.querySelector('.tab[data-view="editorView"]');
+  const newBookButton = document.createElement('button');
+  newBookButton.type = 'button';
+  newBookButton.className = 'new-book';
+  newBookButton.textContent = '+';
+  newBookButton.title = '새 전자책 만들기';
+  newBookButton.setAttribute('aria-label', '새 전자책 만들기');
+  editorTab?.parentElement.append(newBookButton);
   editorTab?.parentElement.insertAdjacentElement('afterend', draftsPanel);
   let draftsExpanded = false;
   editorTab?.setAttribute('aria-expanded', 'false');
@@ -493,6 +576,24 @@ window.addEventListener('DOMContentLoaded', () => {
     htmlEditor.value = chapter.body;
     htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
   };
+  newBookButton.addEventListener('click', () => {
+    while (chapterList.querySelectorAll('.chapter[data-i]').length > 1) $('#del').click();
+    setCurrentChapter({ title:'들어가는 글', level:1, body:'<h1>들어가는 글</h1><p>여기에 본문을 작성하세요.</p>' });
+    $('#title').value = '';
+    $('#author').value = '';
+    $('#language').value = 'ko';
+    $('#css').value = '';
+    tocExcluded.clear();
+    parentTocMap.clear();
+    previewAssets.forEach((asset) => { if (asset.url?.startsWith('blob:')) URL.revokeObjectURL(asset.url); });
+    previewAssets.clear();
+    coverPreview.removeAttribute('src');
+    coverPreview.hidden = true;
+    renderAssetShelf();
+    refreshChapterControls();
+    refreshPreview();
+    setStatus('새 전자책 편집을 시작했습니다.');
+  });
   const collectDraft = () => {
     if (!visualEditor.hidden) syncFromVisual();
     const activeIndex = Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
@@ -511,6 +612,7 @@ window.addEventListener('DOMContentLoaded', () => {
       chapters,
       activeIndex,
       tocExcluded: Array.from(tocExcluded),
+      parentToc: Array.from(parentTocMap.entries()),
       coverSource: coverPreview.getAttribute('src') || '',
       assets: Array.from(previewAssets.entries()).map(([name, asset]) => ({ name, type:asset.type })),
     };
@@ -529,10 +631,12 @@ window.addEventListener('DOMContentLoaded', () => {
     $('#css').value = draft.css || '';
     tocExcluded.clear();
     (draft.tocExcluded || []).forEach((index) => tocExcluded.add(index));
+    parentTocMap.clear();
+    (draft.parentToc || []).forEach(([child, parent]) => parentTocMap.set(Number(child), Number(parent)));
     await loadDraftAssets(draft);
     const selected = Math.max(0, Math.min(draft.activeIndex || 0, draft.chapters.length - 1));
     chapterList.querySelector(`.chapter[data-i="${selected}"]`)?.click();
-    syncTocToggle();
+    refreshChapterControls();
     if (draft.coverSource) {
       coverPreview.src = draft.coverSource;
       coverPreview.hidden = false;
@@ -548,13 +652,30 @@ window.addEventListener('DOMContentLoaded', () => {
     draftsPanel.replaceChildren();
     if (!drafts.length) return;
     drafts.forEach((draft) => {
+      const row = document.createElement('div');
+      row.className = 'draft-row';
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'draft-item';
       button.textContent = draft.title;
       button.title = draft.title;
       button.addEventListener('click', () => loadDraft(draft));
-      draftsPanel.append(button);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'draft-delete';
+      remove.title = '임시저장본 삭제';
+      remove.setAttribute('aria-label', `${draft.title} 삭제`);
+      remove.textContent = '🗑';
+      remove.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        if (!window.confirm(`“${draft.title}” 임시저장본을 정말 삭제할까요?`)) return;
+        await deleteDraftAssets(draft);
+        localStorage.setItem(draftStorageKey, JSON.stringify(getDrafts().filter((item) => item.title !== draft.title)));
+        renderDrafts();
+        setStatus(`“${draft.title}” 임시저장본을 삭제했습니다.`);
+      });
+      row.append(button, remove);
+      draftsPanel.append(row);
     });
   };
   draftButton.addEventListener('click', async () => {
@@ -574,6 +695,7 @@ window.addEventListener('DOMContentLoaded', () => {
       setStatus('임시저장 공간이 부족합니다. 이미지 용량을 줄인 뒤 다시 시도하세요.', 'error');
     }
   });
+  cssSaveButton.addEventListener('click', () => draftButton.click());
   renderDrafts();
 
   const refreshPreview = () => $('#previewBtn').click();
@@ -887,8 +1009,8 @@ window.addEventListener('DOMContentLoaded', () => {
     richToolbar.querySelector('[data-font-family]').value = activeBlock?.style.fontFamily || '';
   };
   visualEditor.addEventListener('input', () => { syncFromVisual(); updateToolbarState(); syncVisualPreview(); });
-  visualEditor.addEventListener('keyup', () => { updateToolbarState(); syncVisualPreview(); });
-  visualEditor.addEventListener('mouseup', () => { updateToolbarState(); syncVisualPreview(); });
+  visualEditor.addEventListener('keyup', () => { rememberVisualRange(); updateToolbarState(); syncVisualPreview(); });
+  visualEditor.addEventListener('mouseup', () => { rememberVisualRange(); updateToolbarState(); syncVisualPreview(); });
   richToolbar.addEventListener('click', (event) => {
     const button = event.target.closest('button');
     if (!button) return;
