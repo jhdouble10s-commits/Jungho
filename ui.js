@@ -59,6 +59,8 @@ uiStyle.textContent = `
   .editor-mode { padding:3px!important; }
   .editor-mode button { min-width:76px; padding:7px 9px!important; }
   .epub-topbar[hidden] { display:none!important; }
+  .account-area { position:relative; flex:none; margin-right:10px; }.account-button { border:1px solid var(--line); border-radius:8px; padding:8px 11px; background:var(--surface-2); color:var(--text); font:700 12px inherit; cursor:pointer; }.account-button:hover { border-color:var(--accent); color:var(--accent); }
+  .account-panel { position:absolute; top:calc(100% + 8px); right:0; z-index:40; width:270px; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--surface); box-shadow:0 18px 45px #0008; }.account-panel[hidden] { display:none; }.account-panel h3 { margin:0 0 10px; font-size:13px; }.account-panel label { display:block; margin:8px 0 4px; font-size:11px; color:var(--sub)!important; }.account-panel input { width:100%!important; height:34px; padding:6px 8px!important; }.account-actions { display:flex; gap:6px; margin-top:10px; }.account-actions button { flex:1; }.account-message { margin:8px 0 0; color:var(--sub); font-size:11px; line-height:1.4; }.account-message.error { color:#ff9c75; }.admin-panel { margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
   @media(max-width:1550px) { .preview-card { height:var(--workspace-panel-height)!important; max-height:var(--workspace-panel-height)!important; } }
   @media(max-width:700px) { .chapter-card,.editor,.preview-card { height:auto!important; max-height:none!important; }.editor .rich-editor { min-height:420px; }.editor .fields:has(.full:not([hidden])) .code-editor { min-height:420px; } }
 `;
@@ -199,6 +201,14 @@ window.addEventListener('DOMContentLoaded', () => {
     // 이후 다른 앱 탭을 추가해도 EPUB 책 정보·내보내기 바는 EPUB 탭에서만 보인다.
     top.hidden = tab.dataset.view !== 'editorView';
   }));
+  const accountArea = document.createElement('div');
+  accountArea.className = 'account-area';
+  accountArea.innerHTML = `<button type="button" class="account-button">로그인</button><div class="account-panel" hidden>
+    <h3>Sitescout 로그인</h3>
+    <form class="login-form"><label>아이디<input name="username" autocomplete="username" required pattern="[a-z0-9][a-z0-9_.-]{2,31}" /></label><label>비밀번호<input name="password" type="password" autocomplete="current-password" required minlength="6" /></label><div class="account-actions"><button type="submit" class="primary">로그인</button><button type="button" class="secondary account-close">닫기</button></div></form>
+    <p class="account-message" aria-live="polite"></p><div class="admin-panel" hidden><h3>사용자 아이디 발급</h3><form class="admin-form"><label>새 아이디<input name="username" required pattern="[a-z0-9][a-z0-9_.-]{2,31}" /></label><label>임시 비밀번호<input name="password" type="password" required minlength="6" /></label><button type="submit" class="secondary" style="width:100%;margin-top:10px">아이디 발급</button></form></div>
+  </div>`;
+  top.insertBefore(accountArea, exportButton);
   bookView.className = 'book-inline';
   const bookSettings = bookView.querySelector('.settings');
   bookSettings.querySelector('.head')?.remove();
@@ -694,10 +704,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0/+esm');
       supabaseClient = createClient(supabaseUrl, supabasePublishableKey);
       let { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) {
-        const { data, error } = await supabaseClient.auth.signInAnonymously();
-        if (error) throw error;
-        session = data.session;
+      if (session?.user?.is_anonymous) {
+        await supabaseClient.auth.signOut();
+        session = null;
       }
       supabaseUser = session?.user || null;
       return supabaseClient;
@@ -706,6 +715,66 @@ window.addEventListener('DOMContentLoaded', () => {
       return null;
     }
   })();
+  const accountButton = accountArea.querySelector('.account-button');
+  const accountPanel = accountArea.querySelector('.account-panel');
+  const loginForm = accountArea.querySelector('.login-form');
+  const adminForm = accountArea.querySelector('.admin-form');
+  const accountMessage = accountArea.querySelector('.account-message');
+  const adminPanel = accountArea.querySelector('.admin-panel');
+  const usernameEmail = (username) => `${String(username).trim().toLowerCase()}@users.sitescout.local`;
+  const setAccountMessage = (message, error = false) => {
+    accountMessage.textContent = message;
+    accountMessage.classList.toggle('error', error);
+  };
+  const refreshAccountUi = async () => {
+    const client = await cloudReady;
+    if (!client || !supabaseUser) {
+      accountButton.textContent = '로그인';
+      adminPanel.hidden = true;
+      return;
+    }
+    const username = supabaseUser.user_metadata?.username || supabaseUser.email?.split('@')[0] || '사용자';
+    accountButton.textContent = `${username} · 로그아웃`;
+    const { data } = await client.from('user_profiles').select('role').eq('user_id', supabaseUser.id).maybeSingle();
+    adminPanel.hidden = data?.role !== 'admin';
+  };
+  accountButton.addEventListener('click', async () => {
+    if (supabaseUser) {
+      const client = await cloudReady;
+      await client?.auth.signOut();
+      supabaseUser = null;
+      adminPanel.hidden = true;
+      setAccountMessage('로그아웃했습니다.');
+      await refreshAccountUi();
+      return;
+    }
+    accountPanel.hidden = !accountPanel.hidden;
+  });
+  accountArea.querySelector('.account-close').addEventListener('click', () => { accountPanel.hidden = true; });
+  loginForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(loginForm);
+    const client = await cloudReady;
+    if (!client) return setAccountMessage('Supabase에 연결할 수 없습니다.', true);
+    const { data, error } = await client.auth.signInWithPassword({ email:usernameEmail(form.get('username')), password:String(form.get('password')) });
+    if (error) return setAccountMessage(error.message || '로그인에 실패했습니다.', true);
+    supabaseUser = data.user;
+    await refreshAccountUi();
+    accountPanel.hidden = true;
+    setAccountMessage('로그인했습니다.');
+    await restoreCloudDrafts();
+    renderDrafts();
+  });
+  adminForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(adminForm);
+    const client = await cloudReady;
+    const { data, error } = await client.functions.invoke('account-admin', { body:{ username:form.get('username'), password:form.get('password'), action:'create' } });
+    if (error || data?.error) return setAccountMessage(data?.error || error?.message || '아이디 발급에 실패했습니다.', true);
+    adminForm.reset();
+    setAccountMessage(`아이디 ${data.username}을(를) 발급했습니다.`);
+  });
+  void refreshAccountUi();
   const cloudAssetPath = (title, name) => `${supabaseUser.id}/${encodeURIComponent(title)}/${encodeURIComponent(name)}`;
   const saveDraftAssets = async (title) => {
     const database = await assetDatabase;
