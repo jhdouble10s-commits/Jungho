@@ -750,6 +750,11 @@ window.addEventListener('DOMContentLoaded', () => {
   draftButton.className = 'secondary';
   draftButton.textContent = '임시저장';
   exportButton.before(draftButton);
+  const checkAllButton = document.createElement('button');
+  checkAllButton.type = 'button';
+  checkAllButton.className = 'secondary';
+  checkAllButton.textContent = '전체 HTML 검사';
+  exportButton.before(checkAllButton);
   const cssSaveButton = document.createElement('button');
   cssSaveButton.type = 'button';
   cssSaveButton.className = 'secondary css-save';
@@ -960,6 +965,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!useAssetAwareExporter) return;
     event.preventDefault();
     event.stopImmediatePropagation();
+    const errors = validateAllChapters();
+    if (errors.length) {
+      setStatus(`EPUB 내보내기 전에 HTML 오류 ${errors.length}건을 수정하세요.`, 'error');
+      return;
+    }
     exportAssetAwareEpub().catch((error) => setStatus(error.message || 'EPUB 파일을 만들지 못했습니다.', 'error'));
   }, true);
   const loadDraft = async (draft) => {
@@ -1050,6 +1060,7 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   draftButton.addEventListener('click', async () => {
     const draft = collectDraft();
+    const htmlErrors = validateAllChapters();
     if (!draft.title) { setStatus('책 제목을 입력한 뒤 임시저장하세요.', 'error'); return; }
     const drafts = getDrafts();
     const existingIndex = drafts.findIndex((item) => item.title === draft.title);
@@ -1074,6 +1085,7 @@ window.addEventListener('DOMContentLoaded', () => {
         setStatus(`“${draft.title}”을(를) 임시저장했습니다.`);
       }
       renderDrafts();
+      if (htmlErrors.length) setStatus(`임시저장은 완료했지만 HTML 오류 ${htmlErrors.length}건이 있습니다.`, 'error');
       try {
         await saveCloudDraft(draft);
       } catch (error) {
@@ -1270,8 +1282,7 @@ window.addEventListener('DOMContentLoaded', () => {
     lineNumbers.textContent = (rows.length ? rows : ['1']).join('\n');
     lineNumbers.style.transform = `translateY(-${htmlEditor.scrollTop}px)`;
   };
-  const validateHtml = () => {
-    const source = htmlEditor.value;
+  const findHtmlError = (source) => {
     const stack = [];
     const voidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
     const tags = /<\/?([a-zA-Z][\w:-]*)\b[^>]*>/g;
@@ -1294,12 +1305,32 @@ window.addEventListener('DOMContentLoaded', () => {
       const opened = stack.at(-1);
       error = { line:opened.line, message:`<${opened.tag}> 태그가 닫히지 않았습니다.` };
     }
+    return error;
+  };
+  const validateHtml = () => {
+    const error = findHtmlError(htmlEditor.value);
     htmlValidation.hidden = !error;
     if (error) {
       htmlValidation.textContent = `HTML 오류 · ${error.line}행: ${error.message}`;
       htmlValidation.title = htmlValidation.textContent;
     }
   };
+  const validateAllChapters = () => collectDraft().chapters.flatMap((chapter, index) => {
+    const error = findHtmlError(chapter.body);
+    return error ? [{ chapter:index + 1, title:chapter.title || '제목 없는 장', ...error }] : [];
+  });
+  checkAllButton.addEventListener('click', () => {
+    const errors = validateAllChapters();
+    if (!errors.length) {
+      setStatus('모든 장의 HTML 검사가 완료되었습니다. 오류가 없습니다.');
+      return;
+    }
+    const summary = errors.slice(0, 3).map((error) => `${error.chapter}장 ${error.line}행`).join(', ');
+    htmlValidation.hidden = false;
+    htmlValidation.textContent = `전체 HTML 오류 ${errors.length}건 · ${summary}${errors.length > 3 ? ' 외' : ''}`;
+    htmlValidation.title = errors.map((error) => `${error.chapter}장 “${error.title}” ${error.line}행: ${error.message}`).join('\n');
+    setStatus(`전체 HTML 검사에서 오류 ${errors.length}건을 찾았습니다.`, 'error');
+  });
   const setMode = (nextMode) => {
     const visual = nextMode === 'visual';
     if (visual) visualEditor.innerHTML = htmlEditor.value;
