@@ -20,6 +20,16 @@ uiStyle.textContent = `
   h1,h2,label { color:var(--text)!important; } input,textarea { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; } input:focus,textarea:focus { border-color:var(--accent)!important; box-shadow:0 0 0 3px #ff510030!important; }.secondary { background:var(--surface-2)!important; border-color:var(--line)!important; color:var(--text)!important; }.danger { color:#ff8660!important; }.chapter { color:var(--text)!important; }.chapter:hover { background:var(--surface-2)!important; }.chapter.active { background:var(--accent-soft)!important; color:var(--accent)!important; }.preview { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; }.preview-card .head { padding:0 0 12px!important; border-bottom:1px solid var(--line)!important; margin-bottom:12px; }.code { height:610px!important; }
   @media(max-width:1050px) { .grid { grid-template-columns:240px minmax(0,1fr)!important; }.preview-card { grid-column:1/-1; }.book-inline .field:nth-child(3) { display:none; } }
   @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.left-panel#cssPanel .css { height:260px!important; } }
+  @media(min-width:1921px) {
+    main { max-width:none!important; width:100%!important; margin:0!important; padding:clamp(28px,2vw,72px)!important; }
+    .grid { grid-template-columns:clamp(270px,16vw,480px) minmax(620px,1.65fr) minmax(480px,1fr)!important; gap:clamp(16px,1vw,30px)!important; }
+    .top { min-height:clamp(58px,4vw,96px); padding:clamp(10px,.8vw,20px) clamp(14px,1.1vw,28px)!important; }
+    .code { height:clamp(610px,48vw,1080px)!important; }.preview { height:clamp(680px,53vw,1180px)!important; }
+    .book-inline input { width:clamp(130px,8vw,240px)!important; padding:clamp(7px,.45vw,12px)!important; }
+    .primary { padding:clamp(8px,.5vw,14px) clamp(12px,.75vw,20px)!important; font-size:clamp(12px,.6vw,18px)!important; }
+    .left-tab,.secondary { font-size:clamp(12px,.58vw,17px)!important; }.chapter { padding:clamp(10px,.65vw,17px)!important; font-size:clamp(14px,.7vw,20px)!important; }
+    label,.head { font-size:clamp(12px,.58vw,17px)!important; }.top { font-size:clamp(14px,.7vw,20px); }
+  }
 `;
 window.addEventListener('DOMContentLoaded', () => {
   document.head.append(uiStyle);
