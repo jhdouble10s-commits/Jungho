@@ -466,6 +466,11 @@ window.addEventListener('DOMContentLoaded', () => {
       event.target.dispatchEvent(new Event('change', { bubbles: true }));
     }
   });
+  richToolbar.querySelector('[data-font-size]').addEventListener('input', (event) => {
+    if (/^\d+(?:\.\d+)?$/.test(event.target.value)) {
+      event.target.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
   richToolbar.querySelector('[data-font-size]').addEventListener('blur', (event) => {
     event.target.dispatchEvent(new Event('change', { bubbles: true }));
   });
