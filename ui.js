@@ -257,9 +257,12 @@ window.addEventListener('DOMContentLoaded', () => {
     if (button) setMode(button.dataset.mode);
   });
   let activeTable = null;
+  let activeBlock = null;
+  const editableBlock = (node) => node?.closest?.('p,h1,h2,h3,h4,h5,li,blockquote,td,th');
   const currentTable = () => activeTable || visualEditor.querySelector('table:last-of-type');
   visualEditor.addEventListener('click', (event) => {
     activeTable = event.target.closest('table');
+    activeBlock = editableBlock(event.target);
   });
   const makePasteFragment = (clipboard) => {
     const sourceHtml = clipboard.getData('text/html');
@@ -317,6 +320,7 @@ window.addEventListener('DOMContentLoaded', () => {
       richToolbar.querySelector(`[data-command="${selector}"]`)?.classList.toggle('active', document.queryCommandState(command));
     });
     const heading = node.closest('h1,h2,h3,h4,h5');
+    activeBlock = editableBlock(node);
     richToolbar.querySelector('[data-heading]').value = heading?.tagName.toLowerCase() || '';
     const list = node.closest('ol,ul');
     richToolbar.querySelector('[data-list]').value = list ? (list.tagName === 'UL' ? 'disc' : (list.style.listStyleType || 'decimal')) : '';
@@ -360,12 +364,18 @@ window.addEventListener('DOMContentLoaded', () => {
   richToolbar.querySelector('[data-font-size]').addEventListener('change', (event) => {
     const input = event.target;
     if (!input.value) {
-      const node = window.getSelection()?.anchorNode?.parentElement;
-      node?.closest('span[style*="font-size"]')?.style.removeProperty('font-size');
+      if (activeBlock) activeBlock.style.removeProperty('font-size');
+      else window.getSelection()?.anchorNode?.parentElement?.closest('span[style*="font-size"]')?.style.removeProperty('font-size');
       syncFromVisual();
       return;
     }
     const size = /^\d+(?:\.\d+)?$/.test(input.value) ? `${input.value}px` : input.value;
+    if (activeBlock) {
+      activeBlock.style.fontSize = size;
+      syncFromVisual();
+      updateToolbarState();
+      return;
+    }
     visualEditor.focus();
     document.execCommand('fontSize', false, '7');
     visualEditor.querySelectorAll('font[size="7"]').forEach((font) => {
@@ -375,6 +385,15 @@ window.addEventListener('DOMContentLoaded', () => {
       font.replaceWith(span);
     });
     syncFromVisual();
+  });
+  richToolbar.querySelector('[data-font-size]').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.target.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+  richToolbar.querySelector('[data-font-size]').addEventListener('blur', (event) => {
+    event.target.dispatchEvent(new Event('change', { bubbles: true }));
   });
   richToolbar.querySelector('[data-list]').addEventListener('change', (event) => {
     if (!event.target.value) return;
