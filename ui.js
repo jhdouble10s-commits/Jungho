@@ -18,6 +18,7 @@ uiStyle.textContent = `
   .grid { grid-template-columns:270px minmax(420px,1fr) minmax(320px,.78fr)!important; gap:16px!important; }.card { background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
   .left-panel { display:none!important; }.left-panel.active { display:block!important; }.chapters { padding:8px!important; }.add { width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:transparent!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel .hint,.left-panel#cssPanel .images { color:var(--sub)!important; }
   .editor-controls { display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.rich-toolbar { display:flex; flex:1; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow-x:auto; padding:5px 7px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
+  .preview-card .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }.device-controls { display:flex; align-items:center; gap:6px; }.device-controls select { max-width:118px; height:28px; border:1px solid var(--line); border-radius:6px; padding:0 5px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.preview-card { overflow:hidden; }.preview[data-device-preview="true"] { box-sizing:content-box; flex:none; margin:0 auto; border:8px solid #1b1b1e!important; border-radius:22px; box-shadow:0 10px 30px #00000045; transition:width .2s,height .2s; }
   .rich-toolbar button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }.rich-toolbar input[data-font-size] { width:62px!important; height:29px; flex:none; font-size:11px!important; }.rich-toolbar input[data-table-color] { width:29px!important; height:29px; flex:none; }.rich-toolbar .tool-label { flex:none; color:var(--sub); font-size:10px; white-space:nowrap; }
   h1,h2,label { color:var(--text)!important; } input,textarea { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; } input:focus,textarea:focus { border-color:var(--accent)!important; box-shadow:0 0 0 3px #ff510030!important; }.secondary { background:var(--surface-2)!important; border-color:var(--line)!important; color:var(--text)!important; }.danger { color:#ff8660!important; }.chapter { color:var(--text)!important; }.chapter:hover { background:var(--surface-2)!important; }.chapter.active { background:var(--accent-soft)!important; color:var(--accent)!important; }.preview { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; }.preview-card .head { padding:0 0 12px!important; border-bottom:1px solid var(--line)!important; margin-bottom:12px; }.code { height:610px!important; }
   @media(max-width:1050px) { .grid { grid-template-columns:240px minmax(0,1fr)!important; }.preview-card { grid-column:1/-1; }.book-inline .field:nth-child(3) { display:none; } }
@@ -49,6 +50,48 @@ window.addEventListener('DOMContentLoaded', () => {
   const chapterCard = chapterList.closest('.card');
   const chapterHeader = chapterCard.querySelector('.head');
   const chapterControls = chapterList.parentElement;
+  const preview = $('#preview');
+  const previewCard = preview.closest('.preview-card');
+  const previewHeader = previewCard.querySelector('.head');
+  const devicePresets = {
+    'iphone-16': { label: 'iPhone 16', width: 393, height: 852 },
+    'iphone-16-plus': { label: 'iPhone 16 Plus', width: 430, height: 932 },
+    'iphone-16-pro': { label: 'iPhone 16 Pro', width: 402, height: 874 },
+    'iphone-16-pro-max': { label: 'iPhone 16 Pro Max', width: 440, height: 956 },
+    'iphone-17': { label: 'iPhone 17', width: 393, height: 852 },
+    'iphone-17-air': { label: 'iPhone 17 Air', width: 430, height: 932 },
+    'iphone-17-pro': { label: 'iPhone 17 Pro', width: 402, height: 874 },
+    'iphone-17-pro-max': { label: 'iPhone 17 Pro Max', width: 440, height: 956 },
+    'iphone-18': { label: 'iPhone 18', width: 393, height: 852 },
+    'iphone-18-pro': { label: 'iPhone 18 Pro', width: 402, height: 874 },
+    'iphone-18-pro-max': { label: 'iPhone 18 Pro Max', width: 440, height: 956 },
+    'ipad-mini': { label: 'iPad mini', width: 744, height: 1133 },
+    'ipad': { label: 'iPad', width: 820, height: 1180 },
+    'ipad-air': { label: 'iPad Air', width: 820, height: 1180 },
+    'ipad-pro-11': { label: 'iPad Pro 11″', width: 834, height: 1194 },
+    'ipad-pro-13': { label: 'iPad Pro 13″', width: 1032, height: 1376 },
+  };
+  previewHeader.innerHTML = `<span>미리보기</span><div class="device-controls"><select id="phonePreview" aria-label="아이폰 미리보기"><option value="">아이폰</option><option value="iphone-16">iPhone 16</option><option value="iphone-16-plus">16 Plus</option><option value="iphone-16-pro">16 Pro</option><option value="iphone-16-pro-max">16 Pro Max</option><option value="iphone-17">iPhone 17</option><option value="iphone-17-air">17 Air</option><option value="iphone-17-pro">17 Pro</option><option value="iphone-17-pro-max">17 Pro Max</option><option value="iphone-18">iPhone 18</option><option value="iphone-18-pro">18 Pro</option><option value="iphone-18-pro-max">18 Pro Max</option></select><select id="tabletPreview" aria-label="태블릿 미리보기"><option value="">Tablet</option><option value="ipad-mini">iPad mini</option><option value="ipad">iPad</option><option value="ipad-air">iPad Air</option><option value="ipad-pro-11">iPad Pro 11″</option><option value="ipad-pro-13">iPad Pro 13″</option></select></div>`;
+  const phonePreview = $('#phonePreview');
+  const tabletPreview = $('#tabletPreview');
+  let selectedDevice = '';
+  const applyDevicePreview = () => {
+    const device = devicePresets[selectedDevice];
+    if (!device) {
+      preview.dataset.devicePreview = 'false';
+      preview.style.removeProperty('width');
+      preview.style.removeProperty('height');
+      return;
+    }
+    const availableWidth = Math.max(260, previewCard.clientWidth - 52);
+    const scale = Math.min(1, availableWidth / device.width, 780 / device.height);
+    preview.dataset.devicePreview = 'true';
+    preview.style.setProperty('width', `${Math.round(device.width * scale)}px`, 'important');
+    preview.style.setProperty('height', `${Math.round(device.height * scale)}px`, 'important');
+  };
+  phonePreview.addEventListener('change', () => { selectedDevice = phonePreview.value; if (selectedDevice) tabletPreview.value = ''; applyDevicePreview(); });
+  tabletPreview.addEventListener('change', () => { selectedDevice = tabletPreview.value; if (selectedDevice) phonePreview.value = ''; applyDevicePreview(); });
+  new ResizeObserver(applyDevicePreview).observe(previewCard);
 
   root.dataset.theme = localStorage.getItem('epub-theme') || 'dark';
 
