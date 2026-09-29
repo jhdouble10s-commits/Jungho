@@ -20,7 +20,7 @@ uiStyle.textContent = `
   .editor-controls { display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.rich-toolbar { display:flex; flex:1; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow-x:auto; padding:5px 7px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
   .preview-card .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }.device-controls { display:flex; align-items:center; gap:6px; }.device-controls select { max-width:118px; height:28px; border:1px solid var(--line); border-radius:6px; padding:0 5px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.preview-card { overflow:hidden; }.preview[data-device-preview="true"] { box-sizing:content-box; flex:none; margin:0 auto; border:8px solid #1b1b1e!important; border-radius:22px; box-shadow:0 10px 30px #00000045; transition:width .2s,height .2s; }
   .rich-toolbar button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }.rich-toolbar input[data-font-size] { width:62px!important; height:29px; flex:none; font-size:11px!important; }.rich-toolbar input[data-table-color] { width:29px!important; height:29px; flex:none; }.rich-toolbar .tool-label { flex:none; color:var(--sub); font-size:10px; white-space:nowrap; }
-  .rich-editor { height:clamp(420px,calc(100vh - 310px),900px); min-height:0; }.preview-card { position:sticky; top:24px; align-self:start; max-height:calc(100vh - 48px); display:flex; flex-direction:column; overflow:hidden; }.preview-card .preview { flex:none; }
+  .rich-editor { height:clamp(420px,calc(100vh - 310px),900px); min-height:0; }.preview-card { position:sticky; top:24px; align-self:start; max-height:calc(100vh - 48px); display:flex; flex-direction:column; overflow:hidden; }.preview-card .preview { flex:none; }.preview .preview-focus { background:#ff510018; outline:1px solid #ff5100aa; outline-offset:4px; border-radius:4px; transition:background .15s; }.preview mark.preview-context { background:#ff510052; color:inherit; border-radius:2px; padding:0 1px; }
   h1,h2,label { color:var(--text)!important; } input,textarea { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; } input:focus,textarea:focus { border-color:var(--accent)!important; box-shadow:0 0 0 3px #ff510030!important; }.secondary { background:var(--surface-2)!important; border-color:var(--line)!important; color:var(--text)!important; }.danger { color:#ff8660!important; }.chapter { color:var(--text)!important; }.chapter:hover { background:var(--surface-2)!important; }.chapter.active { background:var(--accent-soft)!important; color:var(--accent)!important; }.preview { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; }.preview-card .head { padding:0 0 12px!important; border-bottom:1px solid var(--line)!important; margin-bottom:12px; }.code { height:610px!important; }
   @media(max-width:1050px) { .grid { grid-template-columns:240px minmax(0,1fr)!important; }.preview-card { grid-column:1/-1; }.book-inline .field:nth-child(3) { display:none; } }
   @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:wrap; }.left-panel#cssPanel .css { height:260px!important; } }
@@ -216,6 +216,78 @@ window.addEventListener('DOMContentLoaded', () => {
     htmlEditor.dispatchEvent(new Event('input', { bubbles: true }));
     refreshPreview();
   };
+  const previewBlockSelector = 'p,h1,h2,h3,h4,h5,li,blockquote,td,th';
+  const clearPreviewFocus = () => {
+    preview.querySelectorAll('.preview-focus').forEach((node) => node.classList.remove('preview-focus'));
+    preview.querySelectorAll('mark.preview-context').forEach((mark) => mark.replaceWith(document.createTextNode(mark.textContent)));
+    preview.normalize();
+  };
+  const wordContext = (text, offset) => {
+    const words = Array.from(text.matchAll(/\S+/g));
+    if (!words.length) return null;
+    let current = words.findIndex((word) => offset >= word.index && offset <= word.index + word[0].length);
+    if (current < 0) current = words.findIndex((word) => word.index >= offset);
+    if (current < 0) current = words.length - 1;
+    const first = words[Math.max(0, current - 1)];
+    const last = words[Math.min(words.length - 1, current + 1)];
+    return { start: first.index, end: last.index + last[0].length };
+  };
+  const markPreviewContext = (target, offset) => {
+    const bounds = wordContext(target.textContent || '', offset);
+    if (!bounds) return;
+    let cursor = 0;
+    const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach((node) => {
+      const start = cursor;
+      const end = start + node.textContent.length;
+      cursor = end;
+      const from = Math.max(start, bounds.start);
+      const to = Math.min(end, bounds.end);
+      if (from >= to) return;
+      const fragment = document.createDocumentFragment();
+      const localStart = from - start;
+      const localEnd = to - start;
+      if (localStart) fragment.append(document.createTextNode(node.textContent.slice(0, localStart)));
+      const mark = document.createElement('mark');
+      mark.className = 'preview-context';
+      mark.textContent = node.textContent.slice(localStart, localEnd);
+      fragment.append(mark);
+      if (localEnd < node.textContent.length) fragment.append(document.createTextNode(node.textContent.slice(localEnd)));
+      node.replaceWith(fragment);
+    });
+  };
+  const focusPreviewBlock = (index, offset = 0) => {
+    clearPreviewFocus();
+    const target = preview.querySelectorAll(previewBlockSelector)[index];
+    if (!target) return;
+    target.classList.add('preview-focus');
+    markPreviewContext(target, offset);
+    preview.scrollTo({ top: Math.max(0, target.offsetTop - preview.clientHeight / 2 + target.clientHeight / 2), behavior: 'smooth' });
+  };
+  const visualCaretOffset = (block) => {
+    const selection = window.getSelection();
+    if (!selection?.rangeCount || !block) return 0;
+    const range = selection.getRangeAt(0);
+    if (!block.contains(range.startContainer)) return 0;
+    const before = range.cloneRange();
+    before.selectNodeContents(block);
+    before.setEnd(range.startContainer, range.startOffset);
+    return before.toString().length;
+  };
+  const syncVisualPreview = () => {
+    const selection = window.getSelection();
+    const node = selection?.anchorNode?.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
+    const block = editableBlock(node);
+    const index = Array.from(visualEditor.querySelectorAll(previewBlockSelector)).indexOf(block);
+    if (index >= 0) focusPreviewBlock(index, visualCaretOffset(block));
+  };
+  const syncHtmlPreview = () => {
+    const before = htmlEditor.value.slice(0, htmlEditor.selectionStart);
+    const matches = Array.from(before.matchAll(/<(p|h[1-5]|li|blockquote|td|th)\b[^>]*>/gi));
+    if (matches.length) focusPreviewBlock(matches.length - 1);
+  };
   const blockTags = new Set(['address', 'article', 'blockquote', 'div', 'figure', 'figcaption', 'h1', 'h2', 'h3', 'h4', 'h5', 'hr', 'li', 'ol', 'p', 'pre', 'section', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'ul']);
   const prettyHtml = (source) => {
     const wrapper = document.createElement('div');
@@ -250,8 +322,10 @@ window.addEventListener('DOMContentLoaded', () => {
     mode.querySelectorAll('button').forEach((button) => button.classList.toggle('active', button.dataset.mode === nextMode));
   };
   htmlEditor.addEventListener('input', () => {
-    if (!htmlField.hidden) refreshPreview();
+    if (!htmlField.hidden) { refreshPreview(); syncHtmlPreview(); }
   });
+  htmlEditor.addEventListener('click', syncHtmlPreview);
+  htmlEditor.addEventListener('keyup', syncHtmlPreview);
   mode.addEventListener('click', (event) => {
     const button = event.target.closest('[data-mode]');
     if (button) setMode(button.dataset.mode);
@@ -327,9 +401,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const sized = node.closest('span[style*="font-size"]');
     richToolbar.querySelector('[data-font-size]').value = sized?.style.fontSize?.replace('px', '') || '';
   };
-  visualEditor.addEventListener('input', () => { syncFromVisual(); updateToolbarState(); });
-  visualEditor.addEventListener('keyup', updateToolbarState);
-  visualEditor.addEventListener('mouseup', updateToolbarState);
+  visualEditor.addEventListener('input', () => { syncFromVisual(); updateToolbarState(); syncVisualPreview(); });
+  visualEditor.addEventListener('keyup', () => { updateToolbarState(); syncVisualPreview(); });
+  visualEditor.addEventListener('mouseup', () => { updateToolbarState(); syncVisualPreview(); });
   richToolbar.addEventListener('click', (event) => {
     const button = event.target.closest('button');
     if (!button) return;
