@@ -15,18 +15,18 @@ uiStyle.textContent = `
   main { max-width:1680px!important; padding:24px 32px 42px!important; }.top { display:flex!important; align-items:center; justify-content:flex-end!important; min-height:58px; margin:0 0 18px!important; padding:10px 14px!important; background:var(--surface)!important; border:1px solid var(--line)!important; border-radius:14px!important; box-shadow:none!important; }
   .primary { padding:8px 12px!important; border-radius:8px!important; background:var(--accent)!important; color:#fff!important; font-size:12px!important; line-height:1.2; box-shadow:none!important; }.primary:hover { transform:none!important; filter:brightness(1.08); }
   .book-inline { flex:1; margin-right:14px; }.book-inline .settings { max-width:none!important; padding:0!important; background:none!important; border:0!important; box-shadow:none!important; }.book-inline section { display:flex; align-items:center; gap:10px; }.book-inline .field { display:flex; align-items:center; gap:7px; margin:0!important; }.book-inline label { margin:0!important; white-space:nowrap; color:var(--sub)!important; }.book-inline input { width:130px!important; padding:7px 8px!important; }.book-inline .cover,.book-inline .hint { display:none; }
-  .grid { grid-template-columns:270px minmax(420px,1fr) minmax(320px,.78fr)!important; gap:16px!important; }.card { background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
+  .grid { --chapter-width:270px; --preview-width:440px; position:relative; grid-template-columns:var(--chapter-width) minmax(420px,1fr) var(--preview-width)!important; gap:16px!important; }.panel-resize-handle { position:absolute; top:0; bottom:0; z-index:10; width:14px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.panel-resize-handle::after { content:''; position:absolute; top:20%; bottom:20%; left:6px; width:2px; border-radius:2px; background:transparent; transition:background .15s; }.panel-resize-handle:hover::after,.panel-resize-handle.is-resizing::after { background:var(--accent); }.card { background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
   .left-panel { display:none!important; }.left-panel.active { display:block!important; }.chapters { padding:8px!important; }.add { width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:transparent!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel .hint,.left-panel#cssPanel .images { color:var(--sub)!important; }
   .editor-controls { display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.rich-toolbar { display:flex; flex:1; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow-x:auto; padding:5px 7px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
   .preview-card .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }.device-controls { display:flex; align-items:center; gap:6px; }.device-controls select { max-width:118px; height:28px; border:1px solid var(--line); border-radius:6px; padding:0 5px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.preview-card { overflow:hidden; }.preview[data-device-preview="true"] { box-sizing:content-box; flex:none; margin:0 auto; border:8px solid #1b1b1e!important; border-radius:22px; box-shadow:0 10px 30px #00000045; transition:width .2s,height .2s; }
   .rich-toolbar button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }.rich-toolbar input[data-font-size] { width:62px!important; height:29px; flex:none; font-size:11px!important; }.rich-toolbar input[data-table-color] { width:29px!important; height:29px; flex:none; }.rich-toolbar .tool-label { flex:none; color:var(--sub); font-size:10px; white-space:nowrap; }
   .rich-editor { height:clamp(420px,calc(100vh - 310px),900px); min-height:0; }.preview-card { position:sticky; top:24px; align-self:start; max-height:calc(100vh - 48px); display:flex; flex-direction:column; overflow:hidden; }.preview-card .preview { flex:none; }.preview .preview-focus { background:#ff510018; outline:1px solid #ff5100aa; outline-offset:4px; border-radius:4px; transition:background .15s; }.preview mark.preview-context { background:#ff510052; color:inherit; border-radius:2px; padding:0 1px; }
   h1,h2,label { color:var(--text)!important; } input,textarea { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; } input:focus,textarea:focus { border-color:var(--accent)!important; box-shadow:0 0 0 3px #ff510030!important; }.secondary { background:var(--surface-2)!important; border-color:var(--line)!important; color:var(--text)!important; }.danger { color:#ff8660!important; }.chapter { color:var(--text)!important; }.chapter:hover { background:var(--surface-2)!important; }.chapter.active { background:var(--accent-soft)!important; color:var(--accent)!important; }.preview { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; }.preview-card .head { padding:0 0 12px!important; border-bottom:1px solid var(--line)!important; margin-bottom:12px; }.code { height:610px!important; }
-  @media(max-width:1050px) { .grid { grid-template-columns:240px minmax(0,1fr)!important; }.preview-card { grid-column:1/-1; }.book-inline .field:nth-child(3) { display:none; } }
+  @media(max-width:1050px) { .grid { grid-template-columns:240px minmax(0,1fr)!important; }.panel-resize-handle { display:none; }.preview-card { grid-column:1/-1; }.book-inline .field:nth-child(3) { display:none; } }
   @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:wrap; }.left-panel#cssPanel .css { height:260px!important; } }
   @media(min-width:1921px) {
     main { max-width:none!important; width:100%!important; margin:0!important; padding:clamp(28px,2vw,72px)!important; }
-    .grid { grid-template-columns:clamp(270px,16vw,480px) minmax(620px,1.65fr) minmax(480px,1fr)!important; gap:clamp(16px,1vw,30px)!important; }
+    .grid { --chapter-width:clamp(270px,16vw,480px); --preview-width:minmax(480px,1fr); grid-template-columns:var(--chapter-width) minmax(620px,1.65fr) var(--preview-width)!important; gap:clamp(16px,1vw,30px)!important; }
     .top { min-height:clamp(58px,4vw,96px); padding:clamp(10px,.8vw,20px) clamp(14px,1.1vw,28px)!important; }
     .code { height:clamp(610px,48vw,1080px)!important; }.preview { height:clamp(680px,53vw,1180px)!important; }
     .book-inline input { width:clamp(130px,8vw,240px)!important; padding:clamp(7px,.45vw,12px)!important; }
@@ -54,6 +54,59 @@ window.addEventListener('DOMContentLoaded', () => {
   const preview = $('#preview');
   const previewCard = preview.closest('.preview-card');
   const previewHeader = previewCard.querySelector('.head');
+  const grid = chapterCard.parentElement;
+  const editorCard = chapterCard.nextElementSibling;
+  const resizeHandles = ['chapters', 'preview'].map((panel) => {
+    const handle = document.createElement('div');
+    handle.className = 'panel-resize-handle';
+    handle.dataset.resizePanel = panel;
+    handle.title = panel === 'chapters' ? '책 구성 영역 너비 조절' : '미리보기 영역 너비 조절';
+    grid.append(handle);
+    return handle;
+  });
+  const positionResizeHandles = () => {
+    resizeHandles[0].style.left = `${chapterCard.offsetLeft + chapterCard.offsetWidth + 8}px`;
+    resizeHandles[1].style.left = `${editorCard.offsetLeft + editorCard.offsetWidth + 8}px`;
+  };
+  const savedWidths = JSON.parse(localStorage.getItem('epub-panel-widths') || '{}');
+  if (Number.isFinite(savedWidths.chapters)) grid.style.setProperty('--chapter-width', `${savedWidths.chapters}px`);
+  if (Number.isFinite(savedWidths.preview)) grid.style.setProperty('--preview-width', `${savedWidths.preview}px`);
+  const savePanelWidths = () => localStorage.setItem('epub-panel-widths', JSON.stringify({
+    chapters: Math.round(chapterCard.getBoundingClientRect().width),
+    preview: Math.round(previewCard.getBoundingClientRect().width),
+  }));
+  resizeHandles.forEach((handle) => handle.addEventListener('pointerdown', (event) => {
+    if (window.matchMedia('(max-width: 1050px)').matches) return;
+    event.preventDefault();
+    const panel = handle.dataset.resizePanel;
+    const startX = event.clientX;
+    const startWidth = panel === 'chapters' ? chapterCard.getBoundingClientRect().width : previewCard.getBoundingClientRect().width;
+    const gridWidth = grid.getBoundingClientRect().width;
+    const chapterWidth = chapterCard.getBoundingClientRect().width;
+    const previewWidth = previewCard.getBoundingClientRect().width;
+    const maxWidth = panel === 'chapters'
+      ? gridWidth - previewWidth - 420 - 32
+      : gridWidth - chapterWidth - 420 - 32;
+    handle.setPointerCapture(event.pointerId);
+    handle.classList.add('is-resizing');
+    const resize = (moveEvent) => {
+      const delta = moveEvent.clientX - startX;
+      const next = panel === 'chapters' ? startWidth + delta : startWidth - delta;
+      grid.style.setProperty(panel === 'chapters' ? '--chapter-width' : '--preview-width', `${Math.round(Math.max(panel === 'chapters' ? 210 : 360, Math.min(maxWidth, next)))}px`);
+      positionResizeHandles();
+    };
+    const finish = () => {
+      handle.classList.remove('is-resizing');
+      handle.removeEventListener('pointermove', resize);
+      handle.removeEventListener('pointerup', finish);
+      handle.removeEventListener('pointercancel', finish);
+      savePanelWidths();
+    };
+    handle.addEventListener('pointermove', resize);
+    handle.addEventListener('pointerup', finish);
+    handle.addEventListener('pointercancel', finish);
+  }));
+  new ResizeObserver(positionResizeHandles).observe(grid);
   const devicePresets = {
     'iphone-16': { label: 'iPhone 16', width: 393, height: 852 },
     'iphone-16-plus': { label: 'iPhone 16 Plus', width: 430, height: 932 },
@@ -171,6 +224,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <select data-heading aria-label="제목 단계"><option value="">본문</option><option value="h1">제목 1</option><option value="h2">제목 2</option><option value="h3">제목 3</option><option value="h4">제목 4</option><option value="h5">제목 5</option></select>
     <input data-font-size list="font-size-options" inputmode="numeric" aria-label="글자 크기" placeholder="기본" title="글자 크기 직접 입력">
     <datalist id="font-size-options"><option value="10"><option value="11"><option value="12"><option value="13"><option value="14"><option value="15"><option value="16"><option value="20"><option value="24"><option value="32"><option value="36"><option value="40"><option value="48"><option value="64"></datalist>
+    <select data-font-family aria-label="글꼴"><option value="">기본 글꼴</option><option value="sans-serif">고딕</option><option value="serif">명조</option><option value="monospace">고정폭</option><option value="system-ui">기기 기본</option></select>
     <label title="글자색"><input type="color" value="#FF5100" aria-label="글자색"></label>
     <span class="tool-separator"></span>
     <button type="button" data-command="justifyLeft" title="왼쪽 정렬">≡</button>
@@ -381,7 +435,14 @@ window.addEventListener('DOMContentLoaded', () => {
     container.querySelectorAll('script,style,link,meta,iframe,object,embed').forEach((node) => node.remove());
     container.querySelectorAll('*').forEach((node) => Array.from(node.attributes).forEach((attribute) => {
       if (attribute.name.toLowerCase().startsWith('on')) node.removeAttribute(attribute.name);
+      if (attribute.name.toLowerCase() === 'bgcolor') node.removeAttribute(attribute.name);
     }));
+    container.querySelectorAll('*').forEach((node) => {
+      node.style.removeProperty('background');
+      node.style.removeProperty('background-color');
+      node.style.removeProperty('background-image');
+      if (!node.getAttribute('style')?.trim()) node.removeAttribute('style');
+    });
     const fragment = document.createDocumentFragment();
     Array.from(container.childNodes).forEach((node) => fragment.append(node));
     return fragment;
@@ -437,6 +498,7 @@ window.addEventListener('DOMContentLoaded', () => {
     richToolbar.querySelector('[data-list]').value = list ? (list.tagName === 'UL' ? 'disc' : (list.style.listStyleType || 'decimal')) : '';
     const sized = node.closest('span[style*="font-size"]');
     richToolbar.querySelector('[data-font-size]').value = sized?.style.fontSize?.replace('px', '') || '';
+    richToolbar.querySelector('[data-font-family]').value = activeBlock?.style.fontFamily || '';
   };
   visualEditor.addEventListener('input', () => { syncFromVisual(); updateToolbarState(); syncVisualPreview(); });
   visualEditor.addEventListener('keyup', () => { updateToolbarState(); syncVisualPreview(); });
@@ -510,6 +572,17 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   richToolbar.querySelector('[data-font-size]').addEventListener('blur', (event) => {
     event.target.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  richToolbar.querySelector('[data-font-family]').addEventListener('change', (event) => {
+    const fontFamily = event.target.value;
+    const selection = window.getSelection();
+    const node = selection?.anchorNode?.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
+    const block = activeBlock || editableBlock(node);
+    if (!block) return;
+    if (fontFamily) block.style.fontFamily = fontFamily;
+    else block.style.removeProperty('font-family');
+    syncFromVisual();
+    updateToolbarState();
   });
   richToolbar.querySelector('[data-list]').addEventListener('change', (event) => {
     if (!event.target.value) return;
