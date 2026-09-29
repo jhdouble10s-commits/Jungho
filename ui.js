@@ -269,12 +269,11 @@ window.addEventListener('DOMContentLoaded', () => {
     toolbarNext.hidden = maxScroll <= 2 || richToolbar.scrollLeft >= maxScroll - 2;
   };
   const scrollToolbar = (direction) => {
-    const visibleStart = richToolbar.scrollLeft + 42;
     const visibleEnd = richToolbar.scrollLeft + richToolbar.clientWidth - 42;
     const controls = Array.from(richToolbar.children);
     const target = direction > 0
       ? controls.find((control) => control.offsetLeft + control.offsetWidth > visibleEnd + 2)
-      : controls.filter((control) => control.offsetLeft < visibleStart - 2).at(-1);
+      : controls.filter((control) => control.offsetWidth && control.offsetLeft + control.offsetWidth < richToolbar.scrollLeft - 8).at(-1);
     richToolbar.scrollTo({
       left: target ? Math.max(0, target.offsetLeft - 8) : (direction > 0 ? richToolbar.scrollWidth - richToolbar.clientWidth : 0),
       behavior: 'smooth',
