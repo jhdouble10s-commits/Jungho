@@ -305,7 +305,6 @@ window.addEventListener('DOMContentLoaded', () => {
   htmlEditor.before(codeEditor);
   codeEditor.append(lineNumbers, htmlEditor);
   const previewAssets = new Map();
-  const pendingAssets = [];
   const sanitiseSvg = (source) => source
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/\son[a-z]+\s*=\s*(["']).*?\1/gi, '')
@@ -313,11 +312,11 @@ window.addEventListener('DOMContentLoaded', () => {
   const toPreviewAsset = async (file) => {
     if (file.type === 'image/svg+xml') {
       const safeSvg = sanitiseSvg(await file.text());
-      return { type:file.type, url:`data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(safeSvg)))}` };
+      return { type:file.type, url:`data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(safeSvg)))}`, blob:new Blob([safeSvg], { type:'image/svg+xml' }) };
     }
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve({ type:file.type, url:reader.result });
+      reader.onload = () => resolve({ type:file.type, url:reader.result, blob:file });
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
@@ -329,19 +328,38 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   };
   new MutationObserver(hydratePreviewAssets).observe(preview, { childList:true, subtree:true });
-  new MutationObserver(() => {
-    const names = Array.from($('#images').querySelectorAll('li')).map((item) => item.textContent);
-    while (pendingAssets.length && names.length) {
-      const nextName = names.find((name) => !previewAssets.has(name));
-      if (!nextName) break;
-      previewAssets.set(nextName, pendingAssets.shift());
+  const imageInput = $('#image');
+  const renderAssetShelf = () => {
+    const list = $('#images');
+    list.replaceChildren();
+    previewAssets.forEach((asset, name) => {
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'draft-item';
+      button.textContent = name;
+      button.title = `${name} 미리보기`;
+      button.addEventListener('click', () => {
+        preview.replaceChildren();
+        const image = document.createElement('img');
+        image.src = asset.url;
+        image.alt = name;
+        preview.append(image);
+      });
+      item.append(button);
+      list.append(item);
+    });
+  };
+  imageInput.onchange = async (event) => {
+    const files = Array.from(event.target.files || []);
+    for (const file of files) {
+      const extension = (file.name.split('.').pop() || 'png').toLowerCase();
+      const name = `${file.name.replace(/\.[^.]+$/, '')}-${crypto.randomUUID().slice(0, 8)}.${extension}`;
+      previewAssets.set(name, await toPreviewAsset(file));
     }
-    hydratePreviewAssets();
-  }).observe($('#images'), { childList:true });
-  $('#image').addEventListener('change', async (event) => {
-    const assets = await Promise.all(Array.from(event.target.files || []).map(toPreviewAsset));
-    pendingAssets.push(...assets);
-  });
+    renderAssetShelf();
+    event.target.value = '';
+  };
   const visualEditor = document.createElement('div');
   visualEditor.className = 'rich-editor';
   visualEditor.contentEditable = 'true';
@@ -423,6 +441,29 @@ window.addEventListener('DOMContentLoaded', () => {
   requestAnimationFrame(updateToolbarNavigation);
 
   const draftStorageKey = 'epub-builder-drafts-v1';
+  const assetDatabase = new Promise((resolve, reject) => {
+    const request = indexedDB.open('epub-builder-assets', 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('assets');
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  const saveDraftAssets = async (title) => {
+    const database = await assetDatabase;
+    const transaction = database.transaction('assets', 'readwrite');
+    const store = transaction.objectStore('assets');
+    previewAssets.forEach((asset, name) => store.put(asset.blob, `${title}:${name}`));
+    await new Promise((resolve, reject) => { transaction.oncomplete = resolve; transaction.onerror = () => reject(transaction.error); });
+  };
+  const loadDraftAssets = async (draft) => {
+    previewAssets.clear();
+    const database = await assetDatabase;
+    const store = database.transaction('assets', 'readonly').objectStore('assets');
+    for (const asset of draft.assets || []) {
+      const blob = await new Promise((resolve) => { const request = store.get(`${draft.title}:${asset.name}`); request.onsuccess = () => resolve(request.result); request.onerror = () => resolve(null); });
+      if (blob) previewAssets.set(asset.name, { type:asset.type, blob, url:URL.createObjectURL(blob) });
+    }
+    renderAssetShelf();
+  };
   const draftButton = document.createElement('button');
   draftButton.type = 'button';
   draftButton.className = 'secondary';
@@ -473,10 +514,10 @@ window.addEventListener('DOMContentLoaded', () => {
       activeIndex,
       tocExcluded: Array.from(tocExcluded),
       coverSource: coverPreview.getAttribute('src') || '',
-      assets: Array.from(previewAssets.entries()),
+      assets: Array.from(previewAssets.entries()).map(([name, asset]) => ({ name, type:asset.type })),
     };
   };
-  const loadDraft = (draft) => {
+  const loadDraft = async (draft) => {
     if (!draft?.chapters?.length) return;
     while (chapterList.querySelectorAll('.chapter[data-i]').length > 1) $('#del').click();
     setCurrentChapter(draft.chapters[0]);
@@ -490,8 +531,7 @@ window.addEventListener('DOMContentLoaded', () => {
     $('#css').value = draft.css || '';
     tocExcluded.clear();
     (draft.tocExcluded || []).forEach((index) => tocExcluded.add(index));
-    previewAssets.clear();
-    (draft.assets || []).forEach(([name, asset]) => previewAssets.set(name, asset));
+    await loadDraftAssets(draft);
     const selected = Math.max(0, Math.min(draft.activeIndex || 0, draft.chapters.length - 1));
     chapterList.querySelector(`.chapter[data-i="${selected}"]`)?.click();
     syncTocToggle();
@@ -519,7 +559,7 @@ window.addEventListener('DOMContentLoaded', () => {
       draftsPanel.append(button);
     });
   };
-  draftButton.addEventListener('click', () => {
+  draftButton.addEventListener('click', async () => {
     const draft = collectDraft();
     if (!draft.title) { setStatus('책 제목을 입력한 뒤 임시저장하세요.', 'error'); return; }
     const drafts = getDrafts();
@@ -528,6 +568,7 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
     try {
+      await saveDraftAssets(draft.title);
       localStorage.setItem(draftStorageKey, JSON.stringify([...drafts, draft]));
       renderDrafts();
       setStatus(`“${draft.title}”을(를) 임시저장했습니다.`);
