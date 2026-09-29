@@ -30,7 +30,7 @@ uiStyle.textContent = `
   @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:wrap; }.left-panel#cssPanel .css { height:260px!important; } }
   .side nav { position:relative; }.new-book { position:absolute; top:7px; right:7px; z-index:2; width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--surface); color:var(--accent); font-size:19px; line-height:20px; cursor:pointer; }.new-book:hover { background:var(--accent-soft); }.chapter { padding-left:10px!important; padding-right:38px!important; }.chapter::after { content:''; position:absolute; right:11px; top:50%; width:16px; height:16px; transform:translateY(-50%); background:var(--accent); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.chapter.is-toc-hidden { color:var(--sub)!important; background:transparent!important; }.chapter.is-toc-hidden::after { background:#777; opacity:1; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.asset-rename { width:28px; height:28px; border:1px solid var(--line); border-radius:7px; background:var(--surface-2); color:var(--sub); font-size:15px; cursor:pointer; }.asset-rename:hover { border-color:var(--accent); color:var(--accent); }.fields select { height:36px; width:100%; border:1px solid var(--line); border-radius:8px; padding:0 30px 0 10px; background:var(--bg); color:var(--text); font:600 13px inherit; cursor:pointer; appearance:auto; }.fields select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; outline:0; }.editor > .toolbar label[for="image"] { display:none!important; }.css-save { width:100%; margin:0 0 10px; padding:8px; font-size:12px; }.status.ok,.status.error { position:fixed!important; top:20px; right:20px; z-index:1000; display:flex!important; align-items:center; min-height:46px; max-width:min(440px,calc(100vw - 40px)); margin:0!important; padding:12px 44px 12px 15px!important; border:1px solid #ffffff38; border-radius:11px; background:#0000001a!important; color:#fff!important; box-shadow:0 14px 36px #00000028; -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px); opacity:1; transform:translateY(0); transition:opacity .28s ease,transform .28s ease; }.status.error { border-color:#ff8b72aa; }.status.is-leaving { opacity:0; transform:translateY(-8px); }
   .fields { grid-template-columns:minmax(0,1fr) minmax(170px,.3fr)!important; align-items:end; }.fields > div:not(.full) { display:flex; min-width:0; flex-direction:column; }.fields > div:not(.full) label { height:16px; margin-bottom:6px!important; font-size:12px!important; line-height:16px!important; }.fields > div:not(.full) input,.fields > div:not(.full) select { height:36px!important; min-height:36px; padding:0 10px!important; }.chapter::after { background:#FF5100!important; }.chapter.is-toc-hidden::after { background:#707078!important; }.chapter.is-toc-hidden { color:#707078!important; }
-  .code-editor .code { overflow:auto!important; white-space:pre!important; }.preview p,.preview h1,.preview h2,.preview h3,.preview h4,.preview h5,.preview li,.preview blockquote,.preview td,.preview th { cursor:text; }.fields { position:relative; --chapter-title-width:calc(68% - 8px); grid-template-columns:var(--chapter-title-width) minmax(170px,1fr)!important; }.field-resize-handle { position:absolute; top:0; bottom:auto; left:var(--chapter-title-width); z-index:4; width:14px; height:58px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.field-resize-handle::after { content:''; position:absolute; top:20px; bottom:2px; left:6px; width:2px; border-radius:2px; background:var(--line); transition:background .15s; }.field-resize-handle:hover::after,.field-resize-handle.is-resizing::after { background:var(--accent); }
+  .code-editor .code { overflow:auto!important; white-space:pre!important; }.preview p,.preview h1,.preview h2,.preview h3,.preview h4,.preview h5,.preview li,.preview blockquote,.preview td,.preview th { cursor:text; }.fields { position:relative; grid-template-columns:minmax(0,1fr) minmax(170px,.3fr)!important; }.fields.is-custom-width { grid-template-columns:var(--chapter-title-width) minmax(170px,1fr)!important; }.field-resize-handle { position:absolute; top:0; bottom:auto; left:0; z-index:4; width:14px; height:58px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.field-resize-handle::after { content:''; position:absolute; top:20px; bottom:2px; left:6px; width:2px; border-radius:2px; background:var(--line); transition:background .15s; }.field-resize-handle:hover::after,.field-resize-handle.is-resizing::after { background:var(--accent); }
   @media(min-width:1921px) {
     main { max-width:none!important; width:100%!important; margin:0!important; padding:clamp(28px,2vw,72px)!important; }
     .grid { --chapter-width:clamp(270px,16vw,480px); --preview-width:minmax(480px,1fr); grid-template-columns:var(--chapter-width) minmax(620px,1.65fr) var(--preview-width)!important; gap:clamp(16px,1vw,30px)!important; }
@@ -281,7 +281,20 @@ window.addEventListener('DOMContentLoaded', () => {
   fieldResizeHandle.title = '장 제목과 상위 목차 영역 너비 조절';
   editorFields.append(fieldResizeHandle);
   const savedFieldWidth = Number(localStorage.getItem('epub-chapter-title-width'));
-  if (Number.isFinite(savedFieldWidth)) editorFields.style.setProperty('--chapter-title-width', `${savedFieldWidth}px`);
+  if (Number.isFinite(savedFieldWidth) && savedFieldWidth > 220) {
+    editorFields.classList.add('is-custom-width');
+    editorFields.style.setProperty('--chapter-title-width', `${savedFieldWidth}px`);
+  }
+  const positionFieldResizeHandle = () => {
+    const titleField = editorFields.querySelector(':scope > div');
+    if (!titleField) return;
+    const titleBounds = titleField.getBoundingClientRect();
+    const tocBounds = tocField.getBoundingClientRect();
+    const fieldsBounds = editorFields.getBoundingClientRect();
+    fieldResizeHandle.style.left = `${Math.round((titleBounds.right + tocBounds.left) / 2 - fieldsBounds.left)}px`;
+  };
+  new ResizeObserver(positionFieldResizeHandle).observe(editorFields);
+  requestAnimationFrame(positionFieldResizeHandle);
   fieldResizeHandle.addEventListener('pointerdown', (event) => {
     event.preventDefault();
     fieldResizeHandle.setPointerCapture(event.pointerId);
@@ -291,7 +304,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!fieldResizeHandle.hasPointerCapture(event.pointerId)) return;
     const bounds = editorFields.getBoundingClientRect();
     const width = Math.max(220, Math.min(bounds.width - 180, event.clientX - bounds.left));
+    editorFields.classList.add('is-custom-width');
     editorFields.style.setProperty('--chapter-title-width', `${Math.round(width)}px`);
+    requestAnimationFrame(positionFieldResizeHandle);
   });
   const stopFieldResize = (event) => {
     if (!fieldResizeHandle.hasPointerCapture(event.pointerId)) return;
@@ -299,6 +314,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fieldResizeHandle.classList.remove('is-resizing');
     const width = Math.round(editorFields.querySelector(':scope > div')?.getBoundingClientRect().width || 0);
     if (width) localStorage.setItem('epub-chapter-title-width', String(width));
+    positionFieldResizeHandle();
   };
   fieldResizeHandle.addEventListener('pointerup', stopFieldResize);
   fieldResizeHandle.addEventListener('pointercancel', stopFieldResize);
