@@ -647,7 +647,9 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   newBookButton.addEventListener('click', () => {
     while (chapterList.querySelectorAll('.chapter[data-i]').length > 1) $('#del').click();
-    setCurrentChapter({ title:'들어가는 글', level:1, body:'<h1>들어가는 글</h1><p>여기에 본문을 작성하세요.</p>' });
+    const starterChapter = { title:'들어가는 글', level:1, body:'<h1>들어가는 글</h1><p>여기에 본문을 작성하세요.</p>' };
+    setCurrentChapter(starterChapter);
+    visualEditor.innerHTML = starterChapter.body;
     $('#title').value = '';
     $('#author').value = '';
     $('#language').value = 'ko';
