@@ -42,6 +42,25 @@ uiStyle.textContent = `
     .left-tab,.secondary { font-size:clamp(12px,.58vw,17px)!important; }.chapter { padding:clamp(10px,.65vw,17px)!important; font-size:clamp(14px,.7vw,20px)!important; }
     label,.head { font-size:clamp(12px,.58vw,17px)!important; }.top { font-size:clamp(14px,.7vw,20px); }
   }
+  /* EPUB 작업 화면의 세 패널은 같은 가용 높이를 쓰되, 창 높이에 따라 함께 변한다. */
+  .grid { --workspace-panel-height:clamp(420px,calc(100vh - 220px),1100px); align-items:stretch!important; }
+  .chapter-card,.editor,.preview-card { height:var(--workspace-panel-height)!important; max-height:var(--workspace-panel-height)!important; }
+  .preview-card { position:static!important; align-self:stretch!important; display:flex; flex-direction:column; }
+  .preview-card .preview { flex:1!important; min-height:0; height:auto!important; }
+  .editor { display:flex; flex-direction:column; overflow:hidden; }
+  .editor-controls { flex:none; }
+  .editor .fields { flex:none; min-height:0; row-gap:18px!important; }
+  .editor .fields > .full { margin-top:4px; }
+  .editor .fields:has(.full:not([hidden])) { flex:1; display:grid; grid-template-rows:auto minmax(0,1fr); }
+  .editor .fields:has(.full:not([hidden])) > .full { min-height:0; display:flex; flex-direction:column; }
+  .editor .fields:has(.full:not([hidden])) .code-editor { flex:1; min-height:0; height:auto!important; }
+  .editor .rich-editor { flex:1; min-height:0; height:auto!important; }
+  #xhtml-monaco-editor { height:100%!important; }
+  .editor-mode { padding:3px!important; }
+  .editor-mode button { min-width:76px; padding:7px 9px!important; }
+  .epub-topbar[hidden] { display:none!important; }
+  @media(max-width:1550px) { .preview-card { height:var(--workspace-panel-height)!important; max-height:var(--workspace-panel-height)!important; } }
+  @media(max-width:700px) { .chapter-card,.editor,.preview-card { height:auto!important; max-height:none!important; }.editor .rich-editor { min-height:420px; }.editor .fields:has(.full:not([hidden])) .code-editor { min-height:420px; } }
 `;
 window.addEventListener('DOMContentLoaded', () => {
   document.head.append(uiStyle);
@@ -66,8 +85,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const fitChapterPanelToViewport = () => {
     const topOffset = chapterCard.getBoundingClientRect().top;
     const height = Math.max(260, window.innerHeight - topOffset - 24);
-    chapterCard.style.height = `${Math.round(height)}px`;
-    chapterCard.style.maxHeight = `${Math.round(height)}px`;
+    grid.style.setProperty('--workspace-panel-height', `${Math.round(height)}px`);
   };
   window.addEventListener('resize', fitChapterPanelToViewport);
   requestAnimationFrame(fitChapterPanelToViewport);
@@ -176,6 +194,11 @@ window.addEventListener('DOMContentLoaded', () => {
   `);
 
   top.querySelector('div').remove();
+  top.classList.add('epub-topbar');
+  side.querySelectorAll('[data-view]').forEach((tab) => tab.addEventListener('click', () => {
+    // 이후 다른 앱 탭을 추가해도 EPUB 책 정보·내보내기 바는 EPUB 탭에서만 보인다.
+    top.hidden = tab.dataset.view !== 'editorView';
+  }));
   bookView.className = 'book-inline';
   const bookSettings = bookView.querySelector('.settings');
   bookSettings.querySelector('.head')?.remove();
@@ -611,7 +634,7 @@ window.addEventListener('DOMContentLoaded', () => {
   `;
   const mode = document.createElement('div');
   mode.className = 'editor-mode';
-  mode.innerHTML = '<button type="button" class="active" data-mode="visual">일반 편집</button><button type="button" data-mode="html">HTML 편집</button>';
+  mode.innerHTML = '<button type="button" data-mode-toggle aria-pressed="false">XHTML편집</button>';
   const editorControls = document.createElement('div');
   editorControls.className = 'editor-controls';
   const toolbarViewport = document.createElement('div');
@@ -755,15 +778,10 @@ window.addEventListener('DOMContentLoaded', () => {
   draftButton.className = 'secondary';
   draftButton.textContent = '임시저장';
   exportButton.before(draftButton);
-  const checkAllButton = document.createElement('button');
-  checkAllButton.type = 'button';
-  checkAllButton.className = 'secondary';
-  checkAllButton.textContent = '전체 HTML 검사';
-  exportButton.before(checkAllButton);
   const autoFixHtmlButton = document.createElement('button');
   autoFixHtmlButton.type = 'button';
   autoFixHtmlButton.className = 'secondary';
-  autoFixHtmlButton.textContent = 'XHTML Format';
+  autoFixHtmlButton.textContent = 'XHTML 자동수정';
   autoFixHtmlButton.title = 'XHTML 들여쓰기, 태그 구조, self-closing 빈 태그를 정리합니다.';
   exportButton.before(autoFixHtmlButton);
   const cssSaveButton = document.createElement('button');
@@ -1358,41 +1376,27 @@ window.addEventListener('DOMContentLoaded', () => {
     const error = findHtmlError(chapter.body);
     return error ? [{ chapter:index + 1, title:chapter.title || '제목 없는 장', ...error }] : [];
   });
-  checkAllButton.addEventListener('click', () => {
-    const errors = validateAllChapters();
-    if (!errors.length) {
-      setStatus('모든 장의 HTML 검사가 완료되었습니다. 오류가 없습니다.');
-      return;
-    }
-    const summary = errors.slice(0, 3).map((error) => `${error.chapter}장 ${error.line}행`).join(', ');
-    htmlValidation.hidden = false;
-    htmlValidation.textContent = `전체 HTML 오류 ${errors.length}건 · ${summary}${errors.length > 3 ? ' 외' : ''}`;
-    htmlValidation.title = errors.map((error) => `${error.chapter}장 “${error.title}” ${error.line}행: ${error.message}`).join('\n');
-    xhtmlDiagnostics.hidden = false;
-    xhtmlDiagnostics.textContent = errors.map((error) => `${error.chapter}장 Line ${error.line}: ${error.message}`).join(' · ');
-    setStatus(`전체 HTML 검사에서 오류 ${errors.length}건을 찾았습니다.`, 'error');
-  });
   autoFixHtmlButton.addEventListener('click', () => {
     if (!visualEditor.hidden) syncFromVisual();
     const activeIndex = activeChapterIndex();
     const count = chapterList.querySelectorAll('.chapter[data-i]').length;
-    let changed = 0;
+    const changedChapters = [];
     for (let index = 0; index < count; index += 1) {
       chapterList.querySelector(`.chapter[data-i="${index}"]`)?.click();
       const fixed = prettyHtml(htmlEditor.value);
       if (fixed === htmlEditor.value) continue;
       htmlEditor.value = fixed;
       htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
-      changed += 1;
+      changedChapters.push(`${index + 1}장`);
     }
     chapterList.querySelector(`.chapter[data-i="${activeIndex}"]`)?.click();
     if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
     const errors = validateAllChapters();
     if (errors.length) {
-      setStatus(`${changed}개 장을 정리했지만 HTML 오류 ${errors.length}건은 직접 확인해야 합니다.`, 'error');
+      setStatus(`XHTML 자동수정: ${changedChapters.join(', ') || '변경 없음'} · 남은 오류 ${errors.length}건은 직접 확인해야 합니다.`, 'error');
       return;
     }
-    setStatus(changed ? `${changed}개 장의 HTML을 자동으로 정리했습니다.` : '수정할 HTML 구조 오류가 없습니다.');
+    setStatus(changedChapters.length ? `XHTML 자동수정 완료: ${changedChapters.join(', ')} · 들여쓰기와 self-closing 빈 태그를 정규화했습니다.` : 'XHTML 자동수정: 정규화할 변경사항이 없습니다.');
   });
   const setMode = (nextMode) => {
     const visual = nextMode === 'visual';
@@ -1405,7 +1409,9 @@ window.addEventListener('DOMContentLoaded', () => {
     htmlField.hidden = visual;
     richToolbar.hidden = !visual;
     visualEditor.hidden = !visual;
-    mode.querySelectorAll('button').forEach((button) => button.classList.toggle('active', button.dataset.mode === nextMode));
+    const toggle = mode.querySelector('[data-mode-toggle]');
+    toggle.textContent = visual ? 'XHTML편집' : '일반편집';
+    toggle.setAttribute('aria-pressed', String(!visual));
   };
   htmlEditor.addEventListener('input', () => {
     updateLineNumbers();
@@ -1440,10 +1446,7 @@ window.addEventListener('DOMContentLoaded', () => {
     scheduleStatusDismissal();
   };
   new MutationObserver(decorateStatus).observe(statusBox, { childList:true, characterData:true, attributes:true });
-  mode.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-mode]');
-    if (button) setMode(button.dataset.mode);
-  });
+  mode.addEventListener('click', () => setMode(visualEditor.hidden ? 'visual' : 'html'));
   let activeTable = null;
   let activeBlock = null;
   const editableBlock = (node) => node?.closest?.('p,h1,h2,h3,h4,h5,li,blockquote,td,th');
