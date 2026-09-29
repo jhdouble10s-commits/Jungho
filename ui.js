@@ -276,6 +276,11 @@ window.addEventListener('DOMContentLoaded', () => {
   const htmlEditor = $('#body');
   htmlEditor.wrap = 'soft';
   const htmlField = htmlEditor.closest('.full');
+  const xhtmlDiagnostics = document.createElement('div');
+  xhtmlDiagnostics.className = 'xhtml-diagnostics';
+  xhtmlDiagnostics.hidden = true;
+  xhtmlDiagnostics.setAttribute('role', 'status');
+  htmlField.append(xhtmlDiagnostics);
   const editorFields = htmlEditor.closest('.fields');
   const tocLevel = $('#clevel');
   const tocField = tocLevel.parentElement;
@@ -758,8 +763,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const autoFixHtmlButton = document.createElement('button');
   autoFixHtmlButton.type = 'button';
   autoFixHtmlButton.className = 'secondary';
-  autoFixHtmlButton.textContent = 'HTML 자동 수정';
-  autoFixHtmlButton.title = '닫히지 않은 태그와 들여쓰기를 자동으로 정리합니다.';
+  autoFixHtmlButton.textContent = 'XHTML Format';
+  autoFixHtmlButton.title = 'XHTML 들여쓰기, 태그 구조, self-closing 빈 태그를 정리합니다.';
   exportButton.before(autoFixHtmlButton);
   const cssSaveButton = document.createElement('button');
   cssSaveButton.type = 'button';
@@ -946,7 +951,7 @@ window.addEventListener('DOMContentLoaded', () => {
     for (let index = 0; index < draft.chapters.length; index += 1) {
       const chapter = draft.chapters[index];
       const filename = `chapter-${String(index + 1).padStart(3, '0')}.xhtml`;
-      const body = chapter.body.replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[\da-f]+;)/gi, '&amp;').replace(/src=(['"])images\//g, 'src=$1../images/');
+      const body = normaliseXhtml(chapter.body).replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[\da-f]+;)/gi, '&amp;').replace(/src=(['"])images\//g, 'src=$1../images/');
       files.push({ name:`EPUB/text/${filename}`, data:epubText(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${epubEscape(language)}"><head><meta charset="UTF-8"/><title>${epubEscape(chapter.title || title)}</title><link rel="stylesheet" type="text/css" href="../styles/book.css"/></head><body>${body}</body></html>`) });
       manifest.push(`<item id="chapter-${index + 1}" href="text/${filename}" media-type="application/xhtml+xml"/>`);
       spine.push(`<itemref idref="chapter-${index + 1}"/>`);
@@ -1255,10 +1260,31 @@ window.addEventListener('DOMContentLoaded', () => {
     const line = htmlEditor.value.slice(0, sourceBlock.index).split('\n').length - 1;
     htmlEditor.scrollTop = Math.max(0, line * 21 - htmlEditor.clientHeight / 2);
   });
+  const xhtmlVoidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+  const normaliseXhtml = (source) => {
+    // XML parser가 읽을 수 있도록 XHTML 빈 요소와 오타 난 여는 괄호를 먼저 보정합니다.
+    const prepared = String(source || '')
+      .replace(/<\s+([A-Za-z][\w:-]*)/g, '<$1')
+      .replace(/<\s*(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)\b([^>]*?)>/gi, (_, tag, attrs) => `<${tag.toLowerCase()}${attrs.replace(/\s*\/\s*$/, '').trim() ? ` ${attrs.replace(/\s*\/\s*$/, '').trim()}` : ''} />`);
+    const parser = new DOMParser();
+    const documentSource = `<epub-fragment xmlns="http://www.w3.org/1999/xhtml">${prepared}</epub-fragment>`;
+    const parsed = parser.parseFromString(documentSource, 'application/xhtml+xml');
+    if (parsed.querySelector('parsererror')) return prepared;
+    const serialised = new XMLSerializer().serializeToString(parsed.documentElement);
+    const fragment = serialised
+      .replace(/^<epub-fragment[^>]*>/, '')
+      .replace(/<\/epub-fragment>$/, '')
+      .replace(/\s*\/\s*>/g, ' />');
+    // XMLSerializer는 빈 일반 요소도 <li />처럼 축약한다. EPUB 원고에서는
+    // 명시적인 닫는 태그를 유지해 자동 완성·가독성·검증 결과를 일관되게 한다.
+    return fragment.replace(/<([A-Za-z][\w:-]*)([^>]*)\s\/>/g, (whole, tag, attributes) => (
+      xhtmlVoidTags.has(tag.toLowerCase()) ? whole : `<${tag}${attributes}></${tag}>`
+    ));
+  };
   const blockTags = new Set(['address', 'article', 'blockquote', 'div', 'figure', 'figcaption', 'h1', 'h2', 'h3', 'h4', 'h5', 'hr', 'li', 'ol', 'p', 'pre', 'section', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'ul']);
   const prettyHtml = (source) => {
     const wrapper = document.createElement('div');
-    wrapper.innerHTML = source;
+    wrapper.innerHTML = normaliseXhtml(source);
     const attributes = (element) => Array.from(element.attributes).map((attr) => ` ${attr.name}="${attr.value}"`).join('');
     const render = (node, depth = 0) => {
       const indent = '  '.repeat(depth);
@@ -1266,7 +1292,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (node.nodeType !== Node.ELEMENT_NODE) return '';
       const tag = node.tagName.toLowerCase();
       if (!blockTags.has(tag)) return `${indent}${node.outerHTML}`;
-      if (['img', 'br', 'hr'].includes(tag)) return `${indent}${node.outerHTML}`;
+      if (xhtmlVoidTags.has(tag)) return `${indent}${normaliseXhtml(node.outerHTML)}`;
       const children = Array.from(node.childNodes).filter((child) => child.nodeType !== Node.TEXT_NODE || child.textContent.trim());
       const hasBlockChild = children.some((child) => child.nodeType === Node.ELEMENT_NODE && blockTags.has(child.tagName.toLowerCase()));
       if (!hasBlockChild) return `${indent}<${tag}${attributes(node)}>${node.innerHTML.trim()}</${tag}>`;
@@ -1290,7 +1316,8 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   const findHtmlError = (source) => {
     const stack = [];
-    const voidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+    const malformed = /<\s+([A-Za-z][\w:-]*)\b/g.exec(source);
+    if (malformed) return { line:source.slice(0, malformed.index).split('\n').length, message:`<${malformed[1]}> 태그 앞의 불필요한 공백을 제거하세요.` };
     const tags = /<\/?([a-zA-Z][\w:-]*)\b[^>]*>/g;
     let match;
     let error = null;
@@ -1303,7 +1330,11 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!opened) { error = { line, message:`</${tag}>에 대응하는 여는 태그가 없습니다.` }; break; }
         if (opened.tag !== tag) { error = { line, message:`</${tag}> 대신 </${opened.tag}>가 필요합니다.` }; break; }
         stack.pop();
-      } else if (!voidTags.has(tag) && !token.endsWith('/>')) {
+      } else if (xhtmlVoidTags.has(tag) && !/\/\s*>$/.test(token)) {
+        error = { line, message:`<${tag}>는 XHTML에서 self-closing(<${tag} />)이어야 합니다.` }; break;
+      } else if (tag === 'img' && !/\balt\s*=\s*(['"]).*?\1/i.test(token)) {
+        error = { line, message:'img 태그에 alt 속성이 없습니다.' }; break;
+      } else if (!xhtmlVoidTags.has(tag) && !token.endsWith('/>')) {
         stack.push({ tag, line });
       }
     }
@@ -1316,9 +1347,11 @@ window.addEventListener('DOMContentLoaded', () => {
   const validateHtml = () => {
     const error = findHtmlError(htmlEditor.value);
     htmlValidation.hidden = !error;
+    xhtmlDiagnostics.hidden = !error;
     if (error) {
       htmlValidation.textContent = `HTML 오류 · ${error.line}행: ${error.message}`;
       htmlValidation.title = htmlValidation.textContent;
+      xhtmlDiagnostics.textContent = `Line ${error.line}: ${error.message}`;
     }
   };
   const validateAllChapters = () => collectDraft().chapters.flatMap((chapter, index) => {
@@ -1335,6 +1368,8 @@ window.addEventListener('DOMContentLoaded', () => {
     htmlValidation.hidden = false;
     htmlValidation.textContent = `전체 HTML 오류 ${errors.length}건 · ${summary}${errors.length > 3 ? ' 외' : ''}`;
     htmlValidation.title = errors.map((error) => `${error.chapter}장 “${error.title}” ${error.line}행: ${error.message}`).join('\n');
+    xhtmlDiagnostics.hidden = false;
+    xhtmlDiagnostics.textContent = errors.map((error) => `${error.chapter}장 Line ${error.line}: ${error.message}`).join(' · ');
     setStatus(`전체 HTML 검사에서 오류 ${errors.length}건을 찾았습니다.`, 'error');
   });
   autoFixHtmlButton.addEventListener('click', () => {
@@ -1606,6 +1641,140 @@ window.addEventListener('DOMContentLoaded', () => {
   chapterList.addEventListener('click', () => setTimeout(() => {
     if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
   }, 0));
+  // textarea는 장 전환·미리보기·임시저장의 기존 데이터 브리지로 유지하고, HTML 모드의
+  // 실제 편집 UI만 Monaco로 대체한다. Monaco를 못 받아도 textarea가 그대로 동작한다.
+  const installMonacoEditor = () => {
+    if (!window.require || window.epubMonacoEditor) return;
+    window.require.config({ paths:{ vs:'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs' } });
+    window.require(['vs/editor/editor.main'], () => {
+      const monaco = window.monaco;
+      if (!monaco || window.epubMonacoEditor) return;
+      const host = document.createElement('div');
+      host.id = 'xhtml-monaco-editor';
+      host.setAttribute('aria-label', 'XHTML 코드 편집기');
+      codeEditor.append(host);
+      const editorStyle = document.createElement('style');
+      editorStyle.textContent = `
+        .code-editor:has(#xhtml-monaco-editor){display:block;border:1px solid var(--line);background:var(--bg)}
+        .code-editor:has(#xhtml-monaco-editor) .line-numbers,.code-editor:has(#xhtml-monaco-editor) textarea{display:none!important}
+        #xhtml-monaco-editor{height:610px;min-height:420px;text-align:left}
+        .xhtml-diagnostics{margin-top:8px;padding:8px 10px;border:1px solid #ff8b72aa;border-radius:7px;background:#ff510018;color:#ffb39d;font-size:12px;line-height:1.45}.xhtml-diagnostics[hidden]{display:none}
+        .monaco-editor .xhtml-emmet-suggestion{color:#a78bfa!important}
+        @media(max-width:700px){#xhtml-monaco-editor{height:460px}}
+      `;
+      document.head.append(editorStyle);
+      const tags = ['html','head','body','title','meta','link','style','script','div','section','article','header','footer','main','nav','aside','p','span','strong','em','b','i','u','h1','h2','h3','h4','h5','h6','ul','ol','li','table','thead','tbody','tr','th','td','a','img','figure','figcaption','br','hr'];
+      const attributes = {
+        img:['src','alt','width','height'], a:['href','target','title'], div:['class','id','style'],
+        meta:['name','content','charset'], link:['rel','href','type'], '*':['class','id','style','title'],
+      };
+      monaco.languages.registerCompletionItemProvider('html', {
+        triggerCharacters:['<',' ','.'],
+        provideCompletionItems(model, position) {
+          const line = model.getLineContent(position.lineNumber);
+          const left = line.slice(0, position.column - 1);
+          const openingTag = /<([\w:-]+)(?:\s[^<>]*)?$/.exec(left);
+          if (openingTag && !/[/>]$/.test(left)) {
+            const names = [...new Set([...(attributes[openingTag[1].toLowerCase()] || []), ...attributes['*']])];
+            return { suggestions:names.map((name) => ({ label:name, kind:monaco.languages.CompletionItemKind.Property, insertText:`${name}="$0"`, insertTextRules:monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, range:undefined })) };
+          }
+          return { suggestions:tags.map((tag) => {
+            const voidTag = xhtmlVoidTags.has(tag);
+            const defaultAttributes = tag === 'img' ? ' src="$1" alt="$2"' : '';
+            return {
+              label:tag, kind:monaco.languages.CompletionItemKind.Snippet,
+              detail:voidTag ? 'XHTML self-closing tag' : 'XHTML tag',
+              insertText:voidTag ? `<${tag}${defaultAttributes} />` : `<${tag}>$0</${tag}>`,
+              insertTextRules:monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            };
+          }) };
+        },
+      });
+      const editor = monaco.editor.create(host, {
+        value:htmlEditor.value, language:'html', theme:document.documentElement.dataset.theme === 'light' ? 'vs' : 'vs-dark',
+        automaticLayout:true, minimap:{ enabled:false }, lineNumbers:'on', fontSize:13, tabSize:2,
+        insertSpaces:true, wordWrap:'on', quickSuggestions:true, suggestOnTriggerCharacters:true,
+        tabCompletion:'on', autoClosingBrackets:'always', autoClosingQuotes:'always', formatOnPaste:true,
+      });
+      window.epubMonacoEditor = editor;
+      let synchronising = false;
+      const syncTextareaFromMonaco = () => {
+        if (synchronising) return;
+        synchronising = true;
+        htmlEditor.value = editor.getValue();
+        htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
+        synchronising = false;
+      };
+      editor.onDidChangeModelContent((event) => {
+        // 직접 입력한 <div>에는 즉시 XHTML 닫는 태그를 보완한다. Emmet의 일괄 편집은 건너뛴다.
+        if (!synchronising && event.changes.length === 1 && event.changes[0].text.endsWith('>')) {
+          const change = event.changes[0];
+          const afterOffset = change.rangeOffset + change.text.length;
+          const opened = /<([A-Za-z][\w:-]*)(?:\s[^<>]*)?>$/.exec(editor.getModel().getValue().slice(0, afterOffset));
+          if (opened && !xhtmlVoidTags.has(opened[1].toLowerCase())) {
+            const end = editor.getModel().getPositionAt(afterOffset);
+            synchronising = true;
+            editor.executeEdits('xhtml-auto-close', [{ range:new monaco.Range(end.lineNumber, end.column, end.lineNumber, end.column), text:`</${opened[1]}>` }]);
+            editor.setPosition(end);
+            synchronising = false;
+          }
+        }
+        syncTextareaFromMonaco();
+      });
+      htmlEditor.addEventListener('input', () => {
+        if (synchronising || editor.getValue() === htmlEditor.value) return;
+        synchronising = true;
+        editor.setValue(htmlEditor.value);
+        synchronising = false;
+      });
+      const addEmmetLibrary = () => {
+        const activate = () => {
+          if (!window.emmetMonaco) return;
+          window.emmetMonaco.registerCustomSnippets?.('html', {
+            br:'<br />', hr:'<hr />', img:'<img src="${1}" alt="${2}" />', input:'<input type="${1}" />',
+            meta:'<meta charset="UTF-8" />', link:'<link rel="stylesheet" href="${1}" type="text/css" />',
+          });
+          window.emmetMonaco.emmetHTML(monaco, ['html']);
+        };
+        if (window.emmetMonaco) return activate();
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/emmet-monaco-es@5.7.0/dist/emmet-monaco.min.js';
+        script.onload = activate;
+        script.onerror = () => console.warn('Emmet 라이브러리를 불러오지 못했습니다.');
+        document.head.append(script);
+      };
+      addEmmetLibrary();
+      const expandEmmet = () => {
+        const model = editor.getModel();
+        const position = editor.getPosition();
+        const line = model.getLineContent(position.lineNumber);
+        const before = line.slice(0, position.column - 1);
+        const match = /([A-Za-z][A-Za-z0-9:._#>+*${}\[\]="'-]*)$/.exec(before);
+        if (!match || !window.emmetMonaco?.expandAbbreviation) return false;
+        try {
+          let expanded = window.emmetMonaco.expandAbbreviation(match[1], { type:'markup', syntax:'html', options:{ 'output.selfClosingStyle':'xhtml' } });
+          if (!expanded || expanded === match[1]) return false;
+          expanded = normaliseXhtml(expanded.replace(/\|/g, ''));
+          const start = new monaco.Position(position.lineNumber, position.column - match[1].length);
+          editor.executeEdits('xhtml-emmet', [{ range:new monaco.Range(start.lineNumber, start.column, position.lineNumber, position.column), text:expanded }]);
+          return true;
+        } catch { return false; }
+      };
+      editor.addAction({
+        id:'epub.xhtml.tab', label:'XHTML Emmet 확장 또는 들여쓰기',
+        keybindings:[monaco.KeyCode.Tab], precondition:'editorTextFocus',
+        run:() => {
+          if (expandEmmet()) return;
+          const suggest = host.querySelector('.suggest-widget.visible, .suggest-widget[style*="display: block"]');
+          if (suggest) return editor.getAction('acceptSelectedSuggestion')?.run();
+          return editor.getAction('editor.action.indentLines')?.run();
+        },
+      });
+      // 기존 코드가 textarea에 포커스를 이동시키는 경우에도 사용자는 Monaco에서 계속 편집한다.
+      htmlEditor.focus = () => editor.focus();
+    });
+  };
+  installMonacoEditor();
   setMode('visual');
   chapterControls.classList.add('active');
   updateLineNumbers();
