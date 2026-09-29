@@ -755,6 +755,12 @@ window.addEventListener('DOMContentLoaded', () => {
   checkAllButton.className = 'secondary';
   checkAllButton.textContent = '전체 HTML 검사';
   exportButton.before(checkAllButton);
+  const autoFixHtmlButton = document.createElement('button');
+  autoFixHtmlButton.type = 'button';
+  autoFixHtmlButton.className = 'secondary';
+  autoFixHtmlButton.textContent = 'HTML 자동 수정';
+  autoFixHtmlButton.title = '닫히지 않은 태그와 들여쓰기를 자동으로 정리합니다.';
+  exportButton.before(autoFixHtmlButton);
   const cssSaveButton = document.createElement('button');
   cssSaveButton.type = 'button';
   cssSaveButton.className = 'secondary css-save';
@@ -1330,6 +1336,28 @@ window.addEventListener('DOMContentLoaded', () => {
     htmlValidation.textContent = `전체 HTML 오류 ${errors.length}건 · ${summary}${errors.length > 3 ? ' 외' : ''}`;
     htmlValidation.title = errors.map((error) => `${error.chapter}장 “${error.title}” ${error.line}행: ${error.message}`).join('\n');
     setStatus(`전체 HTML 검사에서 오류 ${errors.length}건을 찾았습니다.`, 'error');
+  });
+  autoFixHtmlButton.addEventListener('click', () => {
+    if (!visualEditor.hidden) syncFromVisual();
+    const activeIndex = activeChapterIndex();
+    const count = chapterList.querySelectorAll('.chapter[data-i]').length;
+    let changed = 0;
+    for (let index = 0; index < count; index += 1) {
+      chapterList.querySelector(`.chapter[data-i="${index}"]`)?.click();
+      const fixed = prettyHtml(htmlEditor.value);
+      if (fixed === htmlEditor.value) continue;
+      htmlEditor.value = fixed;
+      htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
+      changed += 1;
+    }
+    chapterList.querySelector(`.chapter[data-i="${activeIndex}"]`)?.click();
+    if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
+    const errors = validateAllChapters();
+    if (errors.length) {
+      setStatus(`${changed}개 장을 정리했지만 HTML 오류 ${errors.length}건은 직접 확인해야 합니다.`, 'error');
+      return;
+    }
+    setStatus(changed ? `${changed}개 장의 HTML을 자동으로 정리했습니다.` : '수정할 HTML 구조 오류가 없습니다.');
   });
   const setMode = (nextMode) => {
     const visual = nextMode === 'visual';
