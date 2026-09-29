@@ -10,6 +10,7 @@ uiStyle.textContent = `
   .tab { background:var(--accent-soft)!important; color:var(--text)!important; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); }
   .drafts-panel { display:grid; gap:5px; margin:12px 0 0; padding:0 2px; }.drafts-panel[hidden] { display:none; }.drafts-title { padding:0 10px 4px; color:var(--sub); font-size:11px; font-weight:700; }.draft-item { width:100%; overflow:hidden; border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:transparent; color:var(--text); font:600 12px inherit; text-align:left; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }.draft-item:hover { border-color:var(--accent); color:var(--accent); }
   .html-validation { max-width:300px; overflow:hidden; color:#ff9c75; font-size:11px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }.html-validation[hidden] { display:none; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
+  .html-validation { max-width:300px; overflow:hidden; color:#ff9c75; font-size:11px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }.html-validation[hidden] { display:none; }.fields input[type="checkbox"] { width:18px!important; height:18px; padding:0!important; box-shadow:none!important; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
   .sidebar-toggle { position:absolute; top:18px; right:16px; width:32px; height:32px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2); color:var(--text); font-size:18px; cursor:pointer; z-index:20; }
   .theme-settings { margin-top:auto; padding:16px 10px; border-top:1px solid var(--line); color:var(--sub); font-size:12px; font-weight:700; }
   .theme-settings div { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }.theme-settings button { border:1px solid var(--line); border-radius:7px; padding:7px 4px; background:var(--surface-2); color:var(--text); font:600 11px inherit; cursor:pointer; }.theme-settings button:hover { border-color:var(--accent); color:var(--accent); }
@@ -18,7 +19,7 @@ uiStyle.textContent = `
   .primary { padding:8px 12px!important; border-radius:8px!important; background:var(--accent)!important; color:#fff!important; font-size:12px!important; line-height:1.2; box-shadow:none!important; }.primary:hover { transform:none!important; filter:brightness(1.08); }
   .book-inline { flex:1; margin-right:14px; }.book-inline .settings { max-width:none!important; padding:0!important; background:none!important; border:0!important; box-shadow:none!important; }.book-inline section { display:flex; align-items:center; gap:10px; }.book-inline .field { display:flex; align-items:center; gap:7px; margin:0!important; }.book-inline label { margin:0!important; white-space:nowrap; color:var(--sub)!important; font-size:clamp(12px,.73vw,18px)!important; }.book-inline input { width:130px!important; padding:3.5px 8px!important; }.book-inline .field:first-child input { width:195px!important; }.book-inline .cover { display:contents!important; border:0!important; padding:0!important; }.book-inline #coverInput,.book-inline .cover img { display:none!important; }.book-inline .cover-upload-button { display:inline-flex!important; align-items:center; height:29px; padding:0 10px; border:1px solid var(--accent)!important; border-radius:7px; background:var(--accent-soft); color:var(--accent)!important; font-size:12px!important; font-weight:700; cursor:pointer; }.book-inline .hint { display:none; }
   .grid { --chapter-width:270px; --preview-width:440px; min-width:0; max-width:100%; position:relative; grid-template-columns:var(--chapter-width) minmax(420px,1fr) var(--preview-width)!important; gap:16px!important; }.panel-resize-handle { position:absolute; top:0; bottom:0; z-index:10; width:14px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.panel-resize-handle::after { content:''; position:absolute; top:20%; bottom:20%; left:6px; width:2px; border-radius:2px; background:transparent; transition:background .15s; }.panel-resize-handle:hover::after,.panel-resize-handle.is-resizing::after { background:var(--accent); }.card { min-width:0; background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { min-width:0; padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
-  .chapter-card { display:flex; flex-direction:column; }.left-panel-host { position:relative; flex:1; min-height:0; overflow:hidden; }.left-panel { display:none!important; position:absolute; inset:0; overflow:auto; }.left-panel.active { display:block!important; }.chapters { padding:8px!important; }.add { width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:transparent!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel .hint,.left-panel#cssPanel .images { color:var(--sub)!important; }.cover-chapter { display:flex!important; align-items:center; gap:8px; }.cover-chapter::before { content:'▧'; color:var(--accent); font-size:14px; }
+  .chapter-card { display:flex; flex-direction:column; }.left-tabs { grid-template-columns:repeat(3,1fr)!important; }.left-panel-host { position:relative; flex:1; min-height:0; overflow:hidden; }.left-panel { display:none!important; position:absolute; inset:0; overflow:auto; }.left-panel.active { display:block!important; }.chapters { padding:8px!important; }.add { width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:transparent!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel,.left-panel#assetsPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel .hint,.left-panel#cssPanel .images,.asset-hint { color:var(--sub)!important; }.asset-upload { display:flex; align-items:center; justify-content:center; width:100%; margin-bottom:10px; border:1px dashed var(--accent); border-radius:8px; padding:10px; color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; }.asset-hint { margin:0 0 10px; font-size:11px; line-height:1.5; }.cover-chapter { display:flex!important; align-items:center; gap:8px; }.cover-chapter::before { content:'▧'; color:var(--accent); font-size:14px; }
   .editor-controls { min-width:0; display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.toolbar-viewport { position:relative; min-width:0; flex:1; overflow:hidden; }.rich-toolbar { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow:hidden; padding:5px 44px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); scrollbar-width:none; }.rich-toolbar::-webkit-scrollbar { display:none; }.toolbar-viewport::before,.toolbar-viewport::after { display:none; content:''; pointer-events:none; position:absolute; top:1px; bottom:1px; z-index:1; width:44px; }.toolbar-viewport.show-previous::before,.toolbar-viewport.show-next::after { display:block; }.toolbar-viewport::before { left:38px; background:linear-gradient(90deg,var(--surface-2),transparent); }.toolbar-viewport::after { right:38px; background:linear-gradient(90deg,transparent,var(--surface-2)); }.toolbar-previous,.toolbar-next { position:absolute; top:50%; z-index:2; width:29px; height:29px; transform:translateY(-50%); border:1px solid var(--accent); border-radius:7px; background:var(--surface-2); color:var(--accent); font:700 20px/22px system-ui; cursor:pointer; }.toolbar-previous { left:5px; }.toolbar-next { right:5px; }.toolbar-previous:hover,.toolbar-next:hover { background:var(--accent-soft); }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
   .preview-card .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }.device-controls { display:flex; align-items:center; gap:6px; }.device-controls select { max-width:118px; height:28px; border:1px solid var(--line); border-radius:6px; padding:0 5px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.preview-card { overflow:hidden; }.preview .cover-preview-page { display:flex; align-items:center; justify-content:center; min-height:100%; }.preview .cover-preview-page img { display:block; max-width:100%; max-height:100%; object-fit:contain; }.preview[data-device-preview="true"] { box-sizing:content-box; flex:none; margin:0 auto; border:8px solid #1b1b1e!important; border-radius:22px; box-shadow:0 10px 30px #00000045; transition:width .2s,height .2s; }
   .rich-toolbar button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }.rich-toolbar button svg { display:block; width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }.rich-toolbar input[data-font-size] { width:62px!important; height:29px; flex:none; font-size:11px!important; }.rich-toolbar input[data-table-color] { width:29px!important; height:29px; flex:none; }.table-color-control { display:flex; align-items:center; gap:4px; height:29px; flex:none; }.rich-toolbar .tool-label { flex:none; color:var(--sub); font-size:12px; line-height:29px; white-space:nowrap; }
@@ -222,6 +223,7 @@ window.addEventListener('DOMContentLoaded', () => {
     <div class="left-tabs">
       <button class="left-tab active" type="button" data-panel="chaptersPanel">책의 구성</button>
       <button class="left-tab" type="button" data-panel="cssPanel">공통 CSS</button>
+      <button class="left-tab" type="button" data-panel="assetsPanel">이미지</button>
     </div>
   `);
   chapterCard.classList.add('chapter-card');
@@ -231,7 +233,13 @@ window.addEventListener('DOMContentLoaded', () => {
   chapterControls.id = 'chaptersPanel';
   chapterControls.className = 'left-panel active';
   chapterControls.append(chapterList, addChapter);
-  panelHost.append(chapterControls, cssSettings);
+  const assetsPanel = document.createElement('div');
+  assetsPanel.id = 'assetsPanel';
+  assetsPanel.className = 'left-panel';
+  assetsPanel.innerHTML = '<label class="asset-upload" for="image">이미지·아이콘 업로드</label><p class="asset-hint">PNG, JPG, GIF, SVG 파일을 업로드해 본문 또는 아이콘으로 사용하세요.</p>';
+  const imageList = $('#images');
+  assetsPanel.append(imageList);
+  panelHost.append(chapterControls, cssSettings, assetsPanel);
   chapterCard.append(panelHost);
 
   const toggleSidebar = $('.sidebar-toggle');
@@ -258,12 +266,82 @@ window.addEventListener('DOMContentLoaded', () => {
   const htmlEditor = $('#body');
   const htmlField = htmlEditor.closest('.full');
   const editorFields = htmlEditor.closest('.fields');
+  const tocLevel = $('#clevel');
+  const tocField = tocLevel.parentElement;
+  tocField.querySelector('label').textContent = '목차 표시';
+  tocLevel.hidden = true;
+  tocLevel.value = 1;
+  const tocToggle = document.createElement('input');
+  tocToggle.type = 'checkbox';
+  tocToggle.checked = true;
+  tocToggle.setAttribute('aria-label', '목차에 표시');
+  tocField.append(tocToggle);
+  const tocExcluded = new Set();
+  const syncTocToggle = () => {
+    const index = Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
+    tocToggle.checked = !tocExcluded.has(index);
+  };
+  tocToggle.addEventListener('change', () => {
+    const index = Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
+    if (tocToggle.checked) tocExcluded.delete(index);
+    else tocExcluded.add(index);
+  });
+  chapterList.addEventListener('click', () => setTimeout(syncTocToggle, 0));
+  exportButton.addEventListener('click', () => {
+    if (!tocExcluded.size) return;
+    const originalMap = Array.prototype.map;
+    Array.prototype.map = function patchedMap(callback, thisArg) {
+      const looksLikeChapters = this.length && this.every((item) => item && typeof item.title === 'string' && typeof item.body === 'string');
+      return looksLikeChapters
+        ? originalMap.call(this.filter((_, index) => !tocExcluded.has(index)), callback, thisArg)
+        : originalMap.call(this, callback, thisArg);
+    };
+    setTimeout(() => { Array.prototype.map = originalMap; }, 0);
+  }, true);
   const codeEditor = document.createElement('div');
   codeEditor.className = 'code-editor';
   const lineNumbers = document.createElement('pre');
   lineNumbers.className = 'line-numbers';
   htmlEditor.before(codeEditor);
   codeEditor.append(lineNumbers, htmlEditor);
+  const previewAssets = new Map();
+  const pendingAssets = [];
+  const sanitiseSvg = (source) => source
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/\son[a-z]+\s*=\s*(["']).*?\1/gi, '')
+    .replace(/\s(?:href|xlink:href)\s*=\s*(["'])\s*javascript:[\s\S]*?\1/gi, '');
+  const toPreviewAsset = async (file) => {
+    if (file.type === 'image/svg+xml') {
+      const safeSvg = sanitiseSvg(await file.text());
+      return { type:file.type, url:`data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(safeSvg)))}` };
+    }
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ type:file.type, url:reader.result });
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+  const hydratePreviewAssets = () => {
+    preview.querySelectorAll('img[src^="images/"]').forEach((image) => {
+      const asset = previewAssets.get(image.getAttribute('src').slice(7));
+      if (asset) image.src = asset.url;
+    });
+  };
+  new MutationObserver(hydratePreviewAssets).observe(preview, { childList:true, subtree:true });
+  new MutationObserver(() => {
+    const names = Array.from($('#images').querySelectorAll('li')).map((item) => item.textContent);
+    while (pendingAssets.length && names.length) {
+      const nextName = names.find((name) => !previewAssets.has(name));
+      if (!nextName) break;
+      previewAssets.set(nextName, pendingAssets.shift());
+    }
+    hydratePreviewAssets();
+  }).observe($('#images'), { childList:true });
+  $('#image').addEventListener('change', async (event) => {
+    const assets = await Promise.all(Array.from(event.target.files || []).map(toPreviewAsset));
+    pendingAssets.push(...assets);
+  });
   const visualEditor = document.createElement('div');
   visualEditor.className = 'rich-editor';
   visualEditor.contentEditable = 'true';
@@ -354,6 +432,14 @@ window.addEventListener('DOMContentLoaded', () => {
   draftsPanel.className = 'drafts-panel';
   const editorTab = side.querySelector('.tab[data-view="editorView"]');
   editorTab?.parentElement.insertAdjacentElement('afterend', draftsPanel);
+  let draftsExpanded = false;
+  editorTab?.setAttribute('aria-expanded', 'false');
+  editorTab?.addEventListener('click', (event) => {
+    event.preventDefault();
+    draftsExpanded = !draftsExpanded;
+    editorTab.setAttribute('aria-expanded', String(draftsExpanded));
+    renderDrafts();
+  });
   const getDrafts = () => {
     try { return JSON.parse(localStorage.getItem(draftStorageKey) || '[]'); } catch { return []; }
   };
@@ -385,7 +471,9 @@ window.addEventListener('DOMContentLoaded', () => {
       css: $('#css').value,
       chapters,
       activeIndex,
+      tocExcluded: Array.from(tocExcluded),
       coverSource: coverPreview.getAttribute('src') || '',
+      assets: Array.from(previewAssets.entries()),
     };
   };
   const loadDraft = (draft) => {
@@ -400,25 +488,27 @@ window.addEventListener('DOMContentLoaded', () => {
     $('#author').value = draft.author || '';
     $('#language').value = draft.language || 'ko';
     $('#css').value = draft.css || '';
+    tocExcluded.clear();
+    (draft.tocExcluded || []).forEach((index) => tocExcluded.add(index));
+    previewAssets.clear();
+    (draft.assets || []).forEach(([name, asset]) => previewAssets.set(name, asset));
     const selected = Math.max(0, Math.min(draft.activeIndex || 0, draft.chapters.length - 1));
     chapterList.querySelector(`.chapter[data-i="${selected}"]`)?.click();
+    syncTocToggle();
     if (draft.coverSource) {
       coverPreview.src = draft.coverSource;
       coverPreview.hidden = false;
     }
     if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
     refreshPreview();
+    hydratePreviewAssets();
     setStatus(`“${draft.title}” 임시저장본을 불러왔습니다.`);
   };
   const renderDrafts = () => {
     const drafts = getDrafts();
-    draftsPanel.hidden = !drafts.length;
+    draftsPanel.hidden = !drafts.length || !draftsExpanded;
     draftsPanel.replaceChildren();
     if (!drafts.length) return;
-    const heading = document.createElement('div');
-    heading.className = 'drafts-title';
-    heading.textContent = '임시저장한 책';
-    draftsPanel.append(heading);
     drafts.forEach((draft) => {
       const button = document.createElement('button');
       button.type = 'button';
