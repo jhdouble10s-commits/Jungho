@@ -18,6 +18,7 @@ uiStyle.textContent = `
   .grid { grid-template-columns:270px minmax(420px,1fr) minmax(320px,.78fr)!important; gap:16px!important; }.card { background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
   .left-panel { display:none!important; }.left-panel.active { display:block!important; }.chapters { padding:8px!important; }.add { width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:transparent!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel .hint,.left-panel#cssPanel .images { color:var(--sub)!important; }
   .editor-controls { display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.rich-toolbar { display:flex; flex:1; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow-x:auto; padding:5px 7px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
+  .rich-toolbar button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }.rich-toolbar input[data-font-size] { width:62px!important; height:29px; flex:none; font-size:11px!important; }.rich-toolbar input[data-table-color] { width:29px!important; height:29px; flex:none; }.rich-toolbar .tool-label { flex:none; color:var(--sub); font-size:10px; white-space:nowrap; }
   h1,h2,label { color:var(--text)!important; } input,textarea { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; } input:focus,textarea:focus { border-color:var(--accent)!important; box-shadow:0 0 0 3px #ff510030!important; }.secondary { background:var(--surface-2)!important; border-color:var(--line)!important; color:var(--text)!important; }.danger { color:#ff8660!important; }.chapter { color:var(--text)!important; }.chapter:hover { background:var(--surface-2)!important; }.chapter.active { background:var(--accent-soft)!important; color:var(--accent)!important; }.preview { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; }.preview-card .head { padding:0 0 12px!important; border-bottom:1px solid var(--line)!important; margin-bottom:12px; }.code { height:610px!important; }
   @media(max-width:1050px) { .grid { grid-template-columns:240px minmax(0,1fr)!important; }.preview-card { grid-column:1/-1; }.book-inline .field:nth-child(3) { display:none; } }
   @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:wrap; }.left-panel#cssPanel .css { height:260px!important; } }
@@ -124,7 +125,8 @@ window.addEventListener('DOMContentLoaded', () => {
     <button type="button" data-command="subscript" title="아래첨자">x<sub>2</sub></button>
     <span class="tool-separator"></span>
     <select data-heading aria-label="제목 단계"><option value="">본문</option><option value="h1">제목 1</option><option value="h2">제목 2</option><option value="h3">제목 3</option><option value="h4">제목 4</option><option value="h5">제목 5</option></select>
-    <select data-font-size aria-label="글자 크기"><option value="">기본 크기</option><option value="14px">14px</option><option value="16px">16px</option><option value="18px">18px</option><option value="20px">20px</option><option value="24px">24px</option></select>
+    <input data-font-size list="font-size-options" inputmode="numeric" aria-label="글자 크기" placeholder="기본" title="글자 크기 직접 입력">
+    <datalist id="font-size-options"><option value="10"><option value="11"><option value="12"><option value="13"><option value="14"><option value="15"><option value="16"><option value="20"><option value="24"><option value="32"><option value="36"><option value="40"><option value="48"><option value="64"></datalist>
     <label title="글자색"><input type="color" value="#FF5100" aria-label="글자색"></label>
     <span class="tool-separator"></span>
     <button type="button" data-command="justifyLeft" title="왼쪽 정렬">≡</button>
@@ -132,14 +134,14 @@ window.addEventListener('DOMContentLoaded', () => {
     <button type="button" data-command="justifyRight" title="오른쪽 정렬">≡</button>
     <button type="button" data-command="justifyFull" title="양쪽 맞춤">☰</button>
     <span class="tool-separator"></span>
-    <button type="button" data-command="insertUnorderedList" title="글머리 목록">• 목록</button>
-    <button type="button" data-list="decimal" title="숫자 목록">1. 목록</button>
-    <button type="button" data-list="upper-roman" title="로마 숫자 목록">I. 목록</button>
+    <select data-list aria-label="목록 종류"><option value="">목록</option><option value="disc">• 글머리</option><option value="decimal">1. 숫자</option><option value="upper-roman">I. 로마</option></select>
     <button type="button" data-command="formatBlock" data-value="blockquote" title="인용">인용</button>
     <span class="tool-separator"></span>
     <button type="button" data-table title="2×2 표 삽입">표</button>
     <button type="button" data-table-action="row" title="선택한 표에 행 추가">행 +</button>
     <button type="button" data-table-action="column" title="선택한 표에 열 추가">열 +</button>
+    <span class="tool-label">헤더</span><input type="color" data-table-color="head" value="#ffffff" aria-label="표 헤더 배경색">
+    <span class="tool-label">본문</span><input type="color" data-table-color="body" value="#ffffff" aria-label="표 본문 배경색">
   `;
   const mode = document.createElement('div');
   mode.className = 'editor-mode';
@@ -151,7 +153,21 @@ window.addEventListener('DOMContentLoaded', () => {
   editorFields.after(visualEditor);
 
   const refreshPreview = () => $('#previewBtn').click();
+  const normaliseParagraphs = () => {
+    Array.from(visualEditor.childNodes).forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+        const paragraph = document.createElement('p');
+        paragraph.textContent = node.textContent;
+        node.replaceWith(paragraph);
+      } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'DIV') {
+        const paragraph = document.createElement('p');
+        paragraph.innerHTML = node.innerHTML;
+        node.replaceWith(paragraph);
+      }
+    });
+  };
   const syncFromVisual = () => {
+    normaliseParagraphs();
     htmlEditor.value = visualEditor.innerHTML;
     htmlEditor.dispatchEvent(new Event('input', { bubbles: true }));
     refreshPreview();
@@ -174,7 +190,23 @@ window.addEventListener('DOMContentLoaded', () => {
   visualEditor.addEventListener('click', (event) => {
     activeTable = event.target.closest('table');
   });
-  visualEditor.addEventListener('input', syncFromVisual);
+  const updateToolbarState = () => {
+    const selection = window.getSelection();
+    const node = selection?.anchorNode?.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
+    if (!node || !visualEditor.contains(node)) return;
+    [['bold', 'bold'], ['italic', 'italic'], ['superscript', 'superscript'], ['subscript', 'subscript'], ['justifyLeft', 'justifyLeft'], ['justifyCenter', 'justifyCenter'], ['justifyRight', 'justifyRight'], ['justifyFull', 'justifyFull']].forEach(([command, selector]) => {
+      richToolbar.querySelector(`[data-command="${selector}"]`)?.classList.toggle('active', document.queryCommandState(command));
+    });
+    const heading = node.closest('h1,h2,h3,h4,h5');
+    richToolbar.querySelector('[data-heading]').value = heading?.tagName.toLowerCase() || '';
+    const list = node.closest('ol,ul');
+    richToolbar.querySelector('[data-list]').value = list ? (list.tagName === 'UL' ? 'disc' : (list.style.listStyleType || 'decimal')) : '';
+    const sized = node.closest('span[style*="font-size"]');
+    richToolbar.querySelector('[data-font-size]').value = sized?.style.fontSize?.replace('px', '') || '';
+  };
+  visualEditor.addEventListener('input', () => { syncFromVisual(); updateToolbarState(); });
+  visualEditor.addEventListener('keyup', updateToolbarState);
+  visualEditor.addEventListener('mouseup', updateToolbarState);
   richToolbar.addEventListener('click', (event) => {
     const button = event.target.closest('button');
     if (!button) return;
@@ -207,15 +239,33 @@ window.addEventListener('DOMContentLoaded', () => {
     syncFromVisual();
   });
   richToolbar.querySelector('[data-font-size]').addEventListener('change', (event) => {
-    if (!event.target.value) return;
+    const input = event.target;
+    if (!input.value) {
+      const node = window.getSelection()?.anchorNode?.parentElement;
+      node?.closest('span[style*="font-size"]')?.style.removeProperty('font-size');
+      syncFromVisual();
+      return;
+    }
+    const size = /^\d+(?:\.\d+)?$/.test(input.value) ? `${input.value}px` : input.value;
     visualEditor.focus();
     document.execCommand('fontSize', false, '7');
     visualEditor.querySelectorAll('font[size="7"]').forEach((font) => {
       const span = document.createElement('span');
-      span.style.fontSize = event.target.value;
+      span.style.fontSize = size;
       span.innerHTML = font.innerHTML;
       font.replaceWith(span);
     });
+    syncFromVisual();
+  });
+  richToolbar.querySelector('[data-list]').addEventListener('change', (event) => {
+    if (!event.target.value) return;
+    visualEditor.focus();
+    if (event.target.value === 'disc') document.execCommand('insertUnorderedList', false, null);
+    else {
+      document.execCommand('insertOrderedList', false, null);
+      const node = window.getSelection()?.anchorNode?.nodeType === Node.ELEMENT_NODE ? window.getSelection().anchorNode : window.getSelection()?.anchorNode?.parentElement;
+      node?.closest('ol')?.style.setProperty('list-style-type', event.target.value);
+    }
     syncFromVisual();
   });
   richToolbar.querySelector('input[type="color"]').addEventListener('input', (event) => {
@@ -223,6 +273,12 @@ window.addEventListener('DOMContentLoaded', () => {
     document.execCommand('foreColor', false, event.target.value);
     syncFromVisual();
   });
+  richToolbar.querySelectorAll('[data-table-color]').forEach((input) => input.addEventListener('input', (event) => {
+    const table = currentTable();
+    if (!table) return;
+    table.querySelectorAll(event.target.dataset.tableColor === 'head' ? 'th' : 'td').forEach((cell) => { cell.style.backgroundColor = event.target.value; });
+    syncFromVisual();
+  }));
   chapterList.addEventListener('click', () => setTimeout(() => {
     if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
   }, 0));
