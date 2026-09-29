@@ -533,6 +533,14 @@ window.addEventListener('DOMContentLoaded', () => {
     (draft.assets || []).forEach((asset) => store.delete(`${draft.title}:${asset.name}`));
     await new Promise((resolve, reject) => { transaction.oncomplete = resolve; transaction.onerror = () => reject(transaction.error); });
   };
+  const deleteDraftAssetNames = async (title, names) => {
+    if (!names.length) return;
+    const database = await assetDatabase;
+    const transaction = database.transaction('assets', 'readwrite');
+    const store = transaction.objectStore('assets');
+    names.forEach((name) => store.delete(`${title}:${name}`));
+    await new Promise((resolve, reject) => { transaction.oncomplete = resolve; transaction.onerror = () => reject(transaction.error); });
+  };
   const draftButton = document.createElement('button');
   draftButton.type = 'button';
   draftButton.className = 'secondary';
@@ -555,6 +563,7 @@ window.addEventListener('DOMContentLoaded', () => {
   editorTab?.parentElement.append(newBookButton);
   editorTab?.parentElement.insertAdjacentElement('afterend', draftsPanel);
   let draftsExpanded = false;
+  let openedDraftTitle = null;
   editorTab?.setAttribute('aria-expanded', 'false');
   editorTab?.addEventListener('click', (event) => {
     event.preventDefault();
@@ -587,6 +596,8 @@ window.addEventListener('DOMContentLoaded', () => {
     parentTocMap.clear();
     previewAssets.forEach((asset) => { if (asset.url?.startsWith('blob:')) URL.revokeObjectURL(asset.url); });
     previewAssets.clear();
+    openedDraftTitle = null;
+    draftButton.textContent = '임시저장';
     coverPreview.removeAttribute('src');
     coverPreview.hidden = true;
     renderAssetShelf();
@@ -626,6 +637,8 @@ window.addEventListener('DOMContentLoaded', () => {
       setCurrentChapter(chapter);
     });
     $('#title').value = draft.title;
+    openedDraftTitle = draft.title;
+    draftButton.textContent = '변경사항 저장';
     $('#author').value = draft.author || '';
     $('#language').value = draft.language || 'ko';
     $('#css').value = draft.css || '';
@@ -671,6 +684,10 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!window.confirm(`“${draft.title}” 임시저장본을 정말 삭제할까요?`)) return;
         await deleteDraftAssets(draft);
         localStorage.setItem(draftStorageKey, JSON.stringify(getDrafts().filter((item) => item.title !== draft.title)));
+        if (openedDraftTitle === draft.title) {
+          openedDraftTitle = null;
+          draftButton.textContent = '임시저장';
+        }
         renderDrafts();
         setStatus(`“${draft.title}” 임시저장본을 삭제했습니다.`);
       });
@@ -682,15 +699,28 @@ window.addEventListener('DOMContentLoaded', () => {
     const draft = collectDraft();
     if (!draft.title) { setStatus('책 제목을 입력한 뒤 임시저장하세요.', 'error'); return; }
     const drafts = getDrafts();
-    if (drafts.some((item) => item.title === draft.title)) {
+    const existingIndex = drafts.findIndex((item) => item.title === draft.title);
+    const isUpdate = openedDraftTitle === draft.title && existingIndex >= 0;
+    if (existingIndex >= 0 && !isUpdate) {
       setStatus('같은 책 제목의 임시저장본이 이미 있습니다.', 'error');
       return;
     }
     try {
       await saveDraftAssets(draft.title);
-      localStorage.setItem(draftStorageKey, JSON.stringify([...drafts, draft]));
+      if (isUpdate) {
+        const existing = drafts[existingIndex];
+        const currentNames = new Set(draft.assets.map((asset) => asset.name));
+        await deleteDraftAssetNames(draft.title, (existing.assets || []).map((asset) => asset.name).filter((name) => !currentNames.has(name)));
+        drafts[existingIndex] = draft;
+        localStorage.setItem(draftStorageKey, JSON.stringify(drafts));
+        setStatus(`“${draft.title}” 변경사항을 저장했습니다.`);
+      } else {
+        localStorage.setItem(draftStorageKey, JSON.stringify([...drafts, draft]));
+        openedDraftTitle = draft.title;
+        draftButton.textContent = '변경사항 저장';
+        setStatus(`“${draft.title}”을(를) 임시저장했습니다.`);
+      }
       renderDrafts();
-      setStatus(`“${draft.title}”을(를) 임시저장했습니다.`);
     } catch {
       setStatus('임시저장 공간이 부족합니다. 이미지 용량을 줄인 뒤 다시 시도하세요.', 'error');
     }
