@@ -63,6 +63,14 @@ window.addEventListener('DOMContentLoaded', () => {
   const previewCard = preview.closest('.preview-card');
   const previewHeader = previewCard.querySelector('.head');
   const grid = chapterCard.parentElement;
+  const fitChapterPanelToViewport = () => {
+    const topOffset = chapterCard.getBoundingClientRect().top;
+    const height = Math.max(260, window.innerHeight - topOffset - 24);
+    chapterCard.style.height = `${Math.round(height)}px`;
+    chapterCard.style.maxHeight = `${Math.round(height)}px`;
+  };
+  window.addEventListener('resize', fitChapterPanelToViewport);
+  requestAnimationFrame(fitChapterPanelToViewport);
   const editorCard = chapterCard.nextElementSibling;
   const resizeHandles = ['chapters', 'preview'].map((panel) => {
     const handle = document.createElement('div');
