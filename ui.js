@@ -49,8 +49,10 @@ uiStyle.textContent = `
   .preview-card .preview { flex:1!important; min-height:0; height:auto!important; }
   .editor { display:flex; flex-direction:column; overflow:hidden; }
   .editor-controls { flex:none; }
-  .editor .fields { flex:none; min-height:0; row-gap:18px!important; }
-  .editor .fields > .full { margin-top:4px; }
+  /* 장 제목·목차 입력 영역과 두 편집기 사이의 간격은 모드와 관계없이 하나로 유지한다. */
+  .editor { --editor-content-gap:12px; }
+  .editor .fields { flex:none; min-height:0; row-gap:0!important; }
+  .editor .fields > .full,.editor > .rich-editor { margin-top:var(--editor-content-gap); }
   .editor .fields:has(.full:not([hidden])) { flex:1; display:grid; grid-template-rows:auto minmax(0,1fr); }
   .editor .fields:has(.full:not([hidden])) > .full { min-height:0; display:flex; flex-direction:column; }
   .editor .fields:has(.full:not([hidden])) .code-editor { flex:1; min-height:0; height:auto!important; }
