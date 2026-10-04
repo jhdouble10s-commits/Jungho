@@ -9,8 +9,7 @@ uiStyle.textContent = `
   .brand { color:var(--text); padding:0 12px 28px!important; }.brand small,.tip { color:var(--sub)!important; }
   .tab { background:var(--accent-soft)!important; color:var(--text)!important; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); }
   .drafts-panel { display:grid; gap:5px; margin:12px 0 0; padding:0 2px; }.drafts-panel[hidden] { display:none; }.drafts-title { padding:0 10px 4px; color:var(--sub); font-size:11px; font-weight:700; }.draft-item { width:100%; overflow:hidden; border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:transparent; color:var(--text); font:600 12px inherit; text-align:left; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }.draft-item:hover { border-color:var(--accent); color:var(--accent); }
-  .html-validation { max-width:300px; overflow:hidden; color:#ff9c75; font-size:11px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }.html-validation[hidden] { display:none; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
-  .html-validation { max-width:300px; overflow:hidden; color:#ff9c75; font-size:11px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }.html-validation[hidden] { display:none; }.fields input[type="checkbox"] { width:18px!important; height:18px; padding:0!important; box-shadow:none!important; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
+  .html-validation { max-width:300px; overflow:hidden; color:#ff9c75; font-size:11px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }.html-validation[hidden] { display:none; }.fields input[type="checkbox"] { width:18px!important; height:18px; padding:0!important; box-shadow:none!important; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor > .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor > .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
   .sidebar-toggle { position:absolute; top:18px; right:16px; width:32px; height:32px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2); color:var(--text); font-size:18px; cursor:pointer; z-index:20; }
   .theme-settings { margin-top:auto; padding:16px 10px; border-top:1px solid var(--line); color:var(--sub); font-size:12px; font-weight:700; }
   .theme-settings div { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }.theme-settings button { border:1px solid var(--line); border-radius:7px; padding:7px 4px; background:var(--surface-2); color:var(--text); font:600 11px inherit; cursor:pointer; }.theme-settings button:hover { border-color:var(--accent); color:var(--accent); }
@@ -30,8 +29,7 @@ uiStyle.textContent = `
   @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:wrap; }.left-panel#cssPanel .css { height:260px!important; } }
   .side nav { position:relative; }.new-book { position:absolute; top:7px; right:7px; z-index:2; width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--surface); color:var(--accent); font-size:19px; line-height:20px; cursor:pointer; }.new-book:hover { background:var(--accent-soft); }.chapter { padding-left:10px!important; padding-right:38px!important; }.chapter::after { content:''; position:absolute; right:11px; top:50%; width:16px; height:16px; transform:translateY(-50%); background:var(--accent); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.chapter.is-toc-hidden { color:var(--sub)!important; background:transparent!important; }.chapter.is-toc-hidden::after { background:#777; opacity:1; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.asset-rename { width:28px; height:28px; border:1px solid var(--line); border-radius:7px; background:var(--surface-2); color:var(--sub); font-size:15px; cursor:pointer; }.asset-rename:hover { border-color:var(--accent); color:var(--accent); }.fields select { height:36px; width:100%; border:1px solid var(--line); border-radius:8px; padding:0 30px 0 10px; background:var(--bg); color:var(--text); font:600 13px inherit; cursor:pointer; appearance:auto; }.fields select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; outline:0; }.editor > .toolbar label[for="image"] { display:none!important; }.css-save { width:100%; margin:0 0 10px; padding:8px; font-size:12px; }.status.ok,.status.error { position:fixed!important; top:20px; right:20px; z-index:1000; display:flex!important; align-items:center; min-height:46px; max-width:min(440px,calc(100vw - 40px)); margin:0!important; padding:12px 44px 12px 15px!important; border:1px solid #ffffff38; border-radius:11px; background:#0000001a!important; color:#fff!important; box-shadow:0 14px 36px #00000028; -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px); opacity:1; transform:translateY(0); transition:opacity .28s ease,transform .28s ease; }.status.error { border-color:#ff8b72aa; }.status.is-leaving { opacity:0; transform:translateY(-8px); }
   .fields { grid-template-columns:minmax(0,1fr) minmax(170px,.3fr)!important; align-items:end; }.fields > div:not(.full) { display:flex; min-width:0; flex-direction:column; }.fields > div:not(.full) label { height:16px; margin-bottom:6px!important; font-size:12px!important; line-height:16px!important; }.fields > div:not(.full) input,.fields > div:not(.full) select { height:36px!important; min-height:36px; padding:0 10px!important; }.chapter::after { background:#FF5100!important; }.chapter.is-toc-hidden::after { background:#707078!important; }.chapter.is-toc-hidden { color:#707078!important; }
-  .code-editor .code { overflow:auto!important; white-space:pre!important; }.preview p,.preview h1,.preview h2,.preview h3,.preview h4,.preview h5,.preview li,.preview blockquote,.preview td,.preview th { cursor:text; }.fields { position:relative; grid-template-columns:minmax(0,1fr) minmax(170px,.3fr)!important; }.fields.is-custom-width { grid-template-columns:minmax(220px,min(var(--chapter-title-width),calc(100% - 182px))) minmax(170px,1fr)!important; }.field-resize-handle { position:absolute; top:0; bottom:auto; left:0; z-index:4; width:14px; height:58px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.field-resize-handle::after { content:''; position:absolute; top:20px; bottom:2px; left:6px; width:2px; border-radius:2px; background:var(--line); transition:background .15s; }.field-resize-handle:hover::after,.field-resize-handle.is-resizing::after { background:var(--accent); }
-  .code-editor .code { overflow:auto!important; white-space:pre-wrap!important; overflow-wrap:break-word; }
+  .code-editor > .code { overflow:auto!important; white-space:pre-wrap!important; overflow-wrap:break-word; }.preview p,.preview h1,.preview h2,.preview h3,.preview h4,.preview h5,.preview li,.preview blockquote,.preview td,.preview th { cursor:text; }.fields { position:relative; }.fields.is-custom-width { grid-template-columns:minmax(220px,min(var(--chapter-title-width),calc(100% - 182px))) minmax(170px,1fr)!important; }.field-resize-handle { position:absolute; top:0; bottom:auto; left:0; z-index:4; width:14px; height:58px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.field-resize-handle::after { content:''; position:absolute; top:20px; bottom:2px; left:6px; width:2px; border-radius:2px; background:var(--line); transition:background .15s; }.field-resize-handle:hover::after,.field-resize-handle.is-resizing::after { background:var(--accent); }
   @media(min-width:1921px) {
     main { max-width:none!important; width:100%!important; margin:0!important; padding:clamp(28px,2vw,72px)!important; }
     .grid { --chapter-width:clamp(270px,16vw,480px); --preview-width:minmax(480px,1fr); grid-template-columns:var(--chapter-width) minmax(620px,1.65fr) var(--preview-width)!important; gap:clamp(16px,1vw,30px)!important; }
@@ -42,9 +40,12 @@ uiStyle.textContent = `
     .left-tab,.secondary { font-size:clamp(12px,.58vw,17px)!important; }.chapter { padding:clamp(10px,.65vw,17px)!important; font-size:clamp(14px,.7vw,20px)!important; }
     label,.head { font-size:clamp(12px,.58vw,17px)!important; }.top { font-size:clamp(14px,.7vw,20px); }
   }
-  /* EPUB 작업 화면의 세 패널은 같은 가용 높이를 쓰되, 창 높이에 따라 함께 변한다. */
-  .grid { --workspace-panel-height:clamp(420px,calc(100vh - 220px),1100px); align-items:stretch!important; }
-  .chapter-card,.editor,.preview-card { height:var(--workspace-panel-height)!important; max-height:var(--workspace-panel-height)!important; }
+  /* 작업 화면은 viewport 안에서 남은 높이를 패널에 전달한다. 페이지가 아닌 각 패널 내부만 스크롤한다. */
+  .app { height:100dvh; min-height:0; overflow:hidden; }
+  main { height:100dvh; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+  #editorView.view.active { display:flex; flex:1; min-height:0; }
+  #editorView .grid { flex:1; min-height:0; height:100%; align-items:stretch!important; overflow:hidden; }
+  .chapter-card,.editor,.preview-card { min-height:0; height:100%!important; max-height:none!important; }
   .preview-card { position:static!important; align-self:stretch!important; display:flex; flex-direction:column; }
   .preview-card .preview { flex:1!important; min-height:0; height:auto!important; }
   .editor { display:flex; flex-direction:column; overflow:hidden; }
@@ -52,19 +53,23 @@ uiStyle.textContent = `
   /* 장 제목·목차 입력 영역과 두 편집기 사이의 간격은 모드와 관계없이 하나로 유지한다. */
   .editor { --editor-content-gap:12px; }
   .editor .fields { flex:none; min-height:0; row-gap:0!important; }
-  .editor .fields > .full,.editor > .rich-editor { margin-top:var(--editor-content-gap); }
-  .editor .fields:has(.full:not([hidden])) { flex:1; display:grid; grid-template-rows:auto minmax(0,1fr); }
-  .editor .fields:has(.full:not([hidden])) > .full { min-height:0; display:flex; flex-direction:column; }
-  .editor .fields:has(.full:not([hidden])) .code-editor { flex:1; min-height:0; height:auto!important; }
+  .editor > .full,.editor > .rich-editor { margin-top:var(--editor-content-gap); }
+  /* XHTML 안내 라벨은 보조기기에만 남겨 코드 편집기의 시작점을 일반편집기와 맞춘다. */
+  .editor > .full > label { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+  .editor > .full:not([hidden]) { flex:1; min-height:0; display:flex; flex-direction:column; }
+  .editor > .full:not([hidden]) .code-editor { flex:1; min-height:0; height:auto!important; }
+  .editor > .full:not([hidden]) .code-editor > .line-numbers { min-height:0; }
+  .editor > .full:not([hidden]) > .code-editor > textarea.code { height:100%!important; min-height:0; }
   .editor .rich-editor { flex:1; min-height:0; height:auto!important; }
   #xhtml-monaco-editor { height:100%!important; }
   .editor-mode { padding:3px!important; }
   .editor-mode button { min-width:76px; padding:7px 9px!important; }
+  .epub-transfer { display:flex; flex:none; align-items:stretch; gap:8px; }.epub-transfer .primary { margin:0; }
   .epub-topbar[hidden] { display:none!important; }
   .account-area { position:relative; flex:none; margin-right:10px; }.account-button { border:1px solid var(--line); border-radius:8px; padding:8px 11px; background:var(--surface-2); color:var(--text); font:700 12px inherit; cursor:pointer; }.account-button:hover { border-color:var(--accent); color:var(--accent); }
   .account-panel { position:absolute; top:calc(100% + 8px); right:0; z-index:40; width:270px; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--surface); box-shadow:0 18px 45px #0008; }.account-panel[hidden] { display:none; }.account-panel h3 { margin:0 0 10px; font-size:13px; }.account-panel label { display:block; margin:8px 0 4px; font-size:11px; color:var(--sub)!important; }.account-panel input { width:100%!important; height:34px; padding:6px 8px!important; }.account-actions { display:flex; gap:6px; margin-top:10px; }.account-actions button { flex:1; }.account-message { margin:8px 0 0; color:var(--sub); font-size:11px; line-height:1.4; }.account-message.error { color:#ff9c75; }.admin-panel { margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
-  @media(max-width:1550px) { .preview-card { height:var(--workspace-panel-height)!important; max-height:var(--workspace-panel-height)!important; } }
-  @media(max-width:700px) { .chapter-card,.editor,.preview-card { height:auto!important; max-height:none!important; }.editor .rich-editor { min-height:420px; }.editor .fields:has(.full:not([hidden])) .code-editor { min-height:420px; } }
+  @media(max-width:1550px) { #editorView .grid { grid-template-rows:minmax(0,1fr) minmax(180px,.7fr); }.chapter-card,.editor { height:100%!important; }.preview-card { height:auto!important; max-height:none!important; } }
+  @media(max-width:700px) { .app,main { height:100dvh; }.app { overflow:hidden; } main { overflow:auto; }.chapter-card,.editor,.preview-card { height:auto!important; max-height:none!important; }.epub-transfer { width:100%; flex-wrap:wrap; }.epub-transfer .primary { flex:1; } }
 `;
 window.addEventListener('DOMContentLoaded', () => {
   document.head.append(uiStyle);
@@ -86,13 +91,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const previewCard = preview.closest('.preview-card');
   const previewHeader = previewCard.querySelector('.head');
   const grid = chapterCard.parentElement;
-  const fitChapterPanelToViewport = () => {
-    const topOffset = chapterCard.getBoundingClientRect().top;
-    const height = Math.max(260, window.innerHeight - topOffset - 24);
-    grid.style.setProperty('--workspace-panel-height', `${Math.round(height)}px`);
-  };
-  window.addEventListener('resize', fitChapterPanelToViewport);
-  requestAnimationFrame(fitChapterPanelToViewport);
   const editorCard = chapterCard.nextElementSibling;
   const resizeHandles = ['chapters', 'preview'].map((panel) => {
     const handle = document.createElement('div');
@@ -311,12 +309,16 @@ window.addEventListener('DOMContentLoaded', () => {
   const htmlEditor = $('#body');
   htmlEditor.wrap = 'soft';
   const htmlField = htmlEditor.closest('.full');
+  const editorFields = htmlEditor.closest('.fields');
+  const editor = htmlEditor.closest('.editor');
+  const editorActions = editor.querySelector('.toolbar');
+  // 제목·목차 필드와 실제 편집 영역을 분리해, 본문만 남은 높이를 사용하게 한다.
+  editorActions.before(htmlField);
   const xhtmlDiagnostics = document.createElement('div');
   xhtmlDiagnostics.className = 'xhtml-diagnostics';
   xhtmlDiagnostics.hidden = true;
   xhtmlDiagnostics.setAttribute('role', 'status');
   htmlField.append(xhtmlDiagnostics);
-  const editorFields = htmlEditor.closest('.fields');
   const tocLevel = $('#clevel');
   const tocField = tocLevel.parentElement;
   tocField.querySelector('label').textContent = '상위 목차';
@@ -855,6 +857,19 @@ window.addEventListener('DOMContentLoaded', () => {
   autoFixHtmlButton.textContent = 'XHTML 자동수정';
   autoFixHtmlButton.title = 'XHTML 들여쓰기, 태그 구조, self-closing 빈 태그를 정리합니다.';
   exportButton.before(autoFixHtmlButton);
+  const epubTransfer = document.createElement('div');
+  epubTransfer.className = 'epub-transfer';
+  const importButton = document.createElement('button');
+  importButton.type = 'button';
+  importButton.className = 'primary';
+  importButton.textContent = 'EPUB 가져오기';
+  const importInput = document.createElement('input');
+  importInput.type = 'file';
+  importInput.accept = '.epub,application/epub+zip,application/zip';
+  importInput.hidden = true;
+  exportButton.before(epubTransfer);
+  epubTransfer.append(importButton, exportButton);
+  document.body.append(importInput);
   const cssSaveButton = document.createElement('button');
   cssSaveButton.type = 'button';
   cssSaveButton.className = 'secondary css-save';
@@ -1103,6 +1118,126 @@ window.addEventListener('DOMContentLoaded', () => {
     hydratePreviewAssets();
     setStatus(`“${draft.title}” 임시저장본을 불러왔습니다.`);
   };
+  const zipU16 = (view, offset) => view.getUint16(offset, true);
+  const zipU32 = (view, offset) => view.getUint32(offset, true);
+  const zipText = (bytes) => new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/, '');
+  const zipPath = (basePath, href) => {
+    try { return decodeURIComponent(new URL(href, `https://epub.local/${basePath}`).pathname.slice(1)); }
+    catch { return href.replace(/^\.\//, ''); }
+  };
+  const unzipEpub = async (file) => {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let end = -1;
+    for (let offset = Math.max(0, bytes.length - 0x10016); offset <= bytes.length - 22; offset += 1) {
+      if (zipU32(view, offset) === 0x06054b50) end = offset;
+    }
+    if (end < 0) throw new Error('유효한 EPUB(ZIP) 파일이 아닙니다.');
+    const entryCount = zipU16(view, end + 10);
+    let directoryOffset = zipU32(view, end + 16);
+    const files = new Map();
+    for (let index = 0; index < entryCount; index += 1) {
+      if (zipU32(view, directoryOffset) !== 0x02014b50) throw new Error('EPUB 파일 목록을 읽을 수 없습니다.');
+      const method = zipU16(view, directoryOffset + 10);
+      const compressedSize = zipU32(view, directoryOffset + 20);
+      const nameLength = zipU16(view, directoryOffset + 28);
+      const extraLength = zipU16(view, directoryOffset + 30);
+      const commentLength = zipU16(view, directoryOffset + 32);
+      const localOffset = zipU32(view, directoryOffset + 42);
+      const name = zipText(bytes.slice(directoryOffset + 46, directoryOffset + 46 + nameLength));
+      if (zipU32(view, localOffset) !== 0x04034b50) throw new Error('EPUB 파일 항목을 읽을 수 없습니다.');
+      const localNameLength = zipU16(view, localOffset + 26);
+      const localExtraLength = zipU16(view, localOffset + 28);
+      const payload = bytes.slice(localOffset + 30 + localNameLength + localExtraLength, localOffset + 30 + localNameLength + localExtraLength + compressedSize);
+      let data;
+      if (method === 0) data = payload;
+      else if (method === 8 && 'DecompressionStream' in window) data = new Uint8Array(await new Response(new Blob([payload]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+      else throw new Error('지원하지 않는 EPUB 압축 형식입니다.');
+      files.set(name, data);
+      directoryOffset += 46 + nameLength + extraLength + commentLength;
+    }
+    return files;
+  };
+  const xmlDocument = (source, label) => {
+    const documentNode = new DOMParser().parseFromString(source, 'application/xml');
+    if (documentNode.querySelector('parsererror')) throw new Error(`${label} 형식이 올바르지 않습니다.`);
+    return documentNode;
+  };
+  const elementText = (documentNode, name) => documentNode.getElementsByTagNameNS('*', name)[0]?.textContent?.trim() || '';
+  const importEpub = async (file) => {
+    const files = await unzipEpub(file);
+    const container = xmlDocument(zipText(files.get('META-INF/container.xml') || new Uint8Array()), 'container.xml');
+    const packagePath = container.getElementsByTagNameNS('*', 'rootfile')[0]?.getAttribute('full-path');
+    if (!packagePath || !files.has(packagePath)) throw new Error('EPUB 패키지(OPF)를 찾을 수 없습니다.');
+    const packageDocument = xmlDocument(zipText(files.get(packagePath)), 'EPUB 패키지');
+    const packageBase = packagePath.slice(0, packagePath.lastIndexOf('/') + 1);
+    const manifest = new Map(Array.from(packageDocument.getElementsByTagNameNS('*', 'item')).map((item) => [item.getAttribute('id'), {
+      href:zipPath(packageBase, item.getAttribute('href') || ''), type:item.getAttribute('media-type') || '', properties:item.getAttribute('properties') || '',
+    }]));
+    const spine = Array.from(packageDocument.getElementsByTagNameNS('*', 'itemref')).map((item) => manifest.get(item.getAttribute('idref'))).filter((item) => item?.type.includes('xhtml'));
+    const chapterSources = spine.filter((item) => !item.properties.includes('cover'));
+    if (!chapterSources.length) throw new Error('불러올 XHTML 본문을 찾을 수 없습니다.');
+    const assets = new Map();
+    const reservedNames = new Set();
+    manifest.forEach((item) => {
+      if (!item.type.startsWith('image/') || !files.has(item.href)) return;
+      const rawName = item.href.split('/').pop() || 'image';
+      const dot = rawName.lastIndexOf('.');
+      const base = dot > 0 ? rawName.slice(0, dot) : rawName;
+      const extension = dot > 0 ? rawName.slice(dot) : '';
+      let name = rawName;
+      let number = 2;
+      while (reservedNames.has(name)) { name = `${base}-${number}${extension}`; number += 1; }
+      reservedNames.add(name);
+      assets.set(item.href, { name, type:item.type, blob:new Blob([files.get(item.href)], { type:item.type }) });
+    });
+    const chapters = chapterSources.map((item, index) => {
+      const documentNode = new DOMParser().parseFromString(zipText(files.get(item.href) || new Uint8Array()), 'text/html');
+      const body = documentNode.body;
+      body.querySelectorAll('[src]').forEach((node) => {
+        const asset = assets.get(zipPath(item.href.slice(0, item.href.lastIndexOf('/') + 1), node.getAttribute('src')));
+        if (asset) node.setAttribute('src', `images/${asset.name}`);
+      });
+      const title = documentNode.querySelector('title')?.textContent?.trim() || body.querySelector('h1,h2')?.textContent?.trim() || `제${index + 1}장`;
+      return { title, level:1, body:body.innerHTML.trim() };
+    });
+    const title = elementText(packageDocument, 'title') || file.name.replace(/\.epub$/i, '');
+    if (!window.confirm(`“${title}” EPUB의 ${chapters.length}개 장을 현재 편집기에 불러옵니다. 현재 작업 내용은 교체됩니다.`)) return;
+    while (chapterList.querySelectorAll('.chapter[data-i]').length > 1) $('#del').click();
+    setCurrentChapter(chapters[0]);
+    chapters.slice(1).forEach((chapter) => { addChapter.click(); setCurrentChapter(chapter); });
+    $('#title').value = title;
+    $('#author').value = elementText(packageDocument, 'creator');
+    $('#language').value = elementText(packageDocument, 'language') || 'ko';
+    const stylesheet = Array.from(manifest.values()).find((item) => item.type === 'text/css' && files.has(item.href));
+    $('#css').value = stylesheet ? zipText(files.get(stylesheet.href)) : '';
+    tocExcluded.clear();
+    parentTocMap.clear();
+    previewAssets.forEach((asset) => { if (asset.url?.startsWith('blob:')) URL.revokeObjectURL(asset.url); });
+    previewAssets.clear();
+    assets.forEach((asset) => previewAssets.set(asset.name, { ...asset, url:URL.createObjectURL(asset.blob) }));
+    const cover = Array.from(manifest.values()).find((item) => item.properties.includes('cover-image'));
+    const coverAsset = cover && assets.get(cover.href);
+    if (coverAsset) { coverPreview.src = previewAssets.get(coverAsset.name).url; coverPreview.hidden = false; }
+    else { coverPreview.removeAttribute('src'); coverPreview.hidden = true; }
+    openedDraftTitle = null;
+    draftButton.textContent = '임시저장';
+    chapterList.querySelector('.chapter[data-i="0"]')?.click();
+    visualEditor.innerHTML = htmlEditor.value;
+    renderAssetShelf();
+    refreshChapterControls();
+    refreshPreview();
+    hydratePreviewAssets();
+    setStatus(`“${title}” EPUB을 불러왔습니다. ${chapters.length}개 장을 편집할 수 있습니다.`);
+  };
+  importButton.addEventListener('click', () => importInput.click());
+  importInput.addEventListener('change', async () => {
+    const file = importInput.files?.[0];
+    if (!file) return;
+    try { await importEpub(file); }
+    catch (error) { setStatus(error.message || 'EPUB 파일을 불러오지 못했습니다.', 'error'); }
+    finally { importInput.value = ''; }
+  });
   const renderDrafts = () => {
     const drafts = getDrafts();
     draftsPanel.hidden = !drafts.length || !draftsExpanded;
@@ -1730,11 +1865,11 @@ window.addEventListener('DOMContentLoaded', () => {
       const editorStyle = document.createElement('style');
       editorStyle.textContent = `
         .code-editor:has(#xhtml-monaco-editor){display:block;border:1px solid var(--line);background:var(--bg)}
-        .code-editor:has(#xhtml-monaco-editor) .line-numbers,.code-editor:has(#xhtml-monaco-editor) textarea{display:none!important}
-        #xhtml-monaco-editor{height:610px;min-height:420px;text-align:left}
+        /* Monaco 내부 textarea는 실제 키보드 입력을 받으므로, 기존 직접 자식 textarea만 숨긴다. */
+        .code-editor:has(#xhtml-monaco-editor) > .line-numbers,.code-editor:has(#xhtml-monaco-editor) > textarea.code{display:none!important}
+        #xhtml-monaco-editor{height:100%;min-height:0;text-align:left}
         .xhtml-diagnostics{margin-top:8px;padding:8px 10px;border:1px solid #ff8b72aa;border-radius:7px;background:#ff510018;color:#ffb39d;font-size:12px;line-height:1.45}.xhtml-diagnostics[hidden]{display:none}
         .monaco-editor .xhtml-emmet-suggestion{color:#a78bfa!important}
-        @media(max-width:700px){#xhtml-monaco-editor{height:460px}}
       `;
       document.head.append(editorStyle);
       const tags = ['html','head','body','title','meta','link','style','script','div','section','article','header','footer','main','nav','aside','p','span','strong','em','b','i','u','h1','h2','h3','h4','h5','h6','ul','ol','li','table','thead','tbody','tr','th','td','a','img','figure','figcaption','br','hr'];
