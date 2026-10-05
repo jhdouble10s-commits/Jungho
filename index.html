@@ -1,15 +1,523 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EPUB 만들기</title>
-<style>
-:root{--ink:#182136;--muted:#64718a;--line:#dce2ee;--bg:#f5f7fb;--nav:#182136;--accent:#6558d5;--soft:#efedff}*{box-sizing:border-box}body{margin:0;font:16px "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;color:var(--ink);background:var(--bg)}.app{min-height:100vh;display:grid;grid-template-columns:232px 1fr}.side{background:var(--nav);color:#fff;padding:28px 16px;display:flex;flex-direction:column}.brand{font-weight:800;font-size:18px;padding:0 12px 30px}.brand small{display:block;color:#afbbd0;font-size:12px;font-weight:400;margin-top:6px}.tabs{display:grid;gap:6px}.tab{width:100%;border:0;padding:12px;border-radius:10px;background:transparent;color:#cbd4e4;text-align:left;font:700 14px inherit;cursor:pointer}.tab:hover,.tab.active{background:#312d59;color:#fff}.tip{margin-top:auto;border-top:1px solid #344056;padding:18px 12px 0;color:#afbbd0;font-size:12px;line-height:1.7}main{max-width:1450px;margin:auto;padding:30px 36px 50px;width:100%}.top{display:flex;justify-content:space-between;gap:20px;margin-bottom:25px}.top h1{font-size:28px;letter-spacing:-.06em;margin:0}.top p{color:var(--muted);font-size:14px;margin:8px 0}.primary{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:12px 17px;font-weight:800;cursor:pointer}.grid{display:grid;grid-template-columns:270px minmax(340px,1fr) minmax(300px,.85fr);gap:18px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 3px 12px #1b29400a}.head{font-weight:800;font-size:14px;padding:16px 17px;border-bottom:1px solid var(--line)}.chapters{padding:8px}.chapter{width:100%;border:0;background:transparent;border-radius:8px;padding:10px;text-align:left;cursor:pointer;color:var(--ink)}.chapter:hover{background:#f5f6fa}.chapter.active{background:var(--soft);color:#4135a4;font-weight:800}.num{color:#8d99ae;font-size:12px;margin-right:8px}.add{width:calc(100% - 16px);margin:7px 8px 13px;border:1px dashed #aaa3e6;border-radius:8px;background:#faf9ff;padding:9px;color:#4d40bf;font-weight:700;cursor:pointer}.editor,.settings,.preview-card{padding:20px}.fields{display:grid;grid-template-columns:1fr 110px;gap:12px}.full{grid-column:1/-1}label{display:block;font-size:12px;font-weight:800;color:#46536a;margin-bottom:6px}input,textarea{font:inherit;width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink);outline:none}input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px #6558d51c}textarea{resize:vertical}.code{height:580px;font:13px/1.65 Consolas,"Courier New",monospace}.toolbar{display:flex;gap:8px;margin:12px 0}.secondary{font-weight:700;font-size:12px;color:#38455a;border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 10px;cursor:pointer}.danger{color:#b01f37;margin-left:auto}.preview{height:680px;padding:18px;border:1px solid var(--line);border-radius:8px;overflow:auto}.preview img{max-width:100%;height:auto}.preview table{border-collapse:collapse}.preview td,.preview th{border:1px solid #aaa;padding:5px}.settings{max-width:720px}.settings section+section{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}h2{font-size:14px;margin:0 0 12px}.field{margin-bottom:11px}.css{height:440px;font:12px/1.55 Consolas,"Courier New",monospace}.cover{border:1px dashed #b7bfd0;padding:10px;border-radius:9px}.cover img{display:block;max-height:130px;max-width:100%;margin:10px auto 0}.hint,.images{font-size:12px;color:var(--muted);line-height:1.55}.images{list-style:none;padding:0}.images li{border-bottom:1px solid #edf0f5;padding:5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.status{display:none;margin:0 0 18px;padding:12px 14px;border-radius:9px;font-size:13px}.status.ok{display:block;background:#eaf8ef;color:#176535}.status.error{display:block;background:#fff0f1;color:#a42135}.view{display:none}.view.active{display:block}@media(max-width:1050px){.grid{grid-template-columns:235px 1fr}.preview-card{grid-column:1/-1}.preview{height:450px}}@media(max-width:700px){.app{grid-template-columns:1fr}.side{padding:14px 16px}.brand{padding:0}.tip{display:none}.tabs{margin-top:10px}.top{display:block}.primary{margin-top:12px;width:100%}main{padding:22px 15px}.grid,.fields{display:block}.editor,.preview-card{margin-top:18px}.full{margin-top:12px}.code{height:460px}.preview{height:420px}}
-</style></head><body><div class="app"><aside class="side"><div class="brand">나의 작업실<small>개인용 전자책 도구</small></div><nav class="tabs"><button class="tab active" data-view="editorView">✦ &nbsp;EPUB 만들기</button><button class="tab" data-view="bookView">▣ &nbsp;책 정보</button><button class="tab" data-view="styleView">✎ &nbsp;공통 CSS</button></nav><p class="tip">인터넷이나 서버 없이 작동합니다.<br>원고와 이미지는 이 브라우저 안에서만 처리됩니다.</p></aside><main><div class="top"><div><h1 id="pageTitle">EPUB 만들기</h1><p id="pageDescription">본문, 이미지와 목차를 정리한 뒤 EPUB 3.0 파일로 내보냅니다.</p></div><button id="export" class="primary">EPUB 3.0 내보내기</button></div><div id="status" class="status"></div><div id="editorView" class="view active"><div class="grid"><aside class="card"><div class="head">책의 구성</div><div id="list" class="chapters"></div><button id="add" class="add">＋ 장 추가</button></aside><article class="card editor"><div class="fields"><div><label for="ctitle">장 제목 / 목차 표시명</label><input id="ctitle"></div><div><label for="clevel">목차 단계</label><input id="clevel" type="number" min="1" max="3"></div><div class="full"><label for="body">본문 HTML — &lt;body&gt; 안에 넣을 내용만 작성하세요</label><textarea id="body" class="code" spellcheck="false"></textarea></div></div><div class="toolbar"><label class="secondary" for="image">이미지 업로드·삽입</label><input id="image" type="file" accept="image/jpeg,image/png,image/gif,image/svg+xml" multiple hidden><button id="previewBtn" class="secondary">미리보기 갱신</button><button id="del" class="secondary danger">이 장 삭제</button></div></article><aside class="card preview-card"><div class="head">미리보기</div><div id="preview" class="preview"></div></aside></div></div><div id="bookView" class="view"><aside class="card settings"><div class="head">책 정보</div><section><div class="field"><label for="title">책 제목</label><input id="title" value="새 전자책"></div><div class="field"><label for="author">저자</label><input id="author" placeholder="이름"></div><div class="field"><label for="language">언어</label><input id="language" value="ko"></div><div class="field"><label for="coverInput">표지 이미지</label><div class="cover"><input id="coverInput" type="file" accept="image/jpeg,image/png"><img id="coverPreview" hidden></div><p class="hint">JPG 또는 PNG, 세로형 이미지를 권장합니다.</p></div></section></aside></div><div id="styleView" class="view"><aside class="card settings"><div class="head">공통 CSS</div><section><textarea id="css" class="css">body { font-family: serif; line-height: 1.8; } p { margin: 0 0 1em; } img { max-width: 100%; height: auto; } h1, h2, h3 { line-height: 1.4; }</textarea><p class="hint">모든 장에 자동으로 적용됩니다.</p><ul id="images" class="images"></ul></section></aside></div></main></div>
-<!-- Monaco와 Emmet은 HTML 편집 모드에서만 로드합니다. 기존 정적 앱 구조를 유지합니다. -->
-<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
-<script src="ui.js"></script>
-<script>
-/* 메인 작업 영역의 탭: 책 정보와 CSS는 EPUB 만들기 화면 안에서 전환합니다. */
-{const sideTabs=document.querySelector('.side .tabs'),top=document.querySelector('.top'),statusBox=document.getElementById('status'),tabStyle=document.createElement('style');tabStyle.textContent='.side .tabs .tab{background:#312d59;color:#fff;cursor:default}.side .tabs .tab:not(:first-child){display:none}.workspace-tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:18px}.workspace-tab{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);padding:11px 14px 10px;font:700 14px inherit;cursor:pointer}.workspace-tab:hover,.workspace-tab.active{border-bottom-color:var(--accent);color:#4135a4}';document.head.append(tabStyle);const mainTabs=document.createElement('nav');mainTabs.className='workspace-tabs';mainTabs.innerHTML='<button class="workspace-tab active" data-view="editorView" data-title="EPUB 만들기" data-description="본문, 이미지와 목차를 정리한 뒤 EPUB 3.0 파일로 내보냅니다.">EPUB 만들기</button><button class="workspace-tab" data-view="bookView" data-title="책 정보" data-description="전자책의 기본 정보와 표지 이미지를 설정합니다.">책 정보</button><button class="workspace-tab" data-view="styleView" data-title="공통 CSS" data-description="모든 장에 적용할 서식을 작성합니다.">공통 CSS</button>';top.after(mainTabs);mainTabs.querySelectorAll('button').forEach(button=>button.onclick=()=>{mainTabs.querySelectorAll('button').forEach(tab=>tab.classList.toggle('active',tab===button));document.querySelectorAll('.view').forEach(view=>view.classList.toggle('active',view.id===button.dataset.view));document.getElementById('pageTitle').textContent=button.dataset.title;document.getElementById('pageDescription').textContent=button.dataset.description;statusBox.scrollIntoView({block:'nearest'})});}
-{const mainTabs=document.querySelector('.workspace-tabs'),editorView=document.getElementById('editorView'),bookView=document.getElementById('bookView'),styleView=document.getElementById('styleView'),statusBox=document.getElementById('status'),layoutStyle=document.createElement('style');layoutStyle.textContent='body{background:radial-gradient(circle at 80% -10%,#e6e1ff 0,transparent 33%),#f5f7fb}.side{background:linear-gradient(165deg,#151b32,#25204b);padding:30px 18px}.brand{font-size:20px;letter-spacing:-.04em}.tab{box-shadow:inset 0 1px #ffffff14}.top{background:#fff;border:1px solid #e5e8f1;border-radius:18px;padding:22px 24px;margin-bottom:12px;box-shadow:0 12px 35px #1b29400b}.top h1{font-size:30px}.primary{box-shadow:0 8px 18px #6558d53d;transition:transform .15s,box-shadow .15s}.primary:hover{transform:translateY(-1px);box-shadow:0 11px 22px #6558d54b}.workspace-tabs{background:#fff;border:1px solid #e5e8f1;border-radius:14px;padding:4px 8px;margin-bottom:14px;box-shadow:0 6px 20px #1b294008}.workspace-tab{border-radius:9px;border-bottom:0;padding:10px 14px}.workspace-tab.active{background:var(--soft);color:#4135a4}.card{box-shadow:0 12px 28px #1b29400c;border-color:#e5e8f1}.head{font-size:13px;letter-spacing:.01em}.preview{background:#fcfcfe}.settings-panel{display:none;margin:0 0 16px}.settings-panel.active{display:block}.settings-panel .settings{max-width:none;padding:0}.settings-panel .head{padding:14px 18px}.settings-panel section{padding:16px 18px}.settings-panel#bookView section{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.settings-panel#bookView .field:last-child{grid-column:1/-1}.settings-panel#styleView .css{height:210px}@media(max-width:700px){.top{padding:18px}.settings-panel#bookView section{display:block}}';document.head.append(layoutStyle);bookView.classList.add('settings-panel');styleView.classList.add('settings-panel');mainTabs.after(bookView,styleView,statusBox);mainTabs.querySelectorAll('button').forEach(button=>button.onclick=()=>{mainTabs.querySelectorAll('button').forEach(tab=>tab.classList.toggle('active',tab===button));editorView.classList.add('active');bookView.classList.toggle('active',button.dataset.view==='bookView');styleView.classList.toggle('active',button.dataset.view==='styleView');document.getElementById('pageTitle').textContent='EPUB 만들기';document.getElementById('pageDescription').textContent='본문, 이미지와 목차를 정리한 뒤 EPUB 3.0 파일로 내보냅니다.'});}
-{const font=document.createElement('link'),mainTabs=document.querySelector('.workspace-tabs'),bookView=document.getElementById('bookView'),styleView=document.getElementById('styleView'),theme=document.createElement('style');font.rel='stylesheet';font.href='https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap';document.head.append(font);theme.textContent=':root{--ink:#f5f5f5;--muted:#9b9ba3;--line:#29292d;--bg:#080809;--nav:#030303;--accent:#9b87ff;--soft:#211c36}body{background:#080809!important;color:var(--ink)!important;font-family:"Noto Sans KR",system-ui,sans-serif!important}.app{background:radial-gradient(circle at 75% 0,#1d1732 0,transparent 32%)}.side{background:#030303;border-right:1px solid #242426}.brand small,.tip{color:#9999a3}.top,.workspace-tabs,.card{background:#111113!important;border-color:#29292d!important;box-shadow:0 16px 36px #00000038}.top h1{color:#fff}.top p,label,h2,.hint,.images{color:#a6a6af!important}.tab{background:#1b1825!important;color:#fff!important}.primary{background:linear-gradient(135deg,#927dff,#7259e8)!important}.workspace-tab{color:#92929b!important}.workspace-tab.active{background:#27213d!important;color:#cfc6ff!important}.chapter{color:#d8d8df}.chapter:hover{background:#1a1a1e}.chapter.active{background:#28213f;color:#d4cdff}.num{color:#85858f}input,textarea{background:#0a0a0c!important;border-color:#303035!important;color:#f5f5f5!important;font-family:"Noto Sans KR",system-ui,sans-serif!important}.code,.css{font-family:"SFMono-Regular",Consolas,monospace!important}.secondary{background:#1a1a1d!important;border-color:#35353a!important;color:#dedee4}.preview{background:#0a0a0c!important;border-color:#303035!important;color:#ededf0}.workspace-tabs{position:relative;z-index:5}.settings-panel{position:absolute!important;top:calc(100% + 10px);left:0;right:0;z-index:20;margin:0!important;display:none!important}.settings-panel.active{display:block!important}.settings-panel .settings{background:#151518!important;border:1px solid #393940!important;border-radius:16px;box-shadow:0 24px 60px #00000080;max-width:none}.settings-panel#bookView section{background:#151518}.settings-panel#styleView .css{background:#09090b!important}.status{position:relative;z-index:1}@media(max-width:700px){.settings-panel{left:-1px;right:-1px}.settings-panel#bookView section{display:block}.top{box-shadow:none}}';document.head.append(theme);mainTabs.append(bookView,styleView);}
-(()=>{const $=x=>document.getElementById(x),S={chapters:[{title:'들어가는 글',level:1,body:'<h1>들어가는 글</h1><p>여기에 본문을 작성하세요.</p>'}],i:0,cover:null,images:[]},E=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c])),txt=s=>new TextEncoder().encode(s),data=u=>Uint8Array.from(atob(u.split(',')[1]),c=>c.charCodeAt(0));function save(){let c=S.chapters[S.i];c.title=$('ctitle').value;c.level=Math.max(1,Math.min(3,+$('clevel').value||1));c.body=$('body').value}function load(){let c=S.chapters[S.i];$('ctitle').value=c.title;$('clevel').value=c.level;$('body').value=c.body;list();preview()}function list(){$('list').innerHTML=S.chapters.map((c,i)=>`<button class="chapter ${i==S.i?'active':''}" data-i="${i}"><span class="num">${String(i+1).padStart(2,'0')}</span>${E(c.title||'제목 없는 장')}</button>`).join('');document.querySelectorAll('.chapter').forEach(x=>x.onclick=()=>{save();S.i=+x.dataset.i;load()})}function preview(){save();$('preview').innerHTML='<style>'+$('css').value+'</style>'+$('body').value}function status(s,t){$('status').textContent=s;$('status').className='status '+t;scrollTo({top:0,behavior:'smooth'})}async function asset(f,p){let ext=(f.name.split('.').pop()||'png').toLowerCase(),n=p+'-'+String(S.images.length+1).padStart(3,'0')+'.'+ext,u=await new Promise((ok,no)=>{let r=new FileReader;r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(f)});return{name:n,type:f.type||'image/png',url:u}}$('add').onclick=()=>{save();S.chapters.push({title:'새 장',level:1,body:'<h1>새 장</h1><p>본문을 작성하세요.</p>'});S.i=S.chapters.length-1;load()};$('del').onclick=()=>{if(S.chapters.length==1)return status('적어도 한 개의 장이 필요합니다.','error');S.chapters.splice(S.i,1);S.i=Math.max(0,S.i-1);load()};['ctitle','clevel','body'].forEach(x=>$(x).oninput=()=>{save();list()});$('css').oninput=preview;$('previewBtn').onclick=preview;$('coverInput').onchange=async e=>{if(e.target.files[0]){S.cover=await asset(e.target.files[0],'cover');let p=$('coverPreview');p.src=S.cover.url;p.hidden=false}};$('image').onchange=async e=>{for(const f of e.target.files){let a=await asset(f,'image');S.images.push(a);$('body').value+='<p><img src="images/'+a.name+'" alt="" /></p>'}$('images').innerHTML=S.images.map(a=>'<li>'+E(a.name)+'</li>').join('');preview();e.target.value=''};let table=(()=>{let a=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xedb88320^(c>>>1):c>>>1;a[n]=c>>>0}return a})();function crc(a){let c=0xffffffff;for(let b of a)c=table[(c^b)&255]^(c>>>8);return(c^0xffffffff)>>>0}let u16=n=>[n&255,n>>>8&255],u32=n=>[n&255,n>>>8&255,n>>>16&255,n>>>24&255];function zip(fs){let p=[],c=[],o=0;for(let f of fs){let n=txt(f.name),d=f.data,r=crc(d),h=new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(r),...u32(d.length),...u32(d.length),...u16(n.length),...u16(0),...n]);p.push(h,d);c.push(new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(r),...u32(d.length),...u32(d.length),...u16(n.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(o),...n]));o+=h.length+d.length}let z=c.reduce((n,x)=>n+x.length,0);p.push(...c,new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(fs.length),...u16(fs.length),...u32(z),...u32(o),...u16(0)]));return new Blob(p,{type:'application/epub+zip'})}function xhtml(t,b){return'<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="'+E($('language').value||'ko')+'"><head><meta charset="UTF-8"/><title>'+E(t)+'</title><link rel="stylesheet" type="text/css" href="../styles/book.css"/></head><body>'+b.replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[\da-f]+;)/gi,'&amp;').replace(/src=(['"])images\//g,'src=$1../images/')+'</body></html>'}$('export').onclick=()=>{try{save();let title=$('title').value.trim()||'새 전자책',author=$('author').value.trim(),lang=$('language').value.trim()||'ko',id='urn:uuid:'+crypto.randomUUID(),fs=[{name:'mimetype',data:txt('application/epub+zip')},{name:'META-INF/container.xml',data:txt('<?xml version="1.0" encoding="UTF-8"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="EPUB/package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>')}],man=['<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>','<item id="css" href="styles/book.css" media-type="text/css"/>'],sp=[];if(S.cover){man.push('<item id="cover-image" href="images/'+S.cover.name+'" media-type="'+S.cover.type+'" properties="cover-image"/>','<item id="cover-page" href="text/cover.xhtml" media-type="application/xhtml+xml"/>');sp.push('<itemref idref="cover-page" linear="no"/>');fs.push({name:'EPUB/images/'+S.cover.name,data:data(S.cover.url)},{name:'EPUB/text/cover.xhtml',data:txt('<?xml version="1.0" encoding="UTF-8"?><html xmlns="http://www.w3.org/1999/xhtml"><head><title>표지</title></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150" width="100%" height="100%"><image href="../images/'+S.cover.name+'" width="100" height="150" preserveAspectRatio="xMidYMid meet"/></svg></body></html>')})}S.chapters.forEach((c,i)=>{let n='chapter-'+String(i+1).padStart(3,'0')+'.xhtml',q='chapter-'+(i+1);man.push('<item id="'+q+'" href="text/'+n+'" media-type="application/xhtml+xml"/>');sp.push('<itemref idref="'+q+'"/>');fs.push({name:'EPUB/text/'+n,data:txt(xhtml(c.title||title,c.body))})});S.images.forEach((a,i)=>{man.push('<item id="image-'+(i+1)+'" href="images/'+a.name+'" media-type="'+a.type+'"/>');fs.push({name:'EPUB/images/'+a.name,data:data(a.url)})});let nav='<?xml version="1.0" encoding="UTF-8"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>목차</title></head><body><nav epub:type="toc"><h1>목차</h1><ol>'+S.chapters.map((c,i)=>'<li><a href="text/chapter-'+String(i+1).padStart(3,'0')+'.xhtml">'+E(c.title||'제목 없는 장')+'</a></li>').join('')+'</ol></nav></body></html>',opf='<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="'+E(lang)+'"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="pub-id">'+id+'</dc:identifier><dc:title>'+E(title)+'</dc:title>'+(author?'<dc:creator>'+E(author)+'</dc:creator>':'')+'<dc:language>'+E(lang)+'</dc:language><meta property="dcterms:modified">'+new Date().toISOString().replace(/\.\d{3}Z$/,'Z')+'</meta></metadata><manifest>'+man.join('')+'</manifest><spine>'+sp.join('')+'</spine></package>';fs.push({name:'EPUB/styles/book.css',data:txt($('css').value)},{name:'EPUB/nav.xhtml',data:txt(nav)},{name:'EPUB/package.opf',data:txt(opf)});let a=document.createElement('a');a.href=URL.createObjectURL(zip(fs));a.download=title.replace(/[\\/:*?"<>|]/g,'-')+'.epub';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);status('EPUB 3.0 파일을 만들었습니다. 다운로드 폴더를 확인하세요.','ok')}catch(e){status(e.message||'EPUB을 만들지 못했습니다.','error')}};load()})();
-</script></body></html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>EPUB 만들기</title>
+    <style>
+        :root {
+            --ink: #182136;
+            --muted: #64718a;
+            --line: #dce2ee;
+            --bg: #f5f7fb;
+            --nav: #182136;
+            --accent: #6558d5;
+            --soft: #efedff
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font: 16px "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+            color: var(--ink);
+            background: var(--bg)
+        }
+
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 232px 1fr
+        }
+
+        .side {
+            background: var(--nav);
+            color: #fff;
+            padding: 28px 16px;
+            display: flex;
+            flex-direction: column
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 18px;
+            padding: 0 12px 30px
+        }
+
+        .brand small {
+            display: block;
+            color: #afbbd0;
+            font-size: 12px;
+            font-weight: 400;
+            margin-top: 6px
+        }
+
+        .tabs {
+            display: grid;
+            gap: 6px
+        }
+
+        .tab {
+            width: 100%;
+            border: 0;
+            padding: 12px;
+            border-radius: 10px;
+            background: transparent;
+            color: #cbd4e4;
+            text-align: left;
+            font: 700 14px inherit;
+            cursor: pointer
+        }
+
+        .tab:hover,
+        .tab.active {
+            background: #312d59;
+            color: #fff
+        }
+
+        .tip {
+            margin-top: auto;
+            border-top: 1px solid #344056;
+            padding: 18px 12px 0;
+            color: #afbbd0;
+            font-size: 12px;
+            line-height: 1.7
+        }
+
+        main {
+            max-width: 1450px;
+            margin: auto;
+            padding: 30px 36px 50px;
+            width: 100%
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 25px
+        }
+
+        .top h1 {
+            font-size: 28px;
+            letter-spacing: -.06em;
+            margin: 0
+        }
+
+        .top p {
+            color: var(--muted);
+            font-size: 14px;
+            margin: 8px 0
+        }
+
+        .primary {
+            background: var(--accent);
+            color: #fff;
+            border: 0;
+            border-radius: 9px;
+            padding: 12px 17px;
+            font-weight: 800;
+            cursor: pointer
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 270px minmax(340px, 1fr) minmax(300px, .85fr);
+            gap: 18px
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 3px 12px #1b29400a
+        }
+
+        .head {
+            font-weight: 800;
+            font-size: 14px;
+            padding: 16px 17px;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .chapters {
+            padding: 8px
+        }
+
+        .chapter {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: left;
+            cursor: pointer;
+            color: var(--ink)
+        }
+
+        .chapter:hover {
+            background: #f5f6fa
+        }
+
+        .chapter.active {
+            background: var(--soft);
+            color: #4135a4;
+            font-weight: 800
+        }
+
+        .num {
+            color: #8d99ae;
+            font-size: 12px;
+            margin-right: 8px
+        }
+
+        .add {
+            width: calc(100% - 16px);
+            margin: 7px 8px 13px;
+            border: 1px dashed #aaa3e6;
+            border-radius: 8px;
+            background: #faf9ff;
+            padding: 9px;
+            color: #4d40bf;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .editor,
+        .settings,
+        .preview-card {
+            padding: 20px
+        }
+
+        .fields {
+            display: grid;
+            grid-template-columns: 1fr 110px;
+            gap: 12px
+        }
+
+        .full {
+            grid-column: 1/-1
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 800;
+            color: #46536a;
+            margin-bottom: 6px
+        }
+
+        input,
+        textarea {
+            font: inherit;
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px;
+            color: var(--ink);
+            outline: none
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px #6558d51c
+        }
+
+        textarea {
+            resize: vertical
+        }
+
+        .code {
+            height: 580px;
+            font: 13px/1.65 Consolas, "Courier New", monospace
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0
+        }
+
+        .secondary {
+            font-weight: 700;
+            font-size: 12px;
+            color: #38455a;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            padding: 8px 10px;
+            cursor: pointer
+        }
+
+        .danger {
+            color: #b01f37;
+            margin-left: auto
+        }
+
+        .preview {
+            height: 680px;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: auto
+        }
+
+        .preview img {
+            max-width: 100%;
+            height: auto
+        }
+
+        .preview table {
+            border-collapse: collapse
+        }
+
+        .preview td,
+        .preview th {
+            border: 1px solid #aaa;
+            padding: 5px
+        }
+
+        .settings {
+            max-width: 720px
+        }
+
+        .settings section+section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line)
+        }
+
+        h2 {
+            font-size: 14px;
+            margin: 0 0 12px
+        }
+
+        .field {
+            margin-bottom: 11px
+        }
+
+        .css {
+            height: 440px;
+            font: 12px/1.55 Consolas, "Courier New", monospace
+        }
+
+        .cover {
+            border: 1px dashed #b7bfd0;
+            padding: 10px;
+            border-radius: 9px
+        }
+
+        .cover img {
+            display: block;
+            max-height: 130px;
+            max-width: 100%;
+            margin: 10px auto 0
+        }
+
+        .hint,
+        .images {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.55
+        }
+
+        .images {
+            list-style: none;
+            padding: 0
+        }
+
+        .images li {
+            border-bottom: 1px solid #edf0f5;
+            padding: 5px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .status {
+            display: none;
+            margin: 0 0 18px;
+            padding: 12px 14px;
+            border-radius: 9px;
+            font-size: 13px
+        }
+
+        .status.ok {
+            display: block;
+            background: #eaf8ef;
+            color: #176535
+        }
+
+        .status.error {
+            display: block;
+            background: #fff0f1;
+            color: #a42135
+        }
+
+        .view {
+            display: none
+        }
+
+        .view.active {
+            display: block
+        }
+
+        @media(max-width:1050px) {
+            .grid {
+                grid-template-columns: 235px 1fr
+            }
+
+            .preview-card {
+                grid-column: 1/-1
+            }
+
+            .preview {
+                height: 450px
+            }
+        }
+
+        @media(max-width:700px) {
+            .app {
+                grid-template-columns: 1fr
+            }
+
+            .side {
+                padding: 14px 16px
+            }
+
+            .brand {
+                padding: 0
+            }
+
+            .tip {
+                display: none
+            }
+
+            .tabs {
+                margin-top: 10px
+            }
+
+            .top {
+                display: block
+            }
+
+            .primary {
+                margin-top: 12px;
+                width: 100%
+            }
+
+            main {
+                padding: 22px 15px
+            }
+
+            .grid,
+            .fields {
+                display: block
+            }
+
+            .editor,
+            .preview-card {
+                margin-top: 18px
+            }
+
+            .full {
+                margin-top: 12px
+            }
+
+            .code {
+                height: 460px
+            }
+
+            .preview {
+                height: 420px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <aside class="side">
+            <div class="brand">나의 작업실<small>개인용 전자책 도구</small></div>
+            <nav class="tabs"><button class="tab active" data-view="editorView">✦ &nbsp;EPUB 만들기</button><button
+                    class="tab" data-view="bookView">▣ &nbsp;책 정보</button><button class="tab" data-view="styleView">✎
+                    &nbsp;공통 CSS</button></nav>
+            <p class="tip">인터넷이나 서버 없이 작동합니다.<br>원고와 이미지는 이 브라우저 안에서만 처리됩니다.</p>
+        </aside>
+        <main>
+            <div class="top">
+                <div>
+                    <h1 id="pageTitle">EPUB 만들기</h1>
+                    <p id="pageDescription">본문, 이미지와 목차를 정리한 뒤 EPUB 3.0 파일로 내보냅니다.</p>
+                </div><button id="export" class="primary">EPUB 3.0 내보내기</button>
+            </div>
+            <div id="status" class="status"></div>
+            <div id="editorView" class="view active">
+                <div class="grid">
+                    <aside class="card">
+                        <div class="head">책의 구성</div>
+                        <div id="list" class="chapters"></div><button id="add" class="add">＋ 장 추가</button>
+                    </aside>
+                    <article class="card editor">
+                        <div class="fields">
+                            <div><label for="ctitle">장 제목 / 목차 표시명</label><input id="ctitle"></div>
+                            <div><label for="clevel">목차 단계</label><input id="clevel" type="number" min="1" max="3">
+                            </div>
+                            <div class="full"><label for="body">본문 HTML — &lt;body&gt; 안에 넣을 내용만 작성하세요</label><textarea
+                                    id="body" class="code" spellcheck="false"></textarea></div>
+                        </div>
+                        <div class="toolbar"><label class="secondary" for="image">이미지 업로드·삽입</label><input id="image"
+                                type="file" accept="image/jpeg,image/png,image/gif,image/svg+xml" multiple
+                                hidden><button id="previewBtn" class="secondary">미리보기 갱신</button><button id="del"
+                                class="secondary danger">이 장 삭제</button></div>
+                    </article>
+                    <aside class="card preview-card">
+                        <div class="head">미리보기</div>
+                        <div id="preview" class="preview"></div>
+                    </aside>
+                </div>
+            </div>
+            <div id="bookView" class="view">
+                <aside class="card settings">
+                    <div class="head">책 정보</div>
+                    <section>
+                        <div class="field"><label for="title">책 제목</label><input id="title" value="새 전자책"></div>
+                        <div class="field"><label for="author">저자</label><input id="author" placeholder="이름"></div>
+                        <div class="field"><label for="language">언어</label><input id="language" value="ko"></div>
+                        <div class="field"><label for="coverInput">표지 이미지</label>
+                            <div class="cover"><input id="coverInput" type="file" accept="image/jpeg,image/png"><img
+                                    id="coverPreview" hidden></div>
+                            <p class="hint">JPG 또는 PNG, 세로형 이미지를 권장합니다.</p>
+                        </div>
+                    </section>
+                </aside>
+            </div>
+            <div id="styleView" class="view">
+                <aside class="card settings">
+                    <div class="head">공통 CSS</div>
+                    <section><textarea id="css"
+                            class="css">body { font-family: serif; line-height: 1.8; } p { margin: 0 0 1em; } img { max-width: 100%; height: auto; } h1, h2, h3 { line-height: 1.4; }</textarea>
+                        <p class="hint">모든 장에 자동으로 적용됩니다.</p>
+                        <ul id="images" class="images"></ul>
+                    </section>
+                </aside>
+            </div>
+        </main>
+    </div>
+    <!-- Monaco와 Emmet은 HTML 편집 모드에서만 로드합니다. 기존 정적 앱 구조를 유지합니다. -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+<script src="ui.js?v=20261005-13"></script>
+    <script>
+        /* 메인 작업 영역의 탭: 책 정보와 CSS는 EPUB 만들기 화면 안에서 전환합니다. */
+        { const sideTabs = document.querySelector('.side .tabs'), top = document.querySelector('.top'), statusBox = document.getElementById('status'), tabStyle = document.createElement('style'); tabStyle.textContent = '.side .tabs .tab{background:#312d59;color:#fff;cursor:default}.side .tabs .tab:not(:first-child){display:none}.workspace-tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:18px}.workspace-tab{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);padding:11px 14px 10px;font:700 14px inherit;cursor:pointer}.workspace-tab:hover,.workspace-tab.active{border-bottom-color:var(--accent);color:#4135a4}'; document.head.append(tabStyle); const mainTabs = document.createElement('nav'); mainTabs.className = 'workspace-tabs'; mainTabs.innerHTML = '<button class="workspace-tab active" data-view="editorView" data-title="EPUB 만들기" data-description="본문, 이미지와 목차를 정리한 뒤 EPUB 3.0 파일로 내보냅니다.">EPUB 만들기</button><button class="workspace-tab" data-view="bookView" data-title="책 정보" data-description="전자책의 기본 정보와 표지 이미지를 설정합니다.">책 정보</button><button class="workspace-tab" data-view="styleView" data-title="공통 CSS" data-description="모든 장에 적용할 서식을 작성합니다.">공통 CSS</button>'; top.after(mainTabs); mainTabs.querySelectorAll('button').forEach(button => button.onclick = () => { mainTabs.querySelectorAll('button').forEach(tab => tab.classList.toggle('active', tab === button)); document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === button.dataset.view)); document.getElementById('pageTitle').textContent = button.dataset.title; document.getElementById('pageDescription').textContent = button.dataset.description; statusBox.scrollIntoView({ block: 'nearest' }) }); }
+        { const mainTabs = document.querySelector('.workspace-tabs'), editorView = document.getElementById('editorView'), bookView = document.getElementById('bookView'), styleView = document.getElementById('styleView'), statusBox = document.getElementById('status'), layoutStyle = document.createElement('style'); layoutStyle.textContent = 'body{background:radial-gradient(circle at 80% -10%,#e6e1ff 0,transparent 33%),#f5f7fb}.side{background:linear-gradient(165deg,#151b32,#25204b);padding:30px 18px}.brand{font-size:20px;letter-spacing:-.04em}.tab{box-shadow:inset 0 1px #ffffff14}.top{background:#fff;border:1px solid #e5e8f1;border-radius:18px;padding:22px 24px;margin-bottom:12px;box-shadow:0 12px 35px #1b29400b}.top h1{font-size:30px}.primary{box-shadow:0 8px 18px #6558d53d;transition:transform .15s,box-shadow .15s}.primary:hover{transform:translateY(-1px);box-shadow:0 11px 22px #6558d54b}.workspace-tabs{background:#fff;border:1px solid #e5e8f1;border-radius:14px;padding:4px 8px;margin-bottom:14px;box-shadow:0 6px 20px #1b294008}.workspace-tab{border-radius:9px;border-bottom:0;padding:10px 14px}.workspace-tab.active{background:var(--soft);color:#4135a4}.card{box-shadow:0 12px 28px #1b29400c;border-color:#e5e8f1}.head{font-size:13px;letter-spacing:.01em}.preview{background:#fcfcfe}.settings-panel{display:none;margin:0 0 16px}.settings-panel.active{display:block}.settings-panel .settings{max-width:none;padding:0}.settings-panel .head{padding:14px 18px}.settings-panel section{padding:16px 18px}.settings-panel#bookView section{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.settings-panel#bookView .field:last-child{grid-column:1/-1}.settings-panel#styleView .css{height:210px}@media(max-width:700px){.top{padding:18px}.settings-panel#bookView section{display:block}}'; document.head.append(layoutStyle); bookView.classList.add('settings-panel'); styleView.classList.add('settings-panel'); mainTabs.after(bookView, styleView, statusBox); mainTabs.querySelectorAll('button').forEach(button => button.onclick = () => { mainTabs.querySelectorAll('button').forEach(tab => tab.classList.toggle('active', tab === button)); editorView.classList.add('active'); bookView.classList.toggle('active', button.dataset.view === 'bookView'); styleView.classList.toggle('active', button.dataset.view === 'styleView'); document.getElementById('pageTitle').textContent = 'EPUB 만들기'; document.getElementById('pageDescription').textContent = '본문, 이미지와 목차를 정리한 뒤 EPUB 3.0 파일로 내보냅니다.' }); }
+        { const font = document.createElement('link'), mainTabs = document.querySelector('.workspace-tabs'), bookView = document.getElementById('bookView'), styleView = document.getElementById('styleView'), theme = document.createElement('style'); font.rel = 'stylesheet'; font.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap'; document.head.append(font); theme.textContent = ':root{--ink:#f5f5f5;--muted:#9b9ba3;--line:#29292d;--bg:#080809;--nav:#030303;--accent:#9b87ff;--soft:#211c36}body{background:#080809!important;color:var(--ink)!important;font-family:"Noto Sans KR",system-ui,sans-serif!important}.app{background:radial-gradient(circle at 75% 0,#1d1732 0,transparent 32%)}.side{background:#030303;border-right:1px solid #242426}.brand small,.tip{color:#9999a3}.top,.workspace-tabs,.card{background:#111113!important;border-color:#29292d!important;box-shadow:0 16px 36px #00000038}.top h1{color:#fff}.top p,label,h2,.hint,.images{color:#a6a6af!important}.tab{background:#1b1825!important;color:#fff!important}.primary{background:linear-gradient(135deg,#927dff,#7259e8)!important}.workspace-tab{color:#92929b!important}.workspace-tab.active{background:#27213d!important;color:#cfc6ff!important}.chapter{color:#d8d8df}.chapter:hover{background:#1a1a1e}.chapter.active{background:#28213f;color:#d4cdff}.num{color:#85858f}input,textarea{background:#0a0a0c!important;border-color:#303035!important;color:#f5f5f5!important;font-family:"Noto Sans KR",system-ui,sans-serif!important}.code,.css{font-family:"SFMono-Regular",Consolas,monospace!important}.secondary{background:#1a1a1d!important;border-color:#35353a!important;color:#dedee4}.preview{background:#0a0a0c!important;border-color:#303035!important;color:#ededf0}.workspace-tabs{position:relative;z-index:5}.settings-panel{position:absolute!important;top:calc(100% + 10px);left:0;right:0;z-index:20;margin:0!important;display:none!important}.settings-panel.active{display:block!important}.settings-panel .settings{background:#151518!important;border:1px solid #393940!important;border-radius:16px;box-shadow:0 24px 60px #00000080;max-width:none}.settings-panel#bookView section{background:#151518}.settings-panel#styleView .css{background:#09090b!important}.status{position:relative;z-index:1}@media(max-width:700px){.settings-panel{left:-1px;right:-1px}.settings-panel#bookView section{display:block}.top{box-shadow:none}}'; document.head.append(theme); mainTabs.append(bookView, styleView); }
+        (() => { const $ = x => document.getElementById(x), S = { chapters: [{ title: '들어가는 글', level: 1, body: '<h1>들어가는 글</h1><p>여기에 본문을 작성하세요.</p>' }], i: 0, cover: null, images: [] }, E = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c])), txt = s => new TextEncoder().encode(s), data = u => Uint8Array.from(atob(u.split(',')[1]), c => c.charCodeAt(0)); function save() { let c = S.chapters[S.i]; c.title = $('ctitle').value; c.level = Math.max(1, Math.min(3, +$('clevel').value || 1)); c.body = $('body').value } function load() { let c = S.chapters[S.i]; $('ctitle').value = c.title; $('clevel').value = c.level; $('body').value = c.body; list(); preview() } function list() { $('list').innerHTML = S.chapters.map((c, i) => `<button class="chapter ${i == S.i ? 'active' : ''}" data-i="${i}"><span class="num">${String(i + 1).padStart(2, '0')}</span>${E(c.title || '제목 없는 장')}</button>`).join(''); document.querySelectorAll('.chapter').forEach(x => x.onclick = () => { save(); S.i = +x.dataset.i; load() }) } function preview() { save(); $('preview').innerHTML = '<style>' + $('css').value + '</style>' + $('body').value } function status(s, t) { $('status').textContent = s; $('status').className = 'status ' + t; scrollTo({ top: 0, behavior: 'smooth' }) } async function asset(f, p) { let ext = (f.name.split('.').pop() || 'png').toLowerCase(), n = p + '-' + String(S.images.length + 1).padStart(3, '0') + '.' + ext, u = await new Promise((ok, no) => { let r = new FileReader; r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(f) }); return { name: n, type: f.type || 'image/png', url: u } } $('add').onclick = () => { save(); S.chapters.push({ title: '새 장', level: 1, body: '<h1>새 장</h1><p>본문을 작성하세요.</p>' }); S.i = S.chapters.length - 1; load() }; $('del').onclick = () => { if (S.chapters.length == 1) return status('적어도 한 개의 장이 필요합니다.', 'error'); S.chapters.splice(S.i, 1); S.i = Math.max(0, S.i - 1); load() };['ctitle', 'clevel', 'body'].forEach(x => $(x).oninput = () => { save(); list() }); $('css').oninput = preview; $('previewBtn').onclick = preview; $('coverInput').onchange = async e => { if (e.target.files[0]) { S.cover = await asset(e.target.files[0], 'cover'); let p = $('coverPreview'); p.src = S.cover.url; p.hidden = false } }; $('image').onchange = async e => { for (const f of e.target.files) { let a = await asset(f, 'image'); S.images.push(a); $('body').value += '<p><img src="images/' + a.name + '" alt="" /></p>' } $('images').innerHTML = S.images.map(a => '<li>' + E(a.name) + '</li>').join(''); preview(); e.target.value = '' }; let table = (() => { let a = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++)c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; a[n] = c >>> 0 } return a })(); function crc(a) { let c = 0xffffffff; for (let b of a) c = table[(c ^ b) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0 } let u16 = n => [n & 255, n >>> 8 & 255], u32 = n => [n & 255, n >>> 8 & 255, n >>> 16 & 255, n >>> 24 & 255]; function zip(fs) { let p = [], c = [], o = 0; for (let f of fs) { let n = txt(f.name), d = f.data, r = crc(d), h = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(r), ...u32(d.length), ...u32(d.length), ...u16(n.length), ...u16(0), ...n]); p.push(h, d); c.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(r), ...u32(d.length), ...u32(d.length), ...u16(n.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(o), ...n])); o += h.length + d.length } let z = c.reduce((n, x) => n + x.length, 0); p.push(...c, new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(fs.length), ...u16(fs.length), ...u32(z), ...u32(o), ...u16(0)])); return new Blob(p, { type: 'application/epub+zip' }) } function xhtml(t, b) { return '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="' + E($('language').value || 'ko') + '"><head><meta charset="UTF-8"/><title>' + E(t) + '</title><link rel="stylesheet" type="text/css" href="../styles/book.css"/></head><body>' + b.replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[\da-f]+;)/gi, '&amp;').replace(/src=(['"])images\//g, 'src=$1../images/') + '</body></html>' } $('export').onclick = () => { try { save(); let title = $('title').value.trim() || '새 전자책', author = $('author').value.trim(), lang = $('language').value.trim() || 'ko', id = 'urn:uuid:' + crypto.randomUUID(), fs = [{ name: 'mimetype', data: txt('application/epub+zip') }, { name: 'META-INF/container.xml', data: txt('<?xml version="1.0" encoding="UTF-8"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="EPUB/package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>') }], man = ['<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>', '<item id="css" href="styles/book.css" media-type="text/css"/>'], sp = []; if (S.cover) { man.push('<item id="cover-image" href="images/' + S.cover.name + '" media-type="' + S.cover.type + '" properties="cover-image"/>', '<item id="cover-page" href="text/cover.xhtml" media-type="application/xhtml+xml"/>'); sp.push('<itemref idref="cover-page" linear="no"/>'); fs.push({ name: 'EPUB/images/' + S.cover.name, data: data(S.cover.url) }, { name: 'EPUB/text/cover.xhtml', data: txt('<?xml version="1.0" encoding="UTF-8"?><html xmlns="http://www.w3.org/1999/xhtml"><head><title>표지</title></head><body><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150" width="100%" height="100%"><image href="../images/' + S.cover.name + '" width="100" height="150" preserveAspectRatio="xMidYMid meet"/></svg></body></html>') }) } S.chapters.forEach((c, i) => { let n = 'chapter-' + String(i + 1).padStart(3, '0') + '.xhtml', q = 'chapter-' + (i + 1); man.push('<item id="' + q + '" href="text/' + n + '" media-type="application/xhtml+xml"/>'); sp.push('<itemref idref="' + q + '"/>'); fs.push({ name: 'EPUB/text/' + n, data: txt(xhtml(c.title || title, c.body)) }) }); S.images.forEach((a, i) => { man.push('<item id="image-' + (i + 1) + '" href="images/' + a.name + '" media-type="' + a.type + '"/>'); fs.push({ name: 'EPUB/images/' + a.name, data: data(a.url) }) }); let nav = '<?xml version="1.0" encoding="UTF-8"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>목차</title></head><body><nav epub:type="toc"><h1>목차</h1><ol>' + S.chapters.map((c, i) => '<li><a href="text/chapter-' + String(i + 1).padStart(3, '0') + '.xhtml">' + E(c.title || '제목 없는 장') + '</a></li>').join('') + '</ol></nav></body></html>', opf = '<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="' + E(lang) + '"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="pub-id">' + id + '</dc:identifier><dc:title>' + E(title) + '</dc:title>' + (author ? '<dc:creator>' + E(author) + '</dc:creator>' : '') + '<dc:language>' + E(lang) + '</dc:language><meta property="dcterms:modified">' + new Date().toISOString().replace(/\.\d{3}Z$/, 'Z') + '</meta></metadata><manifest>' + man.join('') + '</manifest><spine>' + sp.join('') + '</spine></package>'; fs.push({ name: 'EPUB/styles/book.css', data: txt($('css').value) }, { name: 'EPUB/nav.xhtml', data: txt(nav) }, { name: 'EPUB/package.opf', data: txt(opf) }); let a = document.createElement('a'); a.href = URL.createObjectURL(zip(fs)); a.download = title.replace(/[\\/:*?"<>|]/g, '-') + '.epub'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1500); status('EPUB 3.0 파일을 만들었습니다. 다운로드 폴더를 확인하세요.', 'ok') } catch (e) { status(e.message || 'EPUB을 만들지 못했습니다.', 'error') } }; load() })();
+    </script>
+</body>
+
+</html>

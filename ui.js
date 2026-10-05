@@ -9,7 +9,7 @@ uiStyle.textContent = `
   .brand { color:var(--text); padding:0 12px 28px!important; }.brand small,.tip { color:var(--sub)!important; }
   .tab { background:var(--accent-soft)!important; color:var(--text)!important; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); }
   .drafts-panel { display:grid; gap:5px; margin:12px 0 0; padding:0 2px; }.drafts-panel[hidden] { display:none; }.drafts-title { padding:0 10px 4px; color:var(--sub); font-size:11px; font-weight:700; }.draft-item { width:100%; overflow:hidden; border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:transparent; color:var(--text); font:600 12px inherit; text-align:left; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }.draft-item:hover { border-color:var(--accent); color:var(--accent); }
-  .html-validation { max-width:300px; overflow:hidden; color:#ff9c75; font-size:11px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }.html-validation[hidden] { display:none; }.fields input[type="checkbox"] { width:18px!important; height:18px; padding:0!important; box-shadow:none!important; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor > .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor > .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
+  .html-validation,.xhtml-diagnostics { display:none!important; }.editor-error-alert { flex:none; min-width:58px; height:32px; border:1px solid #ff8b72aa; border-radius:8px; padding:0 9px; background:#351916; color:#ffb09a; font:700 11px inherit; white-space:nowrap; cursor:pointer; }.editor-error-alert:hover,.editor-error-alert[aria-expanded="true"] { border-color:#ffb09a; background:#4b1e18; }.editor-error-alert[hidden] { display:none; }.chapter-error-popover { position:fixed; z-index:1100; width:min(320px,calc(100vw - 28px)); padding:12px; border:1px solid #ff8b72aa; border-radius:10px; background:var(--surface); color:var(--text); box-shadow:0 16px 42px #0008; }.chapter-error-popover[hidden] { display:none; }.chapter-error-popover__head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; color:#ffb09a; font-size:12px; font-weight:800; }.chapter-error-popover__close { width:24px; height:24px; border:0; border-radius:6px; background:transparent; color:var(--sub); font-size:19px; line-height:1; cursor:pointer; }.chapter-error-popover__close:hover { background:var(--surface-2); color:var(--text); }.chapter-error-popover__list { max-height:180px; margin:0; padding-left:18px; overflow:auto; color:var(--sub); font-size:12px; line-height:1.55; }.fields input[type="checkbox"] { width:18px!important; height:18px; padding:0!important; box-shadow:none!important; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor > .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor > .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
   .sidebar-toggle { position:absolute; top:18px; right:16px; width:32px; height:32px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2); color:var(--text); font-size:18px; cursor:pointer; z-index:20; }
   .theme-settings { margin-top:auto; padding:16px 10px; border-top:1px solid var(--line); color:var(--sub); font-size:12px; font-weight:700; }
   .theme-settings div { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }.theme-settings button { border:1px solid var(--line); border-radius:7px; padding:7px 4px; background:var(--surface-2); color:var(--text); font:600 11px inherit; cursor:pointer; }.theme-settings button:hover { border-color:var(--accent); color:var(--accent); }
@@ -18,7 +18,7 @@ uiStyle.textContent = `
   .primary { padding:8px 12px!important; border-radius:8px!important; background:var(--accent)!important; color:#fff!important; font-size:12px!important; line-height:1.2; box-shadow:none!important; }.primary:hover { transform:none!important; filter:brightness(1.08); }
   .book-inline { flex:1; margin-right:14px; }.book-inline .settings { max-width:none!important; padding:0!important; background:none!important; border:0!important; box-shadow:none!important; }.book-inline section { display:flex; align-items:center; gap:10px; }.book-inline .field { display:flex; align-items:center; gap:7px; margin:0!important; }.book-inline label { margin:0!important; white-space:nowrap; color:var(--sub)!important; font-size:clamp(12px,.73vw,18px)!important; }.book-inline input { width:130px!important; padding:3.5px 8px!important; }.book-inline .field:first-child input { width:195px!important; }.book-inline .cover { display:contents!important; border:0!important; padding:0!important; }.book-inline #coverInput,.book-inline .cover img { display:none!important; }.book-inline .cover-upload-button { display:inline-flex!important; align-items:center; height:29px; padding:0 10px; border:1px solid var(--accent)!important; border-radius:7px; background:var(--accent-soft); color:var(--accent)!important; font-size:12px!important; font-weight:700; cursor:pointer; }.book-inline .hint { display:none; }
   .grid { --chapter-width:270px; --preview-width:440px; min-width:0; max-width:100%; position:relative; grid-template-columns:var(--chapter-width) minmax(420px,1fr) var(--preview-width)!important; gap:16px!important; }.panel-resize-handle { position:absolute; top:0; bottom:0; z-index:10; width:14px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.panel-resize-handle::after { content:''; position:absolute; top:20%; bottom:20%; left:6px; width:2px; border-radius:2px; background:transparent; transition:background .15s; }.panel-resize-handle:hover::after,.panel-resize-handle.is-resizing::after { background:var(--accent); }.card { min-width:0; background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { min-width:0; padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
-  .chapter-card { display:flex; flex-direction:column; }.left-tabs { grid-template-columns:repeat(3,1fr)!important; }.left-panel-host { position:relative; flex:1; min-height:0; overflow:hidden; }.left-panel { display:none!important; position:absolute; inset:0; overflow:auto; }.left-panel.active { display:block!important; }.chapters { padding:8px!important; }.chapter { position:relative; padding-left:34px!important; }.toc-eye { position:absolute; left:7px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:var(--sub); cursor:pointer; }.toc-eye.is-hidden { opacity:.35; }.add { width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:transparent!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel,.left-panel#assetsPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel #images { display:none!important; }.left-panel#cssPanel .hint,.asset-hint { color:var(--sub)!important; }.asset-upload { display:flex; align-items:center; justify-content:center; width:100%; margin-bottom:10px; border:1px dashed var(--accent); border-radius:8px; padding:10px; color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; }.asset-hint { margin:0 0 10px; font-size:11px; line-height:1.5; }.asset-row { display:flex; align-items:center; gap:6px; margin:5px 0; }.asset-row .draft-item { flex:1; }.asset-insert { width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--accent-soft); color:var(--accent); font-size:18px; cursor:pointer; }.draft-row { display:flex; gap:4px; }.draft-row .draft-item { flex:1; }.draft-delete { width:30px; border:1px solid var(--line); border-radius:8px; background:transparent; color:#ff9c75; cursor:pointer; }.cover-chapter { display:flex!important; align-items:center; gap:8px; }.cover-chapter::before { content:'▧'; color:var(--accent); font-size:14px; }
+  .chapter-card { display:flex; flex-direction:column; }.left-tabs { grid-template-columns:repeat(3,1fr)!important; }.left-panel-host { position:relative; flex:1; min-height:0; overflow:hidden; }.left-panel { display:none!important; position:absolute; inset:0; overflow:auto; }.left-panel.active { display:block!important; }.chapters { padding:8px!important; }.chapter { position:relative; overflow:hidden; padding-left:34px!important; padding-right:38px!important; text-overflow:ellipsis; white-space:nowrap; }.toc-toggle { position:absolute; right:29px; top:50%; z-index:2; width:18px; height:18px; transform:translateY(-50%); border:0; padding:0; background:transparent; color:var(--sub); font-size:14px; cursor:pointer; }.toc-toggle:hover { color:var(--accent); }.toc-eye { position:absolute; left:7px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:var(--sub); cursor:pointer; }.toc-eye.is-hidden { opacity:.35; }.add { width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:transparent!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel,.left-panel#assetsPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel #images { display:none!important; }.left-panel#cssPanel .hint,.asset-hint { color:var(--sub)!important; }.asset-upload { display:flex; align-items:center; justify-content:center; width:100%; margin-bottom:10px; border:1px dashed var(--accent); border-radius:8px; padding:10px; color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; }.asset-hint { color:var(--sub); }.asset-row { display:flex; align-items:center; gap:6px; margin:5px 0; }.asset-row .draft-item { flex:1; }.asset-insert { width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--accent-soft); color:var(--accent); font-size:18px; cursor:pointer; }.draft-row { display:flex; gap:4px; }.draft-row .draft-item { flex:1; }.draft-delete { width:30px; border:1px solid var(--line); border-radius:8px; background:transparent; color:#ff9c75; cursor:pointer; }.cover-chapter { display:flex!important; align-items:center; gap:8px; }.cover-chapter::before { content:'▧'; color:var(--accent); font-size:14px; }
   .editor-controls { min-width:0; display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.toolbar-viewport { position:relative; min-width:0; flex:1; overflow:hidden; }.rich-toolbar { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow:hidden; padding:5px 44px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); scrollbar-width:none; }.rich-toolbar::-webkit-scrollbar { display:none; }.toolbar-viewport::before,.toolbar-viewport::after { display:none; content:''; pointer-events:none; position:absolute; top:1px; bottom:1px; z-index:1; width:44px; }.toolbar-viewport.show-previous::before,.toolbar-viewport.show-next::after { display:block; }.toolbar-viewport::before { left:38px; background:linear-gradient(90deg,var(--surface-2),transparent); }.toolbar-viewport::after { right:38px; background:linear-gradient(90deg,transparent,var(--surface-2)); }.toolbar-previous,.toolbar-next { position:absolute; top:50%; z-index:2; width:29px; height:29px; transform:translateY(-50%); border:1px solid var(--accent); border-radius:7px; background:var(--surface-2); color:var(--accent); font:700 20px/22px system-ui; cursor:pointer; }.toolbar-previous { left:5px; }.toolbar-next { right:5px; }.toolbar-previous:hover,.toolbar-next:hover { background:var(--accent-soft); }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
   .preview-card .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }.device-controls { display:flex; align-items:center; gap:6px; }.device-controls select { max-width:118px; height:28px; border:1px solid var(--line); border-radius:6px; padding:0 5px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.preview-card { overflow:hidden; }.preview .cover-preview-page { display:flex; align-items:center; justify-content:center; min-height:100%; }.preview .cover-preview-page img { display:block; max-width:100%; max-height:100%; object-fit:contain; }.preview[data-device-preview="true"] { box-sizing:content-box; flex:none; margin:0 auto; border:8px solid #1b1b1e!important; border-radius:22px; box-shadow:0 10px 30px #00000045; transition:width .2s,height .2s; }
   .rich-toolbar button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }.rich-toolbar button svg { display:block; width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }.rich-toolbar input[data-font-size] { width:62px!important; height:29px; flex:none; font-size:11px!important; }.rich-toolbar input[data-table-color] { width:29px!important; height:29px; flex:none; }.table-color-control { display:flex; align-items:center; gap:4px; height:29px; flex:none; }.rich-toolbar .tool-label { flex:none; color:var(--sub); font-size:12px; line-height:29px; white-space:nowrap; }
@@ -29,7 +29,13 @@ uiStyle.textContent = `
   @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:wrap; }.left-panel#cssPanel .css { height:260px!important; } }
   .side nav { position:relative; }.new-book { position:absolute; top:7px; right:7px; z-index:2; width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--surface); color:var(--accent); font-size:19px; line-height:20px; cursor:pointer; }.new-book:hover { background:var(--accent-soft); }.chapter { padding-left:10px!important; padding-right:38px!important; }.chapter::after { content:''; position:absolute; right:11px; top:50%; width:16px; height:16px; transform:translateY(-50%); background:var(--accent); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.chapter.is-toc-hidden { color:var(--sub)!important; background:transparent!important; }.chapter.is-toc-hidden::after { background:#777; opacity:1; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.asset-rename { width:28px; height:28px; border:1px solid var(--line); border-radius:7px; background:var(--surface-2); color:var(--sub); font-size:15px; cursor:pointer; }.asset-rename:hover { border-color:var(--accent); color:var(--accent); }.fields select { height:36px; width:100%; border:1px solid var(--line); border-radius:8px; padding:0 30px 0 10px; background:var(--bg); color:var(--text); font:600 13px inherit; cursor:pointer; appearance:auto; }.fields select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; outline:0; }.editor > .toolbar label[for="image"] { display:none!important; }.css-save { width:100%; margin:0 0 10px; padding:8px; font-size:12px; }.status.ok,.status.error { position:fixed!important; top:20px; right:20px; z-index:1000; display:flex!important; align-items:center; min-height:46px; max-width:min(440px,calc(100vw - 40px)); margin:0!important; padding:12px 44px 12px 15px!important; border:1px solid #ffffff38; border-radius:11px; background:#0000001a!important; color:#fff!important; box-shadow:0 14px 36px #00000028; -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px); opacity:1; transform:translateY(0); transition:opacity .28s ease,transform .28s ease; }.status.error { border-color:#ff8b72aa; }.status.is-leaving { opacity:0; transform:translateY(-8px); }
   .fields { grid-template-columns:minmax(0,1fr) minmax(170px,.3fr)!important; align-items:end; }.fields > div:not(.full) { display:flex; min-width:0; flex-direction:column; }.fields > div:not(.full) label { height:16px; margin-bottom:6px!important; font-size:12px!important; line-height:16px!important; }.fields > div:not(.full) input,.fields > div:not(.full) select { height:36px!important; min-height:36px; padding:0 10px!important; }.chapter::after { background:#FF5100!important; }.chapter.is-toc-hidden::after { background:#707078!important; }.chapter.is-toc-hidden { color:#707078!important; }
+  .chapter { padding-right:56px!important; }
+  .preview { -ms-overflow-style:none; scrollbar-width:none; }.preview::-webkit-scrollbar { display:none; width:0; height:0; }
+  .css-preset-control { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; margin:0 0 10px; }.css-preset-control label { margin:0!important; white-space:nowrap; font-size:12px!important; }.css-preset-control select,.css-preset-control input { min-width:0; height:34px; border:1px solid var(--line); border-radius:8px; padding:0 9px; background:var(--bg); color:var(--text); }.css-preset-save { grid-column:2; justify-self:start; height:30px; border:1px solid var(--accent); border-radius:7px; padding:0 9px; background:var(--accent-soft); color:var(--accent); font:700 12px inherit; cursor:pointer; }
+  .drag-handle { display:inline-flex; width:16px; margin-right:5px; color:var(--sub); cursor:grab; user-select:none; }.drag-handle:active { cursor:grabbing; }.chapter.is-dragging { opacity:.45; }.chapter.drop-before { box-shadow:inset 0 2px var(--accent); }.chapter.drop-after { box-shadow:inset 0 -2px var(--accent); }.chapter.drop-child { background:var(--accent-soft)!important; outline:1px dashed var(--accent); }
+  .fields { grid-template-columns:minmax(0,1fr) minmax(125px,.5fr) minmax(125px,.38fr)!important; }.fields > .full { grid-column:1/-1!important; }
   .code-editor > .code { overflow:auto!important; white-space:pre-wrap!important; overflow-wrap:break-word; }.preview p,.preview h1,.preview h2,.preview h3,.preview h4,.preview h5,.preview li,.preview blockquote,.preview td,.preview th { cursor:text; }.fields { position:relative; }.fields.is-custom-width { grid-template-columns:minmax(220px,min(var(--chapter-title-width),calc(100% - 182px))) minmax(170px,1fr)!important; }.field-resize-handle { position:absolute; top:0; bottom:auto; left:0; z-index:4; width:14px; height:58px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.field-resize-handle::after { content:''; position:absolute; top:20px; bottom:2px; left:6px; width:2px; border-radius:2px; background:var(--line); transition:background .15s; }.field-resize-handle:hover::after,.field-resize-handle.is-resizing::after { background:var(--accent); }
+  .fields.is-custom-width { grid-template-columns:minmax(0,1fr) minmax(125px,.5fr) minmax(125px,.38fr)!important; }
   @media(min-width:1921px) {
     main { max-width:none!important; width:100%!important; margin:0!important; padding:clamp(28px,2vw,72px)!important; }
     .grid { --chapter-width:clamp(270px,16vw,480px); --preview-width:minmax(480px,1fr); grid-template-columns:var(--chapter-width) minmax(620px,1.65fr) var(--preview-width)!important; gap:clamp(16px,1vw,30px)!important; }
@@ -48,6 +54,8 @@ uiStyle.textContent = `
   .chapter-card,.editor,.preview-card { min-height:0; height:100%!important; max-height:none!important; }
   .preview-card { position:static!important; align-self:stretch!important; display:flex; flex-direction:column; }
   .preview-card .preview { flex:1!important; min-height:0; height:auto!important; }
+  .preview-stage { display:flex; flex:1; min-width:0; min-height:0; align-items:flex-start; justify-content:center; }
+  .preview-stage > .preview[data-device-preview="true"] { box-sizing:border-box!important; flex:0 0 auto!important; align-self:flex-start; margin:0!important; }
   .editor { display:flex; flex-direction:column; overflow:hidden; }
   .editor-controls { flex:none; }
   /* 장 제목·목차 입력 영역과 두 편집기 사이의 간격은 모드와 관계없이 하나로 유지한다. */
@@ -64,6 +72,8 @@ uiStyle.textContent = `
   #xhtml-monaco-editor { height:100%!important; }
   .editor-mode { padding:3px!important; }
   .editor-mode button { min-width:76px; padding:7px 9px!important; }
+  .parent-toc-picker { position:relative; width:100%; }.parent-toc-button { display:flex; align-items:center; justify-content:space-between; width:100%; height:36px; overflow:hidden; border:1px solid var(--line); border-radius:8px; padding:0 10px; background:var(--bg); color:var(--text); font:600 13px inherit; text-align:left; white-space:nowrap; text-overflow:ellipsis; cursor:pointer; }.parent-toc-button::after { content:'⌄'; flex:none; margin-left:8px; color:var(--sub); font-size:16px; }.parent-toc-button:hover,.parent-toc-button[aria-expanded="true"] { border-color:var(--accent); }.parent-toc-menu { position:absolute; top:calc(100% + 5px); left:0; z-index:30; width:100%; max-height:220px; overflow:auto; padding:4px; border:1px solid var(--line); border-radius:8px; background:var(--surface); box-shadow:0 14px 34px #0008; }.parent-toc-menu[hidden] { display:none; }.parent-toc-option { display:block; width:100%; overflow:hidden; border:0; border-radius:6px; padding:8px; background:transparent; color:var(--text); font:600 12px inherit; text-align:left; white-space:nowrap; text-overflow:ellipsis; cursor:pointer; }.parent-toc-option:hover,.parent-toc-option[aria-selected="true"] { background:var(--accent-soft); color:var(--accent); }
+  .chapter-search-panel { position:fixed; top:76px; right:24px; z-index:1200; width:min(440px,calc(100vw - 28px)); padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--surface); box-shadow:0 20px 52px #000a; }.chapter-search-panel[hidden] { display:none; }.chapter-search-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }.chapter-search-head strong { font-size:13px; }.chapter-search-close { width:26px; height:26px; border:0; border-radius:6px; background:transparent; color:var(--sub); font-size:19px; cursor:pointer; }.chapter-search-close:hover { background:var(--surface-2); color:var(--text); }.chapter-search-fields { display:grid; grid-template-columns:1fr 1fr; gap:7px; }.chapter-search-fields input { width:100%; height:34px; padding:6px 8px!important; font-size:12px!important; }.chapter-search-actions { display:flex; align-items:center; gap:7px; margin-top:9px; }.chapter-search-actions button { padding:7px 9px; font-size:12px; }.chapter-search-summary { margin:10px 0 6px; color:var(--sub); font-size:12px; }.chapter-search-results { max-height:280px; margin:0; padding:0; overflow:auto; list-style:none; }.chapter-search-result { display:block; width:100%; border:0; border-bottom:1px solid var(--line); padding:9px 4px; background:transparent; color:var(--text); text-align:left; cursor:pointer; }.chapter-search-result:hover { color:var(--accent); background:var(--accent-soft); }.chapter-search-result small { display:block; margin-top:3px; color:var(--sub); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .epub-transfer { display:flex; flex:none; align-items:stretch; gap:8px; }.epub-transfer .primary { margin:0; }
   .epub-topbar[hidden] { display:none!important; }
   .account-area { position:relative; flex:none; margin-right:10px; }.account-button { border:1px solid var(--line); border-radius:8px; padding:8px 11px; background:var(--surface-2); color:var(--text); font:700 12px inherit; cursor:pointer; }.account-button:hover { border-color:var(--accent); color:var(--accent); }
@@ -90,6 +100,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const preview = $('#preview');
   const previewCard = preview.closest('.preview-card');
   const previewHeader = previewCard.querySelector('.head');
+  const previewStage = document.createElement('div');
+  previewStage.className = 'preview-stage';
+  preview.before(previewStage);
+  previewStage.append(preview);
   const grid = chapterCard.parentElement;
   const editorCard = chapterCard.nextElementSibling;
   const resizeHandles = ['chapters', 'preview'].map((panel) => {
@@ -171,17 +185,23 @@ window.addEventListener('DOMContentLoaded', () => {
       preview.dataset.devicePreview = 'false';
       preview.style.removeProperty('width');
       preview.style.removeProperty('height');
+      preview.style.removeProperty('aspect-ratio');
       return;
     }
-    const availableWidth = Math.max(260, previewCard.clientWidth - 52);
-    const scale = Math.min(1, availableWidth / device.width, 780 / device.height);
+    // The stage is the actual area below the header.  The frame is measured
+    // border-box, so its border cannot overflow the calculated dimensions.
+    const availableWidth = Math.max(1, previewStage.clientWidth);
+    const availableHeight = Math.max(1, previewStage.clientHeight);
+    const scale = Math.min(1, availableWidth / device.width, availableHeight / device.height);
     preview.dataset.devicePreview = 'true';
+    preview.style.setProperty('aspect-ratio', `${device.width} / ${device.height}`);
     preview.style.setProperty('width', `${Math.round(device.width * scale)}px`, 'important');
     preview.style.setProperty('height', `${Math.round(device.height * scale)}px`, 'important');
   };
   phonePreview.addEventListener('change', () => { selectedDevice = phonePreview.value; if (selectedDevice) tabletPreview.value = ''; applyDevicePreview(); });
   tabletPreview.addEventListener('change', () => { selectedDevice = tabletPreview.value; if (selectedDevice) phonePreview.value = ''; applyDevicePreview(); });
   new ResizeObserver(applyDevicePreview).observe(previewCard);
+  new ResizeObserver(applyDevicePreview).observe(previewStage);
 
   root.dataset.theme = localStorage.getItem('epub-theme') || 'dark';
 
@@ -220,10 +240,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const coverLabel = coverField.querySelector('label');
   coverLabel.classList.add('cover-upload-button');
   coverLabel.textContent = '표지 이미지';
-  const htmlValidation = document.createElement('span');
-  htmlValidation.className = 'html-validation';
-  htmlValidation.hidden = true;
-  coverField.append(htmlValidation);
   const showCoverPreview = () => {
     const coverSource = coverPreview.getAttribute('src');
     if (!coverSource) return;
@@ -263,6 +279,55 @@ window.addEventListener('DOMContentLoaded', () => {
   cssSettings.id = 'cssPanel';
   cssSettings.className = 'left-panel';
   cssSettings.querySelector('.head')?.remove();
+  const BUILT_IN_CSS_PRESETS = [
+    { id:'default', name:'기본', css:'body {\n  font-family: serif;\n  line-height: 1.8;\n}\n\np { margin: 0 0 1em; }\nimg { max-width: 100%; height: auto; }\nh1, h2, h3 { line-height: 1.4; }' },
+    { id:'novel', name:'소설', css:'body {\n  font-family: serif;\n  line-height: 1.9;\n}\n\np {\n  text-indent: 1em;\n  margin: 0;\n}\n\nh1, h2 {\n  margin-top: 2em;\n  margin-bottom: 1em;\n}' },
+    { id:'essay', name:'에세이', css:'body {\n  font-family: serif;\n  line-height: 1.85;\n}\n\np { margin: 0 0 1.25em; }\nh1, h2 { line-height: 1.45; }' },
+    { id:'readable', name:'가독성 중심', css:'body {\n  font-family: sans-serif;\n  line-height: 1.85;\n  letter-spacing: 0.01em;\n}\n\np { margin: 0 0 1.2em; }\nimg { max-width: 100%; height: auto; }' },
+    { id:'large', name:'큰 글씨', css:'body {\n  font-family: serif;\n  font-size: 1.2em;\n  line-height: 1.9;\n}\n\np { margin: 0 0 1.15em; }\nimg { max-width: 100%; height: auto; }' },
+    { id:'modern', name:'깔끔한 현대 스타일', css:'body {\n  font-family: sans-serif;\n  line-height: 1.75;\n}\n\np { margin: 0 0 1.1em; }\nh1, h2, h3 {\n  line-height: 1.35;\n  font-weight: bold;\n}\nimg { max-width: 100%; height: auto; }' },
+  ];
+  const cssPresetStorageKey = 'epub-builder-css-presets-v1';
+  const savedCssPresets = (() => { try { return JSON.parse(localStorage.getItem(cssPresetStorageKey) || '[]'); } catch { return []; } })().filter((preset) => preset?.id && preset?.name && typeof preset.css === 'string');
+  const CSS_PRESETS = [...BUILT_IN_CSS_PRESETS, ...savedCssPresets];
+  const cssEditor = cssSettings.querySelector('#css');
+  const cssPresetControl = document.createElement('div');
+  cssPresetControl.className = 'css-preset-control';
+  cssPresetControl.innerHTML = '<label for="cssPreset">프리셋 선택</label><select id="cssPreset"><option value="custom">사용자 정의 / 가져온 CSS</option></select><label for="cssPresetName">내 프리셋</label><input id="cssPresetName" placeholder="프리셋 제목"><button type="button" class="css-preset-save">현재 CSS 저장</button>';
+  const cssPreset = cssPresetControl.querySelector('select');
+  const cssPresetName = cssPresetControl.querySelector('#cssPresetName');
+  const cssPresetSave = cssPresetControl.querySelector('.css-preset-save');
+  CSS_PRESETS.forEach((preset) => cssPreset.add(new Option(preset.name, preset.id)));
+  cssSettings.querySelector('section')?.prepend(cssPresetControl);
+  const matchingCssPreset = () => CSS_PRESETS.find((preset) => preset.css.trim() === cssEditor.value.trim())?.id || 'custom';
+  cssPreset.value = matchingCssPreset();
+  cssPreset.addEventListener('change', () => {
+    const preset = CSS_PRESETS.find((item) => item.id === cssPreset.value);
+    if (!preset) return;
+    if (cssEditor.value.trim() && matchingCssPreset() === 'custom' && !window.confirm('현재 CSS가 변경됩니다. 프리셋을 적용할까요?')) {
+      cssPreset.value = 'custom';
+      return;
+    }
+    cssEditor.value = preset.css;
+    cssEditor.dispatchEvent(new Event('input', { bubbles:true }));
+  });
+  cssEditor.addEventListener('input', () => { cssPreset.value = matchingCssPreset(); });
+  cssPresetSave.addEventListener('click', () => {
+    const name = cssPresetName.value.trim();
+    if (!name) { cssPresetName.focus(); return; }
+    const existing = CSS_PRESETS.find((preset) => preset.custom && preset.name === name);
+    if (existing && !window.confirm(`“${name}” 프리셋을 현재 CSS로 덮어쓸까요?`)) return;
+    const preset = existing || { id:`user-${Date.now()}`, name, css:'', custom:true };
+    preset.css = cssEditor.value;
+    if (!existing) {
+      CSS_PRESETS.push(preset);
+      cssPreset.add(new Option(preset.name, preset.id));
+    }
+    localStorage.setItem(cssPresetStorageKey, JSON.stringify(CSS_PRESETS.filter((item) => item.custom)));
+    cssPreset.value = preset.id;
+    cssPresetName.value = '';
+    setStatus(`“${preset.name}” 프리셋을 저장했습니다.`);
+  });
   chapterHeader.textContent = '';
   chapterHeader.insertAdjacentHTML('afterbegin', `
     <div class="left-tabs">
@@ -281,7 +346,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const assetsPanel = document.createElement('div');
   assetsPanel.id = 'assetsPanel';
   assetsPanel.className = 'left-panel';
-  assetsPanel.innerHTML = '<label class="asset-upload" for="image">이미지·아이콘 업로드</label><p class="asset-hint">PNG, JPG, GIF, SVG 파일을 업로드해 본문 또는 아이콘으로 사용하세요.</p><p class="asset-hint">본문 삽입 예시: <code>&lt;img src="images/파일명.png" alt="이미지 설명"&gt;</code></p><ul id="assetList" class="images"></ul>';
+  assetsPanel.innerHTML = '<label class="asset-upload" for="image">이미지·아이콘 업로드</label><p class="asset-hint">PNG, JPG, GIF, SVG 파일을 업로드해 본문 또는 아이콘으로 사용하세요.</p><p class="asset-hint">본문 삽입 예시: <code>&lt;img src="../Image/파일명.png" alt="이미지 설명"&gt;</code></p><ul id="assetList" class="images"></ul>';
   panelHost.append(chapterControls, cssSettings, assetsPanel);
   chapterCard.append(panelHost);
 
@@ -321,15 +386,37 @@ window.addEventListener('DOMContentLoaded', () => {
   htmlField.append(xhtmlDiagnostics);
   const tocLevel = $('#clevel');
   const tocField = tocLevel.parentElement;
+  const titleField = $('#ctitle').parentElement;
+  const sigilFileField = document.createElement('div');
+  const sigilFileName = document.createElement('input');
+  sigilFileName.id = 'sigilFileName';
+  sigilFileName.spellcheck = false;
+  sigilFileName.placeholder = 'chapter-001.xhtml';
+  sigilFileField.innerHTML = '<label for="sigilFileName">Sigil 파일명</label>';
+  sigilFileField.append(sigilFileName);
+  titleField.after(sigilFileField);
   tocField.querySelector('label').textContent = '상위 목차';
   tocLevel.hidden = true;
   tocLevel.value = 1;
   const parentToc = document.createElement('select');
   parentToc.setAttribute('aria-label', '상위 목차 선택');
-  tocField.append(parentToc);
+  parentToc.hidden = true;
+  const parentTocPicker = document.createElement('div');
+  parentTocPicker.className = 'parent-toc-picker';
+  const parentTocButton = document.createElement('button');
+  parentTocButton.type = 'button';
+  parentTocButton.className = 'parent-toc-button';
+  parentTocButton.setAttribute('aria-haspopup', 'listbox');
+  parentTocButton.setAttribute('aria-expanded', 'false');
+  const parentTocMenu = document.createElement('div');
+  parentTocMenu.className = 'parent-toc-menu';
+  parentTocMenu.setAttribute('role', 'listbox');
+  parentTocMenu.hidden = true;
+  parentTocPicker.append(parentTocButton, parentTocMenu);
+  tocField.append(parentToc, parentTocPicker);
   const fieldResizeHandle = document.createElement('div');
   fieldResizeHandle.className = 'field-resize-handle';
-  fieldResizeHandle.title = '장 제목과 상위 목차 영역 너비 조절';
+  fieldResizeHandle.title = '장 제목과 Sigil 파일명 영역 너비 조절';
   editorFields.append(fieldResizeHandle);
   const savedFieldWidth = Number(localStorage.getItem('epub-chapter-title-width'));
   if (Number.isFinite(savedFieldWidth) && savedFieldWidth > 220) {
@@ -337,12 +424,11 @@ window.addEventListener('DOMContentLoaded', () => {
     editorFields.style.setProperty('--chapter-title-width', `${savedFieldWidth}px`);
   }
   const positionFieldResizeHandle = () => {
-    const titleField = editorFields.querySelector(':scope > div');
     if (!titleField) return;
     const titleBounds = titleField.getBoundingClientRect();
-    const tocBounds = tocField.getBoundingClientRect();
+    const sigilBounds = sigilFileField.getBoundingClientRect();
     const fieldsBounds = editorFields.getBoundingClientRect();
-    fieldResizeHandle.style.left = `${Math.round((titleBounds.right + tocBounds.left) / 2 - fieldsBounds.left)}px`;
+    fieldResizeHandle.style.left = `${Math.round((titleBounds.right + sigilBounds.left) / 2 - fieldsBounds.left)}px`;
   };
   new ResizeObserver(positionFieldResizeHandle).observe(editorFields);
   requestAnimationFrame(positionFieldResizeHandle);
@@ -371,10 +457,26 @@ window.addEventListener('DOMContentLoaded', () => {
   fieldResizeHandle.addEventListener('pointercancel', stopFieldResize);
   const tocExcluded = new Set();
   const parentTocMap = new Map();
+  const chapterFileNames = new Map();
+  const defaultChapterFileName = (index) => `chapter-${String(index + 1).padStart(3, '0')}.xhtml`;
+  const currentChapterFileName = (index) => chapterFileNames.get(index) || defaultChapterFileName(index);
+  const syncSigilFileNameField = () => { sigilFileName.value = currentChapterFileName(activeChapterIndex()); };
+  sigilFileName.addEventListener('input', () => chapterFileNames.set(activeChapterIndex(), sigilFileName.value.trim()));
+  chapterList.addEventListener('click', () => {
+    if (!collectingDraft) syncSigilFileNameField();
+  });
+  addChapter.addEventListener('click', () => requestAnimationFrame(syncSigilFileNameField));
+  // Only root entries which actually own descendants can be collapsed.
+  // This state is deliberately independent from the selected chapter state.
+  const collapsedTocRoots = new Set();
   const activeChapterIndex = () => {
     return Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
   };
   let arrangingChapters = false;
+  // 내부 재정렬로 발생한 childList 변경은 다시 갱신하지 않는다.
+  // 그렇지 않으면 select 변경 → 재정렬 → MutationObserver 갱신이 연속 실행되어 UI가 흔들린다.
+  let ignoreInternalChapterMutation = false;
+  let chapterControlsRefreshQueued = false;
   const chapterLabel = (chapter) => Array.from(chapter.childNodes)
     .filter((node) => node.nodeType === Node.TEXT_NODE)
     .map((node) => node.textContent.trim()).join(' ').trim() || '제목 없는 장';
@@ -411,9 +513,88 @@ window.addEventListener('DOMContentLoaded', () => {
     if (ordered.length !== chapters.length) return;
     if (!ordered.every((chapter, index) => chapter === chapters[index])) {
       arrangingChapters = true;
+      ignoreInternalChapterMutation = true;
       ordered.forEach((chapter) => chapterList.append(chapter));
       arrangingChapters = false;
     }
+    const rootHasChildren = new Set();
+    chapters.forEach((chapter) => {
+      const index = Number(chapter.dataset.i);
+      const parent = parentTocMap.get(index) ?? null;
+      if (parent !== null && (parentTocMap.get(parent) ?? null) === null) rootHasChildren.add(parent);
+    });
+    chapters.forEach((chapter) => {
+      const index = Number(chapter.dataset.i);
+      const parent = parentTocMap.get(index) ?? null;
+      let ancestor = parent;
+      let isCollapsedDescendant = false;
+      const seen = new Set([index]);
+      while (ancestor !== null && ancestor !== undefined && !seen.has(ancestor)) {
+        if (collapsedTocRoots.has(ancestor)) {
+          isCollapsedDescendant = true;
+          break;
+        }
+        seen.add(ancestor);
+        ancestor = parentTocMap.get(ancestor) ?? null;
+      }
+      chapter.hidden = isCollapsedDescendant;
+      chapter.querySelector('.toc-toggle')?.remove();
+      chapter.querySelector('.drag-handle')?.remove();
+      const handle = document.createElement('span');
+      handle.className = 'drag-handle';
+      handle.draggable = true;
+      handle.title = '끌어서 순서 또는 목차 계층 변경';
+      handle.setAttribute('aria-label', handle.title);
+      handle.textContent = '≡';
+      chapter.prepend(handle);
+      if (parent === null && rootHasChildren.has(index)) {
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'toc-toggle';
+        const collapsed = collapsedTocRoots.has(index);
+        toggle.textContent = collapsed ? '▸' : '▾';
+        toggle.title = collapsed ? '하위 목차 펼치기' : '하위 목차 접기';
+        toggle.setAttribute('aria-label', toggle.title);
+        toggle.setAttribute('aria-expanded', String(!collapsed));
+        toggle.addEventListener('pointerdown', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        });
+        toggle.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (collapsedTocRoots.has(index)) collapsedTocRoots.delete(index);
+          else collapsedTocRoots.add(index);
+          arrangeChapterList();
+        });
+        chapter.append(toggle);
+      }
+    });
+  };
+  const closeParentTocMenu = () => {
+    parentTocMenu.hidden = true;
+    parentTocButton.setAttribute('aria-expanded', 'false');
+  };
+  const renderParentTocPicker = () => {
+    const selected = parentToc.selectedOptions[0];
+    parentTocButton.textContent = selected?.textContent || '최상위 목차';
+    parentTocMenu.replaceChildren();
+    Array.from(parentToc.options).forEach((option) => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'parent-toc-option';
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', String(option.selected));
+      item.textContent = option.textContent;
+      item.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        parentToc.value = option.value;
+        closeParentTocMenu();
+        parentToc.dispatchEvent(new Event('change', { bubbles:true }));
+      });
+      parentTocMenu.append(item);
+    });
   };
   const refreshChapterControls = () => {
     arrangeChapterList();
@@ -428,16 +609,40 @@ window.addEventListener('DOMContentLoaded', () => {
       chapter.classList.toggle('is-toc-hidden', !visible);
     });
     parentToc.value = parentTocMap.get(activeIndex) ?? '';
+    renderParentTocPicker();
+  };
+  const scheduleChapterControlsRefresh = () => {
+    if (chapterControlsRefreshQueued) return;
+    chapterControlsRefreshQueued = true;
+    requestAnimationFrame(() => {
+      chapterControlsRefreshQueued = false;
+      refreshChapterControls();
+    });
   };
   parentToc.addEventListener('change', () => {
     const index = Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
     if (parentToc.value) parentTocMap.set(index, Number(parentToc.value));
     else parentTocMap.delete(index);
     arrangeChapterList();
-    refreshChapterControls();
+    scheduleChapterControlsRefresh();
   });
-  chapterList.addEventListener('click', () => setTimeout(refreshChapterControls, 0));
+  parentTocButton.addEventListener('click', () => {
+    const opening = parentTocMenu.hidden;
+    closeParentTocMenu();
+    if (opening) {
+      parentTocMenu.hidden = false;
+      parentTocButton.setAttribute('aria-expanded', 'true');
+    }
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (!parentTocPicker.contains(event.target)) closeParentTocMenu();
+  }, true);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeParentTocMenu();
+  });
+  chapterList.addEventListener('click', scheduleChapterControlsRefresh);
   chapterList.addEventListener('click', (event) => {
+    if (event.target.closest('.toc-toggle')) return;
     const chapter = event.target.closest('.chapter[data-i]');
     if (!chapter) return;
     const bounds = chapter.getBoundingClientRect();
@@ -449,7 +654,53 @@ window.addEventListener('DOMContentLoaded', () => {
     else tocExcluded.add(index);
     refreshChapterControls();
   }, true);
-  new MutationObserver(() => setTimeout(refreshChapterControls, 0)).observe(chapterList, { childList:true, subtree:true });
+  new MutationObserver(() => {
+    if (ignoreInternalChapterMutation) {
+      ignoreInternalChapterMutation = false;
+      return;
+    }
+    scheduleChapterControlsRefresh();
+  }).observe(chapterList, { childList:true, subtree:true });
+  let draggedChapter = null;
+  const clearDropIndicator = () => chapterList.querySelectorAll('.drop-before,.drop-after,.drop-child').forEach((chapter) => chapter.classList.remove('drop-before', 'drop-after', 'drop-child'));
+  chapterList.addEventListener('dragstart', (event) => {
+    const handle = event.target.closest('.drag-handle');
+    const chapter = handle?.closest('.chapter[data-i]');
+    if (!chapter) return;
+    draggedChapter = chapter;
+    chapter.classList.add('is-dragging');
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', chapter.dataset.i);
+  });
+  chapterList.addEventListener('dragover', (event) => {
+    const target = event.target.closest('.chapter[data-i]');
+    if (!draggedChapter || !target || target === draggedChapter) return;
+    event.preventDefault();
+    clearDropIndicator();
+    const bounds = target.getBoundingClientRect();
+    const childDrop = event.clientX > bounds.left + Math.min(72, bounds.width * .35);
+    target.classList.add(childDrop ? 'drop-child' : event.clientY < bounds.top + bounds.height / 2 ? 'drop-before' : 'drop-after');
+    event.dataTransfer.dropEffect = 'move';
+  });
+  chapterList.addEventListener('drop', (event) => {
+    const target = event.target.closest('.chapter[data-i]');
+    if (!draggedChapter || !target || target === draggedChapter) return;
+    event.preventDefault();
+    const draggedIndex = Number(draggedChapter.dataset.i);
+    const targetIndex = Number(target.dataset.i);
+    const bounds = target.getBoundingClientRect();
+    const childDrop = event.clientX > bounds.left + Math.min(72, bounds.width * .35);
+    let nextParent = childDrop ? (parentTocMap.get(targetIndex) ?? targetIndex) : (parentTocMap.get(targetIndex) ?? null);
+    if (nextParent === draggedIndex || isDescendantOf(nextParent, draggedIndex)) nextParent = null;
+    if (nextParent === null) parentTocMap.delete(draggedIndex);
+    else parentTocMap.set(draggedIndex, nextParent);
+    const before = !childDrop && event.clientY < bounds.top + bounds.height / 2;
+    chapterList.insertBefore(draggedChapter, before ? target : target.nextSibling);
+    collapsedTocRoots.delete(draggedIndex);
+    arrangeChapterList();
+    refreshChapterControls();
+  });
+  chapterList.addEventListener('dragend', () => { draggedChapter?.classList.remove('is-dragging'); draggedChapter = null; clearDropIndicator(); });
   refreshChapterControls();
   const useAssetAwareExporter = true;
   exportButton.addEventListener('click', () => {
@@ -491,6 +742,10 @@ window.addEventListener('DOMContentLoaded', () => {
   htmlEditor.before(codeEditor);
   codeEditor.append(lineNumbers, htmlEditor);
   const previewAssets = new Map();
+  // 가져온 EPUB은 원본 경로·spine·TOC 정보를 유지해 재내보낼 때 사용한다.
+  let importedEpub = null;
+  let importedCoverReplaced = false;
+  coverInput.addEventListener('change', () => { if (importedEpub) importedCoverReplaced = true; });
   const cleanAssetName = (value) => value.trim().replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ');
   const uniqueAssetName = (value, exclude = '') => {
     const cleaned = cleanAssetName(value) || 'image.png';
@@ -522,10 +777,23 @@ window.addEventListener('DOMContentLoaded', () => {
       reader.readAsDataURL(file);
     });
   };
+  const previewAssetForPath = (path) => previewAssets.get(path)
+    || Array.from(previewAssets.values()).find((asset) => asset.originalPath === path);
   const hydratePreviewAssets = () => {
-    preview.querySelectorAll('img[src^="images/"]').forEach((image) => {
-      const asset = previewAssets.get(image.getAttribute('src').slice(7));
-      if (asset) image.src = asset.url;
+    const activeMeta = importedEpub?.chapterMeta[activeChapterIndex()];
+    const resolveAssetPath = (source) => {
+      if (!source || /^(?:data:|blob:|https?:|#)/i.test(source)) return source;
+      if (previewAssets.has(source)) return source;
+      if (source.startsWith('images/')) return source.slice(7);
+      if (source.startsWith('../Image/')) return source.slice('../Image/'.length);
+      if (source.startsWith('Image/')) return source.slice('Image/'.length);
+      if (!activeMeta) return source;
+      return zipPath(activeMeta.path.slice(0, activeMeta.path.lastIndexOf('/') + 1), source.split('#')[0]);
+    };
+    preview.querySelectorAll('img[src], image[href], image[xlink\\:href]').forEach((image) => {
+      const attribute = image.hasAttribute('src') ? 'src' : image.hasAttribute('href') ? 'href' : 'xlink:href';
+      const asset = previewAssetForPath(resolveAssetPath(image.getAttribute(attribute)));
+      if (asset?.url) image.setAttribute(attribute, asset.url);
     });
   };
   new MutationObserver(hydratePreviewAssets).observe(preview, { childList:true, subtree:true });
@@ -584,8 +852,27 @@ window.addEventListener('DOMContentLoaded', () => {
     if (selection?.rangeCount) lastVisualRange = selection.getRangeAt(0).cloneRange();
   };
   const insertImageTag = (name) => {
-    const markup = `<img src="images/${name}" alt="">`;
+    const asset = previewAssets.get(name);
+    const activeMeta = importedEpub?.chapterMeta[activeChapterIndex()];
+    // Imported EPUB assets retain their ZIP path.  Generate only the relative
+    // reference needed by the currently-open XHTML document.
+    const source = asset?.originalPath && activeMeta
+      ? relativeEpubPath(activeMeta.path, asset.originalPath)
+      : `../Image/${name}`;
+    const markup = `<img src="${source}" alt="">`;
     if (visualEditor.hidden) {
+      const monacoEditor = window.epubMonacoEditor;
+      if (monacoEditor?.getModel()) {
+        const selection = monacoEditor.getSelection() || new window.monaco.Selection(1, 1, 1, 1);
+        const model = monacoEditor.getModel();
+        const offset = model.getOffsetAt(selection.getStartPosition());
+        monacoEditor.executeEdits('insert-epub-image', [{ range:selection, text:markup }]);
+        const position = model.getPositionAt(offset + markup.length);
+        monacoEditor.setPosition(position);
+        monacoEditor.setSelection(new window.monaco.Selection(position.lineNumber, position.column, position.lineNumber, position.column));
+        monacoEditor.focus();
+        return;
+      }
       htmlEditor.setRangeText(markup, htmlEditor.selectionStart, htmlEditor.selectionEnd, 'end');
       htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
       htmlEditor.focus();
@@ -611,7 +898,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!asset) return;
     previewAssets.delete(oldName);
     previewAssets.set(nextName, asset);
-    htmlEditor.value = htmlEditor.value.replace(new RegExp(`images/${escapeRegExp(oldName)}`, 'g'), `images/${nextName}`);
+    htmlEditor.value = htmlEditor.value
+      .replace(new RegExp(`images/${escapeRegExp(oldName)}`, 'g'), `images/${nextName}`)
+      .replace(new RegExp(`\.\./Image/${escapeRegExp(oldName)}`, 'g'), `../Image/${nextName}`);
     if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
     htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
     renderAssetShelf();
@@ -649,6 +938,18 @@ window.addEventListener('DOMContentLoaded', () => {
   const mode = document.createElement('div');
   mode.className = 'editor-mode';
   mode.innerHTML = '<button type="button" data-mode-toggle aria-pressed="false">XHTML편집</button>';
+  const chapterErrorAlert = document.createElement('button');
+  chapterErrorAlert.type = 'button';
+  chapterErrorAlert.className = 'editor-error-alert';
+  chapterErrorAlert.hidden = true;
+  chapterErrorAlert.setAttribute('aria-expanded', 'false');
+  const chapterErrorPopover = document.createElement('section');
+  chapterErrorPopover.className = 'chapter-error-popover';
+  chapterErrorPopover.hidden = true;
+  chapterErrorPopover.setAttribute('role', 'dialog');
+  chapterErrorPopover.setAttribute('aria-label', '현재 장 XHTML 오류');
+  document.body.append(chapterErrorPopover);
+  let currentChapterErrors = [];
   const editorControls = document.createElement('div');
   editorControls.className = 'editor-controls';
   const toolbarViewport = document.createElement('div');
@@ -664,9 +965,20 @@ window.addEventListener('DOMContentLoaded', () => {
   toolbarNext.setAttribute('aria-label', '다음 편집 도구 보기');
   toolbarNext.textContent = '›';
   toolbarViewport.append(richToolbar, toolbarPrevious, toolbarNext);
-  editorControls.append(mode, toolbarViewport);
+  editorControls.append(mode, chapterErrorAlert, toolbarViewport);
   editorFields.before(editorControls);
   editorFields.after(visualEditor);
+  const chapterSearchPanel = document.createElement('section');
+  chapterSearchPanel.className = 'chapter-search-panel';
+  chapterSearchPanel.hidden = true;
+  chapterSearchPanel.setAttribute('role', 'dialog');
+  chapterSearchPanel.setAttribute('aria-label', '전체 장 검색 및 바꾸기');
+  chapterSearchPanel.innerHTML = `<div class="chapter-search-head"><strong>전체 장 검색 · 바꾸기</strong><button type="button" class="chapter-search-close" aria-label="검색 패널 닫기">×</button></div><div class="chapter-search-fields"><input type="search" data-chapter-search placeholder="찾을 내용" aria-label="찾을 내용"><input type="text" data-chapter-replace placeholder="바꿀 내용" aria-label="바꿀 내용"></div><div class="chapter-search-actions"><button type="button" class="secondary" data-chapter-search-run>검색</button><button type="button" class="secondary" data-chapter-replace-all>모두 바꾸기</button></div><p class="chapter-search-summary" aria-live="polite">찾을 내용을 입력하세요.</p><ul class="chapter-search-results"></ul>`;
+  document.body.append(chapterSearchPanel);
+  const chapterSearchInput = chapterSearchPanel.querySelector('[data-chapter-search]');
+  const chapterReplaceInput = chapterSearchPanel.querySelector('[data-chapter-replace]');
+  const chapterSearchSummary = chapterSearchPanel.querySelector('.chapter-search-summary');
+  const chapterSearchResults = chapterSearchPanel.querySelector('.chapter-search-results');
   const updateToolbarNavigation = () => {
     const maxScroll = Math.max(0, richToolbar.scrollWidth - richToolbar.clientWidth);
     const canGoPrevious = richToolbar.scrollLeft > 2;
@@ -752,7 +1064,7 @@ window.addEventListener('DOMContentLoaded', () => {
       await refreshAccountUi();
       return;
     }
-    accountPanel.hidden = !accountPanel.hidden;
+    window.location.assign('login/');
   });
   accountArea.querySelector('.account-close').addEventListener('click', () => { accountPanel.hidden = true; });
   loginForm.addEventListener('submit', async (event) => {
@@ -800,7 +1112,7 @@ window.addEventListener('DOMContentLoaded', () => {
           blob = data || null;
         }
       }
-      if (blob) previewAssets.set(asset.name, { type:asset.type, blob, url:URL.createObjectURL(blob) });
+      if (blob) previewAssets.set(asset.name, { type:asset.type, blob, url:URL.createObjectURL(blob), originalPath:asset.originalPath || '' });
     }
     renderAssetShelf();
   };
@@ -928,10 +1240,15 @@ window.addEventListener('DOMContentLoaded', () => {
   const setCurrentChapter = (chapter) => {
     $('#ctitle').value = chapter.title;
     $('#clevel').value = chapter.level;
+    const index = activeChapterIndex();
+    chapterFileNames.set(index, chapter.fileName || currentChapterFileName(index));
+    sigilFileName.value = currentChapterFileName(index);
     htmlEditor.value = chapter.body;
     htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
   };
   newBookButton.addEventListener('click', () => {
+    importedEpub = null;
+    importedCoverReplaced = false;
     while (chapterList.querySelectorAll('.chapter[data-i]').length > 1) $('#del').click();
     const starterChapter = { title:'들어가는 글', level:1, body:'<h1>들어가는 글</h1><p>여기에 본문을 작성하세요.</p>' };
     setCurrentChapter(starterChapter);
@@ -940,8 +1257,11 @@ window.addEventListener('DOMContentLoaded', () => {
     $('#author').value = '';
     $('#language').value = 'ko';
     $('#css').value = '';
+    cssPreset.value = 'default';
     tocExcluded.clear();
     parentTocMap.clear();
+    collapsedTocRoots.clear();
+    chapterFileNames.clear();
     previewAssets.forEach((asset) => { if (asset.url?.startsWith('blob:')) URL.revokeObjectURL(asset.url); });
     previewAssets.clear();
     openedDraftTitle = null;
@@ -953,29 +1273,147 @@ window.addEventListener('DOMContentLoaded', () => {
     refreshPreview();
     setStatus('새 전자책 편집을 시작했습니다.');
   });
-  const collectDraft = () => {
-    if (!visualEditor.hidden) syncFromVisual();
-    const activeIndex = Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
-    const count = chapterList.querySelectorAll('.chapter[data-i]').length;
-    const chapters = [];
-    for (let index = 0; index < count; index += 1) {
-      chapterList.querySelector(`.chapter[data-i="${index}"]`)?.click();
-      chapters.push({ title: $('#ctitle').value, level: Number($('#clevel').value), body: htmlEditor.value });
+  let collectingDraft = false;
+  const syncOpenChapterEditor = () => {
+    if (!visualEditor.hidden) {
+      visualEditor.innerHTML = htmlEditor.value;
+      return;
     }
-    chapterList.querySelector(`.chapter[data-i="${activeIndex}"]`)?.click();
+    const monacoEditor = window.epubMonacoEditor;
+    if (monacoEditor && monacoEditor.getValue() !== htmlEditor.value) monacoEditor.setValue(htmlEditor.value);
+  };
+  const collectDraft = () => {
+    saveCurrentChapter();
+    const activeSourceIndex = Number(chapterList.querySelector('.chapter.active[data-i]')?.dataset.i || 0);
+    const orderedIndexes = Array.from(chapterList.querySelectorAll('.chapter[data-i]')).map((chapter) => Number(chapter.dataset.i));
+    const chapters = [];
+    collectingDraft = true;
+    try {
+      for (const index of orderedIndexes) {
+        chapterList.querySelector(`.chapter[data-i="${index}"]`)?.click();
+        chapters.push({ title: $('#ctitle').value, level:(parentTocMap.get(index) ?? null) === null ? 1 : 2, body: htmlEditor.value, fileName:currentChapterFileName(index), sourceIndex:index });
+      }
+      chapterList.querySelector(`.chapter[data-i="${activeSourceIndex}"]`)?.click();
+    } finally {
+      collectingDraft = false;
+      syncOpenChapterEditor();
+    }
     return {
       title: $('#title').value.trim(),
       author: $('#author').value,
       language: $('#language').value,
       css: $('#css').value,
       chapters,
-      activeIndex,
-      tocExcluded: Array.from(tocExcluded),
-      parentToc: Array.from(parentTocMap.entries()),
+      activeIndex: Math.max(0, orderedIndexes.indexOf(activeSourceIndex)),
+      tocExcluded: orderedIndexes.flatMap((sourceIndex, index) => tocExcluded.has(sourceIndex) ? [index] : []),
+      parentToc: orderedIndexes.flatMap((sourceIndex, index) => {
+        const parent = parentTocMap.get(sourceIndex);
+        const parentIndex = parent === undefined ? -1 : orderedIndexes.indexOf(parent);
+        return parentIndex >= 0 ? [[index, parentIndex]] : [];
+      }),
       coverSource: coverPreview.getAttribute('src') || '',
-      assets: Array.from(previewAssets.entries()).map(([name, asset]) => ({ name, type:asset.type })),
+      assets: Array.from(previewAssets.entries()).map(([name, asset]) => ({ name, type:asset.type, originalPath:asset.originalPath || '' })),
     };
   };
+  const closeChapterSearch = () => { chapterSearchPanel.hidden = true; };
+  const occurrencesInChapter = (body, query) => {
+    if (!query) return [];
+    const matches = [];
+    let offset = 0;
+    while (offset <= body.length - query.length) {
+      const found = body.indexOf(query, offset);
+      if (found < 0) break;
+      matches.push(found);
+      offset = found + Math.max(1, query.length);
+    }
+    return matches;
+  };
+  const chapterSearchState = { results:[] };
+  const renderChapterSearchResults = (draft = collectDraft()) => {
+    const query = chapterSearchInput.value;
+    chapterSearchResults.replaceChildren();
+    chapterSearchState.results = [];
+    if (!query) {
+      chapterSearchSummary.textContent = '찾을 내용을 입력하세요.';
+      return;
+    }
+    draft.chapters.forEach((chapter, chapterIndex) => {
+      occurrencesInChapter(chapter.body, query).forEach((offset) => {
+        const line = chapter.body.slice(0, offset).split('\n').length;
+        const context = chapter.body.slice(Math.max(0, offset - 28), offset + query.length + 46).replace(/\s+/g, ' ');
+        chapterSearchState.results.push({ chapterIndex, offset, line, title:chapter.title || '제목 없는 장', context });
+      });
+    });
+    const chapterCount = new Set(chapterSearchState.results.map((result) => result.chapterIndex)).size;
+    chapterSearchSummary.textContent = chapterSearchState.results.length ? `${chapterCount}개 장에서 ${chapterSearchState.results.length}개 항목을 찾았습니다.` : '일치하는 내용이 없습니다.';
+    chapterSearchState.results.forEach((result) => {
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chapter-search-result';
+      button.textContent = `${result.title} · ${result.line}행`;
+      const detail = document.createElement('small');
+      detail.textContent = result.context;
+      button.append(detail);
+      button.addEventListener('click', () => {
+        saveCurrentChapter();
+        chapterList.querySelector(`.chapter[data-i="${result.chapterIndex}"]`)?.click();
+        if (!visualEditor.hidden) setMode('html');
+        requestAnimationFrame(() => {
+          const monacoEditor = window.epubMonacoEditor;
+          const position = monacoEditor?.getModel()?.getPositionAt(result.offset);
+          if (!position) return;
+          monacoEditor.focus();
+          monacoEditor.setPosition(position);
+          monacoEditor.setSelection({ startLineNumber:position.lineNumber, startColumn:position.column, endLineNumber:position.lineNumber, endColumn:position.column });
+          monacoEditor.revealPositionInCenter(position);
+        });
+      });
+      item.append(button);
+      chapterSearchResults.append(item);
+    });
+  };
+  const replaceAllChapters = () => {
+    const query = chapterSearchInput.value;
+    if (!query) { chapterSearchSummary.textContent = '바꿀 내용을 먼저 입력하세요.'; return; }
+    const draft = collectDraft();
+    const replacement = chapterReplaceInput.value;
+    const changed = draft.chapters.map((chapter, index) => {
+      const count = occurrencesInChapter(chapter.body, query).length;
+      return count ? { index, body:chapter.body.split(query).join(replacement), count } : null;
+    }).filter(Boolean);
+    if (!changed.length) { chapterSearchSummary.textContent = '바꿀 일치 항목이 없습니다.'; return; }
+    const total = changed.reduce((sum, chapter) => sum + chapter.count, 0);
+    if (!window.confirm(`${changed.length}개 장의 ${total}개 항목을 바꿉니다. 계속할까요?`)) return;
+    collectingDraft = true;
+    try {
+      changed.forEach(({ index, body }) => {
+        chapterList.querySelector(`.chapter[data-i="${index}"]`)?.click();
+        htmlEditor.value = body;
+        htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
+      });
+      chapterList.querySelector(`.chapter[data-i="${draft.activeIndex}"]`)?.click();
+    } finally {
+      collectingDraft = false;
+      syncOpenChapterEditor();
+    }
+    chapterSearchSummary.textContent = `${changed.length}개 장의 ${total}개 항목을 바꿨습니다.`;
+    renderChapterSearchResults();
+    setStatus(`${changed.length}개 장의 ${total}개 항목을 바꿨습니다.`);
+  };
+  chapterSearchPanel.querySelector('.chapter-search-close').addEventListener('click', closeChapterSearch);
+  chapterSearchPanel.querySelector('[data-chapter-search-run]').addEventListener('click', () => renderChapterSearchResults());
+  chapterSearchPanel.querySelector('[data-chapter-replace-all]').addEventListener('click', replaceAllChapters);
+  chapterSearchInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') renderChapterSearchResults(); });
+  document.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'f') {
+      event.preventDefault();
+      chapterSearchPanel.hidden = false;
+      chapterSearchInput.focus();
+      chapterSearchInput.select();
+    }
+    if (event.key === 'Escape' && !chapterSearchPanel.hidden) closeChapterSearch();
+  }, true);
   const epubText = (value) => new TextEncoder().encode(value);
   const epubEscape = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&apos;' }[character]));
   const epubCrcTable = (() => {
@@ -1011,29 +1449,90 @@ window.addEventListener('DOMContentLoaded', () => {
     output.push(...directory, new Uint8Array([...epubU32(0x06054b50), ...epubU16(0), ...epubU16(0), ...epubU16(files.length), ...epubU16(files.length), ...epubU32(directorySize), ...epubU32(offset), ...epubU16(0)]));
     return new Blob(output, { type:'application/epub+zip' });
   };
-  const makeEpubNav = (chapters) => {
-    const included = chapters.filter((_, index) => !tocExcluded.has(index));
+  const makeEpubNav = (chapters, filenames = chapters.map((_, index) => defaultChapterFileName(index)), structure = { tocExcluded, parentTocMap }) => {
+    const included = chapters.filter((_, index) => !structure.tocExcluded.has(index));
     const visible = new Set(included.map((_, index) => chapters.indexOf(included[index])));
     const parentFor = (index) => {
       const seen = new Set([index]);
-      let parent = parentTocMap.get(index);
+      let parent = structure.parentTocMap.get(index);
       while (parent !== undefined && !seen.has(parent)) {
         if (visible.has(parent)) return parent;
         seen.add(parent);
-        parent = parentTocMap.get(parent);
+        parent = structure.parentTocMap.get(parent);
       }
       return null;
     };
     const items = included.map((chapter) => ({ chapter, index:chapters.indexOf(chapter) }));
     const render = (parent) => items.filter((item) => parentFor(item.index) === parent).map((item) => {
       const children = render(item.index);
-      const link = `<a href="text/chapter-${String(item.index + 1).padStart(3, '0')}.xhtml">${epubEscape(item.chapter.title || '제목 없는 장')}</a>`;
+      const link = `<a href="text/${epubEscape(filenames[item.index])}">${epubEscape(item.chapter.title || '제목 없는 장')}</a>`;
       return `<li>${link}${children ? `<ol>${children}</ol>` : ''}</li>`;
     }).join('');
     return `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>목차</title></head><body><nav epub:type="toc"><h1>목차</h1><ol>${render(null)}</ol></nav></body></html>`;
   };
+  const replaceXhtmlBody = (source, body) => /<body\b[^>]*>[\s\S]*?<\/body\s*>/i.test(source) ? source.replace(/(<body\b[^>]*>)[\s\S]*?(<\/body\s*>)/i, `$1${body}$2`) : source;
+  const relativeEpubPath = (fromFile, toFile) => {
+    const from = fromFile.split('/').slice(0, -1);
+    const to = toFile.split('/');
+    while (from.length && to.length && from[0] === to[0]) { from.shift(); to.shift(); }
+    return `${'../'.repeat(from.length)}${to.join('/')}` || toFile.split('/').pop();
+  };
+  const exportImportedEpub3 = async (draft) => {
+    const imported = importedEpub;
+    if (!imported || imported.chapterMeta.length !== draft.chapters.length) return false;
+    const output = new Map(imported.files);
+    let replacementCoverType = '';
+    if (importedCoverReplaced && imported.coverImagePath && draft.coverSource) {
+      const blob = await fetch(draft.coverSource).then((response) => response.blob());
+      output.set(imported.coverImagePath, new Uint8Array(await blob.arrayBuffer()));
+      replacementCoverType = blob.type || '';
+    }
+    const metaForChapter = (chapter, index) => imported.chapterMeta.find((meta) => meta.index === chapter.sourceIndex) || imported.chapterMeta[index];
+    draft.chapters.forEach((chapter, index) => {
+      const meta = metaForChapter(chapter, index);
+      const source = chapter.body === meta.body ? meta.source : replaceXhtmlBody(meta.source, chapter.body);
+      output.set(meta.path, epubText(source));
+    });
+    const draftTocExcluded = new Set(draft.tocExcluded);
+    const draftParentTocMap = new Map(draft.parentToc);
+    const navItems = draft.chapters.map((chapter, index) => ({ meta:metaForChapter(chapter, index), index, chapter })).filter(({ index }) => !draftTocExcluded.has(index));
+    const renderNav = (parent) => navItems.filter(({ index }) => (draftParentTocMap.get(index) ?? null) === parent).map(({ meta, index, chapter }) => {
+      const children = renderNav(index);
+      const href = relativeEpubPath(imported.navPath, meta.path);
+      return `<li><a href="${epubEscape(href)}">${epubEscape(meta.tocTitle || chapter.title || '제목 없는 장')}</a>${children ? `<ol>${children}</ol>` : ''}</li>`;
+    }).join('');
+    output.set(imported.navPath, epubText(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>목차</title></head><body><nav epub:type="toc"><h1>목차</h1><ol>${renderNav(null)}</ol></nav></body></html>`));
+    const manifest = imported.manifest.filter((item) => !item.properties.split(/\s+/).includes('nav')).map((item) => `<item id="${epubEscape(item.id)}" href="${epubEscape(item.rawHref)}" media-type="${epubEscape(item.href === imported.coverImagePath && replacementCoverType ? replacementCoverType : item.type)}"${item.properties ? ` properties="${epubEscape(item.properties)}"` : ''}/>`);
+    const navHref = relativeEpubPath(imported.packagePath, imported.navPath);
+    manifest.push(`<item id="nav" href="${epubEscape(navHref)}" media-type="application/xhtml+xml" properties="nav"/>`);
+    const orderedRefs = draft.chapters.map((chapter, index) => imported.spineRefs.find((ref) => ref.idref === metaForChapter(chapter, index).idref));
+    const chapterRefIds = new Set(imported.chapterMeta.map((meta) => meta.idref));
+    let chapterRefIndex = 0;
+    const spine = imported.spineRefs.map((ref) => {
+      const next = chapterRefIds.has(ref.idref) ? orderedRefs[chapterRefIndex++] : ref;
+      return `<itemref idref="${epubEscape(next.idref)}"${next.linear ? ` linear="${epubEscape(next.linear)}"` : ''}/>`;
+    }).join('');
+    const title = draft.title || '새 전자책';
+    const language = draft.language || 'ko';
+    output.set(imported.packagePath, epubText(`<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="${epubEscape(language)}"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="pub-id">urn:uuid:${crypto.randomUUID()}</dc:identifier><dc:title>${epubEscape(title)}</dc:title>${draft.author ? `<dc:creator>${epubEscape(draft.author)}</dc:creator>` : ''}<dc:language>${epubEscape(language)}</dc:language><meta property="dcterms:modified">${new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')}</meta></metadata><manifest>${manifest.join('')}</manifest><spine>${spine}</spine></package>`));
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(createEpubZip(Array.from(output, ([name, data]) => ({ name, data }))));
+    link.download = `${title.replace(/[\\/:*?"<>|]/g, '-')}.epub`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1500);
+    setStatus(`[${title}] EPUB 3.0 파일을 다운로드했습니다. 원본 spine·경로·목차를 보존했습니다.`);
+    return true;
+  };
   const exportAssetAwareEpub = async () => {
     const draft = collectDraft();
+    // This is the single export gateway: imported and newly-created EPUBs
+    // both stop here before a ZIP Blob or download link can be made.
+    const xhtmlErrors = validateAllChapters(draft);
+    if (xhtmlErrors.length) {
+      setStatus(`XHTML 오류 ${xhtmlErrors.length}건이 있어 EPUB을 내보낼 수 없습니다. 오류를 수정한 뒤 다시 시도하세요.`, 'error');
+      return false;
+    }
+    if (await exportImportedEpub3(draft)) return;
     const title = draft.title || '새 전자책';
     const language = draft.language || 'ko';
     const files = [
@@ -1043,19 +1542,34 @@ window.addEventListener('DOMContentLoaded', () => {
     ];
     const manifest = ['<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>', '<item id="css" href="styles/book.css" media-type="text/css"/>'];
     const spine = [];
+    const usedFilenames = new Set();
+    const filenames = draft.chapters.map((chapter, index) => {
+      const requested = String(chapter.fileName || defaultChapterFileName(index)).trim().replace(/^.*[\\/]/, '').replace(/[<>:"|?*]/g, '-') || defaultChapterFileName(index);
+      const hasXhtmlExtension = /\.xhtml?$/i.test(requested);
+      const extension = hasXhtmlExtension ? '' : '.xhtml';
+      const base = hasXhtmlExtension ? requested : requested || `chapter-${index + 1}`;
+      let filename = `${base}${extension}`;
+      let suffix = 2;
+      while (usedFilenames.has(filename.toLowerCase())) {
+        filename = `${base}-${suffix}${extension}`;
+        suffix += 1;
+      }
+      usedFilenames.add(filename.toLowerCase());
+      return filename;
+    });
     if (draft.coverSource) {
       const coverBlob = await fetch(draft.coverSource).then((response) => response.blob());
       const coverExtension = coverBlob.type === 'image/png' ? 'png' : 'jpg';
       const coverName = `cover.${coverExtension}`;
-      files.push({ name:`EPUB/images/${coverName}`, data:new Uint8Array(await coverBlob.arrayBuffer()) });
-      files.push({ name:'EPUB/text/cover.xhtml', data:epubText(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>표지</title><link rel="stylesheet" type="text/css" href="../styles/book.css"/></head><body><img src="../images/${coverName}" alt="표지"/></body></html>`) });
-      manifest.push(`<item id="cover-image" href="images/${coverName}" media-type="${coverBlob.type}" properties="cover-image"/>`, '<item id="cover-page" href="text/cover.xhtml" media-type="application/xhtml+xml"/>');
+      files.push({ name:`EPUB/Image/${coverName}`, data:new Uint8Array(await coverBlob.arrayBuffer()) });
+      files.push({ name:'EPUB/text/cover.xhtml', data:epubText(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>표지</title><link rel="stylesheet" type="text/css" href="../styles/book.css"/></head><body><img src="../Image/${coverName}" alt="표지"/></body></html>`) });
+      manifest.push(`<item id="cover-image" href="Image/${coverName}" media-type="${coverBlob.type}" properties="cover-image"/>`, '<item id="cover-page" href="text/cover.xhtml" media-type="application/xhtml+xml"/>');
       spine.push('<itemref idref="cover-page" linear="no"/>');
     }
     for (let index = 0; index < draft.chapters.length; index += 1) {
       const chapter = draft.chapters[index];
-      const filename = `chapter-${String(index + 1).padStart(3, '0')}.xhtml`;
-      const body = normaliseXhtml(chapter.body).replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[\da-f]+;)/gi, '&amp;').replace(/src=(['"])images\//g, 'src=$1../images/');
+      const filename = filenames[index];
+      const body = normaliseXhtml(chapter.body).replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[\da-f]+;)/gi, '&amp;').replace(/src=(['"])images\//g, 'src=$1../Image/');
       files.push({ name:`EPUB/text/${filename}`, data:epubText(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="${epubEscape(language)}"><head><meta charset="UTF-8"/><title>${epubEscape(chapter.title || title)}</title><link rel="stylesheet" type="text/css" href="../styles/book.css"/></head><body>${body}</body></html>`) });
       manifest.push(`<item id="chapter-${index + 1}" href="text/${filename}" media-type="application/xhtml+xml"/>`);
       spine.push(`<itemref idref="chapter-${index + 1}"/>`);
@@ -1064,10 +1578,10 @@ window.addEventListener('DOMContentLoaded', () => {
       const asset = draft.assets[index];
       const stored = previewAssets.get(asset.name);
       if (!stored?.blob) continue;
-      files.push({ name:`EPUB/images/${asset.name}`, data:new Uint8Array(await stored.blob.arrayBuffer()) });
-      manifest.push(`<item id="image-${index + 1}" href="images/${epubEscape(asset.name)}" media-type="${epubEscape(asset.type || 'image/png')}"/>`);
+      files.push({ name:`EPUB/Image/${asset.name}`, data:new Uint8Array(await stored.blob.arrayBuffer()) });
+      manifest.push(`<item id="image-${index + 1}" href="Image/${epubEscape(asset.name)}" media-type="${epubEscape(asset.type || 'image/png')}"/>`);
     }
-    files.push({ name:'EPUB/nav.xhtml', data:epubText(makeEpubNav(draft.chapters)) });
+    files.push({ name:'EPUB/nav.xhtml', data:epubText(makeEpubNav(draft.chapters, filenames, { tocExcluded:new Set(draft.tocExcluded), parentTocMap:new Map(draft.parentToc) })) });
     files.push({ name:'EPUB/package.opf', data:epubText(`<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id" xml:lang="${epubEscape(language)}"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="pub-id">urn:uuid:${crypto.randomUUID()}</dc:identifier><dc:title>${epubEscape(title)}</dc:title>${draft.author ? `<dc:creator>${epubEscape(draft.author)}</dc:creator>` : ''}<dc:language>${epubEscape(language)}</dc:language><meta property="dcterms:modified">${new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')}</meta></metadata><manifest>${manifest.join('')}</manifest><spine>${spine.join('')}</spine></package>`) });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(createEpubZip(files));
@@ -1080,16 +1594,12 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!useAssetAwareExporter) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    const errors = validateAllChapters();
-    if (errors.length) {
-      setStatus(`EPUB 내보내기 전에 HTML 오류 ${errors.length}건을 수정하세요.`, 'error');
-      return;
-    }
     exportAssetAwareEpub().catch((error) => setStatus(error.message || 'EPUB 파일을 만들지 못했습니다.', 'error'));
   }, true);
   const loadDraft = async (draft) => {
     if (!draft?.chapters?.length) return;
     while (chapterList.querySelectorAll('.chapter[data-i]').length > 1) $('#del').click();
+    chapterFileNames.clear();
     setCurrentChapter(draft.chapters[0]);
     draft.chapters.slice(1).forEach((chapter) => {
       addChapter.click();
@@ -1101,9 +1611,11 @@ window.addEventListener('DOMContentLoaded', () => {
     $('#author').value = draft.author || '';
     $('#language').value = draft.language || 'ko';
     $('#css').value = draft.css || '';
+    cssPreset.value = matchingCssPreset();
     tocExcluded.clear();
     (draft.tocExcluded || []).forEach((index) => tocExcluded.add(index));
     parentTocMap.clear();
+    collapsedTocRoots.clear();
     (draft.parentToc || []).forEach(([child, parent]) => parentTocMap.set(Number(child), Number(parent)));
     await loadDraftAssets(draft);
     const selected = Math.max(0, Math.min(draft.activeIndex || 0, draft.chapters.length - 1));
@@ -1164,6 +1676,34 @@ window.addEventListener('DOMContentLoaded', () => {
     return documentNode;
   };
   const elementText = (documentNode, name) => documentNode.getElementsByTagNameNS('*', name)[0]?.textContent?.trim() || '';
+  const xhtmlBody = (source) => /<body\b[^>]*>([\s\S]*?)<\/body\s*>/i.exec(source)?.[1] ?? source;
+  const xhtmlTitle = (source) => /<title\b[^>]*>([\s\S]*?)<\/title\s*>/i.exec(source)?.[1].replace(/<[^>]+>/g, '').trim() || '';
+  const tocEntriesFromNcx = (source, basePath) => {
+    const documentNode = xmlDocument(source, 'toc.ncx');
+    const entries = new Map();
+    const visit = (node, level, parentPath = null) => Array.from(node.children).filter((child) => child.localName === 'navPoint').forEach((point) => {
+      const href = point.getElementsByTagNameNS('*', 'content')[0]?.getAttribute('src') || '';
+      const path = zipPath(basePath, href.split('#')[0]);
+      const title = point.getElementsByTagNameNS('*', 'text')[0]?.textContent?.trim() || '';
+      if (path) entries.set(path, { title, level, parentPath });
+      visit(point, level + 1, path || parentPath);
+    });
+    visit(documentNode.getElementsByTagNameNS('*', 'navMap')[0] || documentNode, 1);
+    return entries;
+  };
+  const tocEntriesFromNav = (source, basePath) => {
+    const documentNode = new DOMParser().parseFromString(source, 'text/html');
+    const toc = Array.from(documentNode.querySelectorAll('nav')).find((node) => /(^|\s)toc(\s|$)/i.test(node.getAttribute('epub:type') || node.getAttribute('type') || '')) || documentNode.querySelector('nav');
+    const entries = new Map();
+    const visit = (list, level, parentPath = null) => Array.from(list?.children || []).filter((node) => node.tagName === 'LI').forEach((item) => {
+      const link = item.querySelector(':scope > a');
+      const path = link ? zipPath(basePath, (link.getAttribute('href') || '').split('#')[0]) : '';
+      if (path) entries.set(path, { title:link.textContent.trim(), level, parentPath });
+      visit(Array.from(item.children).find((node) => node.tagName === 'OL'), level + 1, path || parentPath);
+    });
+    visit(toc?.querySelector('ol'), 1);
+    return entries;
+  };
   const importEpub = async (file) => {
     const files = await unzipEpub(file);
     const container = xmlDocument(zipText(files.get('META-INF/container.xml') || new Uint8Array()), 'container.xml');
@@ -1172,38 +1712,48 @@ window.addEventListener('DOMContentLoaded', () => {
     const packageDocument = xmlDocument(zipText(files.get(packagePath)), 'EPUB 패키지');
     const packageBase = packagePath.slice(0, packagePath.lastIndexOf('/') + 1);
     const manifest = new Map(Array.from(packageDocument.getElementsByTagNameNS('*', 'item')).map((item) => [item.getAttribute('id'), {
-      href:zipPath(packageBase, item.getAttribute('href') || ''), type:item.getAttribute('media-type') || '', properties:item.getAttribute('properties') || '',
+      id:item.getAttribute('id'), href:zipPath(packageBase, item.getAttribute('href') || ''), rawHref:item.getAttribute('href') || '', type:item.getAttribute('media-type') || '', properties:item.getAttribute('properties') || '',
     }]));
-    const spine = Array.from(packageDocument.getElementsByTagNameNS('*', 'itemref')).map((item) => manifest.get(item.getAttribute('idref'))).filter((item) => item?.type.includes('xhtml'));
-    const chapterSources = spine.filter((item) => !item.properties.includes('cover'));
-    if (!chapterSources.length) throw new Error('불러올 XHTML 본문을 찾을 수 없습니다.');
-    const assets = new Map();
-    const reservedNames = new Set();
-    manifest.forEach((item) => {
-      if (!item.type.startsWith('image/') || !files.has(item.href)) return;
-      const rawName = item.href.split('/').pop() || 'image';
-      const dot = rawName.lastIndexOf('.');
-      const base = dot > 0 ? rawName.slice(0, dot) : rawName;
-      const extension = dot > 0 ? rawName.slice(dot) : '';
-      let name = rawName;
-      let number = 2;
-      while (reservedNames.has(name)) { name = `${base}-${number}${extension}`; number += 1; }
-      reservedNames.add(name);
-      assets.set(item.href, { name, type:item.type, blob:new Blob([files.get(item.href)], { type:item.type }) });
-    });
-    const chapters = chapterSources.map((item, index) => {
-      const documentNode = new DOMParser().parseFromString(zipText(files.get(item.href) || new Uint8Array()), 'text/html');
-      const body = documentNode.body;
-      body.querySelectorAll('[src]').forEach((node) => {
-        const asset = assets.get(zipPath(item.href.slice(0, item.href.lastIndexOf('/') + 1), node.getAttribute('src')));
-        if (asset) node.setAttribute('src', `images/${asset.name}`);
+    const spineRefs = Array.from(packageDocument.getElementsByTagNameNS('*', 'itemref')).map((item) => ({ idref:item.getAttribute('idref'), linear:item.getAttribute('linear') || '' }));
+    const metadataCoverId = Array.from(packageDocument.getElementsByTagNameNS('*', 'meta')).find((item) => item.getAttribute('name') === 'cover')?.getAttribute('content');
+    const guideCoverRef = Array.from(packageDocument.getElementsByTagNameNS('*', 'reference')).find((item) => item.getAttribute('type') === 'cover')?.getAttribute('href') || '';
+    const guideCoverPath = guideCoverRef ? zipPath(packageBase, guideCoverRef.split('#')[0]) : '';
+    let coverImage = Array.from(manifest.values()).find((item) => item.properties.split(/\s+/).includes('cover-image')) || manifest.get(metadataCoverId);
+    const coverPagePaths = new Set();
+    if (guideCoverPath) {
+      const guideItem = Array.from(manifest.values()).find((item) => item.href === guideCoverPath);
+      if (guideItem?.type.includes('xhtml')) coverPagePaths.add(guideCoverPath);
+      else if (guideItem?.type.startsWith('image/')) coverImage ||= guideItem;
+    }
+    const imageFromCoverPage = (path) => {
+      const source = zipText(files.get(path) || new Uint8Array());
+      const match = /(?:src|href|xlink:href)\s*=\s*(["'])(.*?)\1/i.exec(source);
+      return match ? Array.from(manifest.values()).find((item) => item.href === zipPath(path.slice(0, path.lastIndexOf('/') + 1), match[2].split('#')[0])) : null;
+    };
+    if (!coverImage && guideCoverPath) coverImage = imageFromCoverPage(guideCoverPath);
+    if (coverImage) {
+      spineRefs.map((ref) => manifest.get(ref.idref)).filter((item) => item?.type.includes('xhtml')).forEach((item) => {
+        if (imageFromCoverPage(item.href)?.href === coverImage.href) coverPagePaths.add(item.href);
       });
-      const title = documentNode.querySelector('title')?.textContent?.trim() || body.querySelector('h1,h2')?.textContent?.trim() || `제${index + 1}장`;
-      return { title, level:1, body:body.innerHTML.trim() };
+    }
+    const spine = spineRefs.map((ref) => ({ ...ref, item:manifest.get(ref.idref) })).filter((ref) => ref.item?.type.includes('xhtml') && !coverPagePaths.has(ref.item.href));
+    const chapterSources = spine;
+    if (!chapterSources.length) throw new Error('불러올 XHTML 본문을 찾을 수 없습니다.');
+    const navItem = Array.from(manifest.values()).find((item) => item.properties.split(/\s+/).includes('nav'));
+    const ncxItem = Array.from(manifest.values()).find((item) => item.type === 'application/x-dtbncx+xml');
+    const tocEntries = navItem && files.has(navItem.href) ? tocEntriesFromNav(zipText(files.get(navItem.href)), navItem.href.slice(0, navItem.href.lastIndexOf('/') + 1)) : ncxItem && files.has(ncxItem.href) ? tocEntriesFromNcx(zipText(files.get(ncxItem.href)), ncxItem.href.slice(0, ncxItem.href.lastIndexOf('/') + 1)) : new Map();
+    const chapterMeta = chapterSources.map(({ item, idref, linear }, index) => {
+      const source = zipText(files.get(item.href) || new Uint8Array());
+      const toc = tocEntries.get(item.href);
+      return { index, idref, linear, path:item.href, rawHref:item.rawHref, source, body:xhtmlBody(source), tocTitle:toc?.title || xhtmlTitle(source) || `제${index + 1}장`, tocLevel:toc?.level || 1, tocParentPath:toc?.parentPath || null, includeInToc:Boolean(toc) };
     });
+    const chapters = chapterMeta.map((meta) => ({ title:meta.tocTitle, level:meta.tocLevel, body:meta.body, fileName:meta.path.split('/').pop() || defaultChapterFileName(meta.index) }));
     const title = elementText(packageDocument, 'title') || file.name.replace(/\.epub$/i, '');
     if (!window.confirm(`“${title}” EPUB의 ${chapters.length}개 장을 현재 편집기에 불러옵니다. 현재 작업 내용은 교체됩니다.`)) return;
+    importedEpub = null;
+    importedCoverReplaced = false;
     while (chapterList.querySelectorAll('.chapter[data-i]').length > 1) $('#del').click();
+    chapterFileNames.clear();
     setCurrentChapter(chapters[0]);
     chapters.slice(1).forEach((chapter) => { addChapter.click(); setCurrentChapter(chapter); });
     $('#title').value = title;
@@ -1211,19 +1761,47 @@ window.addEventListener('DOMContentLoaded', () => {
     $('#language').value = elementText(packageDocument, 'language') || 'ko';
     const stylesheet = Array.from(manifest.values()).find((item) => item.type === 'text/css' && files.has(item.href));
     $('#css').value = stylesheet ? zipText(files.get(stylesheet.href)) : '';
+    cssPreset.value = 'custom';
     tocExcluded.clear();
+    chapterMeta.forEach((meta) => { if (!meta.includeInToc) tocExcluded.add(meta.index); });
     parentTocMap.clear();
+    collapsedTocRoots.clear();
+    chapterMeta.forEach((meta) => {
+      const parentIndex = chapterMeta.findIndex((candidate) => candidate.path === meta.tocParentPath);
+      if (parentIndex >= 0) parentTocMap.set(meta.index, parentIndex);
+    });
     previewAssets.forEach((asset) => { if (asset.url?.startsWith('blob:')) URL.revokeObjectURL(asset.url); });
     previewAssets.clear();
-    assets.forEach((asset) => previewAssets.set(asset.name, { ...asset, url:URL.createObjectURL(asset.blob) }));
-    const cover = Array.from(manifest.values()).find((item) => item.properties.includes('cover-image'));
-    const coverAsset = cover && assets.get(cover.href);
-    if (coverAsset) { coverPreview.src = previewAssets.get(coverAsset.name).url; coverPreview.hidden = false; }
+    // Keep every image declared by the OPF manifest, including unused images.
+    // Its full ZIP path is the map key so case and directory names remain exact
+    // for both preview resolution and a later source-preserving export.
+    Array.from(manifest.values()).forEach((item) => {
+      if (!item.type.startsWith('image/') || !files.has(item.href)) return;
+      const blob = new Blob([files.get(item.href)], { type:item.type });
+      const fileName = uniqueAssetName(item.href.split('/').pop() || 'image');
+      previewAssets.set(fileName, {
+        type:item.type,
+        blob,
+        url:URL.createObjectURL(blob),
+        originalPath:item.href,
+        isCover:item.href === coverImage?.href,
+      });
+    });
+    const coverAsset = coverImage && previewAssetForPath(coverImage.href);
+    if (coverAsset) { coverPreview.src = coverAsset.url; coverPreview.hidden = false; }
     else { coverPreview.removeAttribute('src'); coverPreview.hidden = true; }
+    importedEpub = { files, packagePath, packageBase, manifest:Array.from(manifest.values()), spineRefs, chapterMeta, navPath:navItem?.href || `${packageBase}nav.xhtml`, coverImagePath:coverImage?.href || '', coverPagePaths:Array.from(coverPagePaths) };
     openedDraftTitle = null;
     draftButton.textContent = '임시저장';
     chapterList.querySelector('.chapter[data-i="0"]')?.click();
-    visualEditor.innerHTML = htmlEditor.value;
+    // 가져온 원문은 contenteditable의 HTML 재직렬화를 거치지 않도록 XHTML 모드에서 연다.
+    htmlField.hidden = false;
+    richToolbar.hidden = true;
+    visualEditor.hidden = true;
+    const modeToggle = mode.querySelector('[data-mode-toggle]');
+    modeToggle.textContent = '일반편집';
+    modeToggle.setAttribute('aria-pressed', 'true');
+    syncOpenChapterEditor();
     renderAssetShelf();
     refreshChapterControls();
     refreshPreview();
@@ -1293,16 +1871,16 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(draftStorageKey, JSON.stringify(merged));
     renderDrafts();
   };
-  draftButton.addEventListener('click', async () => {
+  const saveCurrentDraft = async ({ shortcut = false } = {}) => {
     const draft = collectDraft();
-    const htmlErrors = validateAllChapters();
-    if (!draft.title) { setStatus('책 제목을 입력한 뒤 임시저장하세요.', 'error'); return; }
+    const htmlErrors = validateAllChapters(draft);
+    if (!draft.title) { setStatus('책 제목을 입력한 뒤 임시저장하세요.', 'error'); return false; }
     const drafts = getDrafts();
     const existingIndex = drafts.findIndex((item) => item.title === draft.title);
     const isUpdate = openedDraftTitle === draft.title && existingIndex >= 0;
     if (existingIndex >= 0 && !isUpdate) {
       setStatus('같은 책 제목의 임시저장본이 이미 있습니다.', 'error');
-      return;
+      return false;
     }
     try {
       await saveDraftAssets(draft.title);
@@ -1326,9 +1904,20 @@ window.addEventListener('DOMContentLoaded', () => {
       } catch (error) {
         console.warn('Supabase 저장 동기화 실패', error);
         setStatus('브라우저에는 저장했지만 서버 동기화에 실패했습니다.', 'error');
+        return false;
       }
+      if (!htmlErrors.length && shortcut) setStatus('저장되었습니다.');
+      return true;
     } catch {
       setStatus('임시저장 공간이 부족합니다. 이미지 용량을 줄인 뒤 다시 시도하세요.', 'error');
+      return false;
+    }
+  };
+  draftButton.addEventListener('click', () => { void saveCurrentDraft(); });
+  document.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+      event.preventDefault();
+      if (!event.repeat) void saveCurrentDraft({ shortcut:true });
     }
   });
   cssSaveButton.addEventListener('click', () => draftButton.click());
@@ -1383,7 +1972,29 @@ window.addEventListener('DOMContentLoaded', () => {
     htmlEditor.dispatchEvent(new Event('input', { bubbles: true }));
     refreshPreview();
   };
+  function saveCurrentChapter() {
+    chapterFileNames.set(activeChapterIndex(), sigilFileName.value.trim());
+    if (collectingDraft) return;
+    if (!visualEditor.hidden) {
+      syncFromVisual();
+      return;
+    }
+    const monacoEditor = window.epubMonacoEditor;
+    if (monacoEditor && monacoEditor.getValue() !== htmlEditor.value) htmlEditor.value = monacoEditor.getValue();
+    // 기존 앱의 input 저장 핸들러를 통해 현재 장의 title·목차·본문 state를 함께 갱신한다.
+    htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
+  }
+  chapterList.addEventListener('click', (event) => {
+    if (event.target.closest('.chapter[data-i]')) saveCurrentChapter();
+  }, true);
   const previewBlockSelector = 'p,h1,h2,h3,h4,h5,li,blockquote,td,th';
+  const sourceBlocksForTag = (tag) => Array.from(htmlEditor.value.matchAll(new RegExp(`<${tag}\\b[^>]*>`, 'gi')));
+  const previewBlockIndex = (block) => Array.from(preview.querySelectorAll(previewBlockSelector)).indexOf(block);
+  const sourceBlockForPreviewBlock = (block) => {
+    const tag = block.tagName.toLowerCase();
+    const occurrence = Array.from(preview.querySelectorAll(tag)).indexOf(block);
+    return occurrence < 0 ? null : sourceBlocksForTag(tag)[occurrence] || null;
+  };
   const clearPreviewFocus = () => {
     preview.querySelectorAll('.preview-focus').forEach((node) => node.classList.remove('preview-focus'));
     preview.querySelectorAll('mark.preview-context').forEach((mark) => mark.replaceWith(document.createTextNode(mark.textContent)));
@@ -1450,16 +2061,28 @@ window.addEventListener('DOMContentLoaded', () => {
     const index = Array.from(visualEditor.querySelectorAll(previewBlockSelector)).indexOf(block);
     if (index >= 0) focusPreviewBlock(index, visualCaretOffset(block));
   };
-  const syncHtmlPreview = () => {
-    const before = htmlEditor.value.slice(0, htmlEditor.selectionStart);
+  const syncHtmlPreview = (offset = htmlEditor.selectionStart) => {
+    const before = htmlEditor.value.slice(0, offset);
     const matches = Array.from(before.matchAll(/<(p|h[1-5]|li|blockquote|td|th)\b[^>]*>/gi));
-    if (matches.length) focusPreviewBlock(matches.length - 1);
+    if (!matches.length) return;
+    const currentBlock = matches.at(-1);
+    const tag = currentBlock[1].toLowerCase();
+    const sourceOccurrence = sourceBlocksForTag(tag).findIndex((block) => block.index === currentBlock.index);
+    const previewBlock = Array.from(preview.querySelectorAll(tag))[sourceOccurrence];
+    const previewIndex = previewBlockIndex(previewBlock);
+    if (previewIndex < 0) return;
+    const blockContentStart = currentBlock.index + currentBlock[0].length;
+    // 태그·HTML 엔티티를 브라우저가 렌더링한 텍스트 길이로 변환해 Monaco 커서와 미리보기 단어 위치를 맞춘다.
+    const fragment = document.createElement('div');
+    fragment.innerHTML = htmlEditor.value.slice(blockContentStart, offset);
+    focusPreviewBlock(previewIndex, fragment.textContent.length);
   };
   preview.addEventListener('click', (event) => {
     const previewBlock = event.target.closest(previewBlockSelector);
     if (!previewBlock || !preview.contains(previewBlock)) return;
-    const index = Array.from(preview.querySelectorAll(previewBlockSelector)).indexOf(previewBlock);
-    if (index < 0) return;
+    const index = previewBlockIndex(previewBlock);
+    const sourceBlock = sourceBlockForPreviewBlock(previewBlock);
+    if (index < 0 || !sourceBlock) return;
     focusPreviewBlock(index);
     if (!visualEditor.hidden) {
       const editorBlock = visualEditor.querySelectorAll(previewBlockSelector)[index];
@@ -1476,9 +2099,19 @@ window.addEventListener('DOMContentLoaded', () => {
       editorBlock.scrollIntoView({ block:'center', behavior:'smooth' });
       return;
     }
-    const blocks = Array.from(htmlEditor.value.matchAll(/<(p|h[1-5]|li|blockquote|td|th)\b[^>]*>/gi));
-    const sourceBlock = blocks[index];
-    if (!sourceBlock) return;
+    const monacoEditor = window.epubMonacoEditor;
+    if (monacoEditor && !htmlField.hidden) {
+      const position = monacoEditor.getModel()?.getPositionAt(sourceBlock.index);
+      if (!position) return;
+      monacoEditor.focus();
+      monacoEditor.setPosition(position);
+      monacoEditor.setSelection({
+        startLineNumber: position.lineNumber, startColumn: position.column,
+        endLineNumber: position.lineNumber, endColumn: position.column,
+      });
+      monacoEditor.revealPositionInCenter(position);
+      return;
+    }
     htmlEditor.focus();
     htmlEditor.setSelectionRange(sourceBlock.index, sourceBlock.index);
     const line = htmlEditor.value.slice(0, sourceBlock.index).split('\n').length - 1;
@@ -1538,71 +2171,131 @@ window.addEventListener('DOMContentLoaded', () => {
     lineNumbers.textContent = (rows.length ? rows : ['1']).join('\n');
     lineNumbers.style.transform = `translateY(-${htmlEditor.scrollTop}px)`;
   };
-  const findHtmlError = (source) => {
+  const findHtmlErrors = (source) => {
+    const errors = [];
     const stack = [];
-    const malformed = /<\s+([A-Za-z][\w:-]*)\b/g.exec(source);
-    if (malformed) return { line:source.slice(0, malformed.index).split('\n').length, message:`<${malformed[1]}> 태그 앞의 불필요한 공백을 제거하세요.` };
+    for (const malformed of source.matchAll(/<\s+([A-Za-z][\w:-]*)\b/g)) {
+      errors.push({ line:source.slice(0, malformed.index).split('\n').length, message:`<${malformed[1]}> 태그 앞의 불필요한 공백을 제거하세요.` });
+    }
     const tags = /<\/?([a-zA-Z][\w:-]*)\b[^>]*>/g;
     let match;
-    let error = null;
     while ((match = tags.exec(source))) {
       const token = match[0];
       const tag = match[1].toLowerCase();
       const line = source.slice(0, match.index).split('\n').length;
       if (token.startsWith('</')) {
         const opened = stack.at(-1);
-        if (!opened) { error = { line, message:`</${tag}>에 대응하는 여는 태그가 없습니다.` }; break; }
-        if (opened.tag !== tag) { error = { line, message:`</${tag}> 대신 </${opened.tag}>가 필요합니다.` }; break; }
-        stack.pop();
-      } else if (xhtmlVoidTags.has(tag) && !/\/\s*>$/.test(token)) {
-        error = { line, message:`<${tag}>는 XHTML에서 self-closing(<${tag} />)이어야 합니다.` }; break;
-      } else if (tag === 'img' && !/\balt\s*=\s*(['"]).*?\1/i.test(token)) {
-        error = { line, message:'img 태그에 alt 속성이 없습니다.' }; break;
+        if (!opened) {
+          errors.push({ line, message:`</${tag}>에 대응하는 여는 태그가 없습니다.` });
+        } else if (opened.tag !== tag) {
+          errors.push({ line, message:`</${tag}> 대신 </${opened.tag}>가 필요합니다.` });
+        } else stack.pop();
       } else if (!xhtmlVoidTags.has(tag) && !token.endsWith('/>')) {
         stack.push({ tag, line });
       }
+      if (!token.startsWith('</') && xhtmlVoidTags.has(tag) && !/\/\s*>$/.test(token)) errors.push({ line, message:`<${tag}>는 XHTML에서 self-closing(<${tag} />)이어야 합니다.` });
+      if (!token.startsWith('</') && tag === 'img' && !/\balt\s*=\s*(['"]).*?\1/i.test(token)) errors.push({ line, message:'img 태그에 alt 속성이 없습니다.' });
     }
-    if (!error && stack.length) {
-      const opened = stack.at(-1);
-      error = { line:opened.line, message:`<${opened.tag}> 태그가 닫히지 않았습니다.` };
+    stack.forEach((opened) => errors.push({ line:opened.line, message:`<${opened.tag}> 태그가 닫히지 않았습니다.` }));
+    // 스택 검사로 찾기 어려운 미인용 속성, 잘못된 엔티티, 깨진 태그도
+    // 실제 XML 파서로 한 번 더 검증한다. 본문 조각을 단일 XML 루트로 감싼다.
+    const parsed = new DOMParser().parseFromString(`<root xmlns="http://www.w3.org/1999/xhtml">${source}</root>`, 'application/xml');
+    const parserError = parsed.getElementsByTagName('parsererror')[0];
+    if (parserError) {
+      const detail = parserError.textContent.replace(/\s+/g, ' ').trim();
+      const line = Number(detail.match(/(?:line|행)\s*(\d+)/i)?.[1]) || 1;
+      errors.push({ line, message:'XHTML XML 문법 오류가 있습니다.' });
     }
-    return error;
+    return errors;
   };
-  const validateHtml = () => {
-    const error = findHtmlError(htmlEditor.value);
-    htmlValidation.hidden = !error;
-    xhtmlDiagnostics.hidden = !error;
-    if (error) {
-      htmlValidation.textContent = `HTML 오류 · ${error.line}행: ${error.message}`;
-      htmlValidation.title = htmlValidation.textContent;
-      xhtmlDiagnostics.textContent = `Line ${error.line}: ${error.message}`;
-    }
+  const findHtmlError = (source) => findHtmlErrors(source)[0] || null;
+  const closeChapterErrorPopover = () => {
+    chapterErrorPopover.hidden = true;
+    chapterErrorAlert.setAttribute('aria-expanded', 'false');
   };
-  const validateAllChapters = () => collectDraft().chapters.flatMap((chapter, index) => {
-    const error = findHtmlError(chapter.body);
-    return error ? [{ chapter:index + 1, title:chapter.title || '제목 없는 장', ...error }] : [];
+  const renderChapterErrorPopover = () => {
+    chapterErrorPopover.replaceChildren();
+    const header = document.createElement('div');
+    header.className = 'chapter-error-popover__head';
+    const title = document.createElement('span');
+    title.textContent = `현재 장 오류 ${currentChapterErrors.length}개`;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'chapter-error-popover__close';
+    close.setAttribute('aria-label', '오류 상세 닫기');
+    close.textContent = '×';
+    close.addEventListener('click', closeChapterErrorPopover);
+    header.append(title, close);
+    const list = document.createElement('ol');
+    list.className = 'chapter-error-popover__list';
+    currentChapterErrors.forEach((error) => {
+      const item = document.createElement('li');
+      item.textContent = `${error.line}행: ${error.message}`;
+      list.append(item);
+    });
+    chapterErrorPopover.append(header, list);
+  };
+  const updateChapterErrorAlert = (errors) => {
+    currentChapterErrors = errors;
+    const count = errors.length;
+    chapterErrorAlert.hidden = count === 0;
+    chapterErrorAlert.textContent = `오류 ${count}`;
+    chapterErrorAlert.title = `현재 장의 XHTML 오류 ${count}개 보기`;
+    if (!count) closeChapterErrorPopover();
+    else if (!chapterErrorPopover.hidden) renderChapterErrorPopover();
+  };
+  chapterErrorAlert.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (chapterErrorPopover.hidden) {
+      renderChapterErrorPopover();
+      chapterErrorPopover.hidden = false;
+      const bounds = chapterErrorAlert.getBoundingClientRect();
+      chapterErrorPopover.style.top = `${Math.min(window.innerHeight - chapterErrorPopover.offsetHeight - 14, bounds.bottom + 8)}px`;
+      chapterErrorPopover.style.left = `${Math.max(14, Math.min(window.innerWidth - chapterErrorPopover.offsetWidth - 14, bounds.left))}px`;
+      chapterErrorAlert.setAttribute('aria-expanded', 'true');
+    } else closeChapterErrorPopover();
   });
+  document.addEventListener('click', (event) => {
+    if (!chapterErrorPopover.hidden && !chapterErrorPopover.contains(event.target) && event.target !== chapterErrorAlert) closeChapterErrorPopover();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeChapterErrorPopover();
+  });
+  const validateHtml = () => {
+    const errors = findHtmlErrors(htmlEditor.value);
+    // 긴 상세 문구는 작업 화면에 직접 노출하지 않고, 고정 폭 알림 버튼의 팝오버에서만 보여준다.
+    xhtmlDiagnostics.hidden = true;
+    updateChapterErrorAlert(errors);
+  };
+  const validateAllChapters = (draft = collectDraft()) => draft.chapters.flatMap((chapter, index) =>
+    findHtmlErrors(chapter.body).map((error) => ({ chapter:index + 1, title:chapter.title || '제목 없는 장', ...error }))
+  );
+  const countXhtmlFixes = (before, after) => {
+    if (before === after) return 0;
+    const voidFixes = Array.from(before.matchAll(/<\s*(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)\b[^>]*?(?<!\/)\s*>/gi)).length;
+    const malformedOpenings = Array.from(before.matchAll(/<\s+[A-Za-z][\w:-]*/g)).length;
+    return Math.max(1, voidFixes + malformedOpenings);
+  };
   autoFixHtmlButton.addEventListener('click', () => {
-    if (!visualEditor.hidden) syncFromVisual();
-    const activeIndex = activeChapterIndex();
-    const count = chapterList.querySelectorAll('.chapter[data-i]').length;
-    const changedChapters = [];
-    for (let index = 0; index < count; index += 1) {
-      chapterList.querySelector(`.chapter[data-i="${index}"]`)?.click();
-      const fixed = prettyHtml(htmlEditor.value);
-      if (fixed === htmlEditor.value) continue;
-      htmlEditor.value = fixed;
+    // Monaco·일반편집 어느 쪽에서 눌러도 현재 보이는 장의 최신 원고를 기준으로 처리한다.
+    saveCurrentChapter();
+    const before = htmlEditor.value;
+    const normalised = normaliseXhtml(before);
+    // 이미 유효한 XHTML은 들여쓰기만을 이유로 바꾸지 않는다. 명확한 오류가 있을 때만 구조를 보정한다.
+    const after = normalised !== before || findHtmlError(before) ? prettyHtml(normalised) : before;
+    const fixedCount = countXhtmlFixes(before, after);
+    if (fixedCount) {
+      htmlEditor.value = after;
       htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
-      changedChapters.push(`${index + 1}장`);
+      if (window.epubMonacoEditor?.getValue() !== after) window.epubMonacoEditor?.setValue(after);
+      if (!visualEditor.hidden) visualEditor.innerHTML = after;
     }
-    chapterList.querySelector(`.chapter[data-i="${activeIndex}"]`)?.click();
-    if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
-    const errors = validateAllChapters();
-    if (errors.length) {
-      setStatus(`XHTML 자동수정: ${changedChapters.join(', ') || '변경 없음'} · 남은 오류 ${errors.length}건은 직접 확인해야 합니다.`, 'error');
+    const remainingErrors = findHtmlErrors(htmlEditor.value);
+    if (remainingErrors.length) {
+      setStatus(`${fixedCount ? `XHTML ${fixedCount}개 항목 수정 완료` : '수정할 항목이 없습니다'} · 현재 장 오류 ${remainingErrors.length}개`, 'error');
       return;
     }
-    setStatus(changedChapters.length ? `XHTML 자동수정 완료: ${changedChapters.join(', ')} · 들여쓰기와 self-closing 빈 태그를 정규화했습니다.` : 'XHTML 자동수정: 정규화할 변경사항이 없습니다.');
+    setStatus(fixedCount ? `XHTML ${fixedCount}개 항목 수정 완료` : '수정할 항목이 없습니다.');
   });
   const setMode = (nextMode) => {
     const visual = nextMode === 'visual';
@@ -1847,9 +2540,12 @@ window.addEventListener('DOMContentLoaded', () => {
     table.querySelectorAll(event.target.dataset.tableColor === 'head' ? 'th' : 'td').forEach((cell) => { cell.style.backgroundColor = event.target.value; });
     syncFromVisual();
   }));
-  chapterList.addEventListener('click', () => setTimeout(() => {
-    if (!visualEditor.hidden) visualEditor.innerHTML = htmlEditor.value;
-  }, 0));
+  chapterList.addEventListener('click', () => {
+    if (!collectingDraft) {
+      syncOpenChapterEditor();
+      validateHtml();
+    }
+  });
   // textarea는 장 전환·미리보기·임시저장의 기존 데이터 브리지로 유지하고, HTML 모드의
   // 실제 편집 UI만 Monaco로 대체한다. Monaco를 못 받아도 textarea가 그대로 동작한다.
   const installMonacoEditor = () => {
@@ -1901,7 +2597,8 @@ window.addEventListener('DOMContentLoaded', () => {
       });
       const editor = monaco.editor.create(host, {
         value:htmlEditor.value, language:'html', theme:document.documentElement.dataset.theme === 'light' ? 'vs' : 'vs-dark',
-        automaticLayout:true, minimap:{ enabled:false }, lineNumbers:'on', fontSize:13, tabSize:2,
+        automaticLayout:true, minimap:{ enabled:false }, lineNumbers:'on', lineNumbersMinChars:2,
+        glyphMargin:false, lineDecorationsWidth:0, fontSize:13, tabSize:2,
         insertSpaces:true, wordWrap:'on', quickSuggestions:true, suggestOnTriggerCharacters:true,
         tabCompletion:'on', autoClosingBrackets:'always', autoClosingQuotes:'always', formatOnPaste:true,
       });
@@ -1929,6 +2626,10 @@ window.addEventListener('DOMContentLoaded', () => {
           }
         }
         syncTextareaFromMonaco();
+      });
+      editor.onDidChangeCursorPosition((event) => {
+        const offset = editor.getModel()?.getOffsetAt(event.position);
+        if (Number.isInteger(offset)) syncHtmlPreview(offset);
       });
       htmlEditor.addEventListener('input', () => {
         if (synchronising || editor.getValue() === htmlEditor.value) return;
