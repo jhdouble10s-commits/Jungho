@@ -1,0 +1,32 @@
+{
+  "name": "sitescout",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.mjs && node --check ui.js && node --check proofreader-worker.js",
+    "verify:epub": "node scripts/verify-epub.mjs",
+    "verify:epubcheck": "node scripts/epubcheck.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jhdouble10s-commits/Jungho.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/jhdouble10s-commits/Jungho/issues"
+  },
+  "homepage": "https://github.com/jhdouble10s-commits/Jungho#readme",
+  "dependencies": {
+    "dexie": "^4.4.6",
+    "diff": "^9.0.0",
+    "dompurify": "^3.4.16",
+    "jszip": "^3.10.2"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "^0.9.12"
+  }
+}
