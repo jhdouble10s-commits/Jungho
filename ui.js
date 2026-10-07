@@ -12,7 +12,7 @@ uiStyle.textContent = `
   .html-validation,.xhtml-diagnostics { display:none!important; }.editor-error-alert { flex:none; min-width:58px; height:32px; border:1px solid #ff8b72aa; border-radius:8px; padding:0 9px; background:#351916; color:#ffb09a; font:700 11px inherit; white-space:nowrap; cursor:pointer; }.editor-error-alert:hover,.editor-error-alert[aria-expanded="true"] { border-color:#ffb09a; background:#4b1e18; }.editor-error-alert[hidden] { display:none; }.chapter-error-popover { position:fixed; z-index:1100; width:min(320px,calc(100vw - 28px)); padding:12px; border:1px solid #ff8b72aa; border-radius:10px; background:var(--surface); color:var(--text); box-shadow:0 16px 42px #0008; }.chapter-error-popover[hidden] { display:none; }.chapter-error-popover__head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; color:#ffb09a; font-size:12px; font-weight:800; }.chapter-error-popover__close { width:24px; height:24px; border:0; border-radius:6px; background:transparent; color:var(--sub); font-size:19px; line-height:1; cursor:pointer; }.chapter-error-popover__close:hover { background:var(--surface-2); color:var(--text); }.chapter-error-popover__list { max-height:180px; margin:0; padding-left:18px; overflow:auto; color:var(--sub); font-size:12px; line-height:1.55; }.fields input[type="checkbox"] { width:18px!important; height:18px; padding:0!important; box-shadow:none!important; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor > .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor > .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
   .sidebar-toggle { position:absolute; top:18px; right:16px; width:32px; height:32px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2); color:var(--text); font-size:18px; cursor:pointer; z-index:20; }
   .theme-settings { margin-top:auto; padding:16px 10px; border-top:1px solid var(--line); color:var(--sub); font-size:12px; font-weight:700; }
-  .theme-settings div { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }.theme-settings button { border:1px solid var(--line); border-radius:7px; padding:7px 4px; background:var(--surface-2); color:var(--text); font:600 11px inherit; cursor:pointer; }.theme-settings button:hover { border-color:var(--accent); color:var(--accent); }
+  .theme-settings > div:not(.theme-settings__head) { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }.theme-settings__head { display:flex; align-items:center; justify-content:space-between; }.theme-settings .api-settings-button { width:26px; height:26px; padding:0; font-size:14px; }.theme-settings button { border:1px solid var(--line); border-radius:7px; padding:7px 4px; background:var(--surface-2); color:var(--text); font:600 11px inherit; cursor:pointer; }.theme-settings button:hover { border-color:var(--accent); color:var(--accent); }
   .sidebar-hidden { grid-template-columns:0 minmax(0,1fr); }.sidebar-hidden .side { padding:0!important; overflow:visible; border:0; }.sidebar-hidden .side>*:not(.sidebar-toggle) { display:none; }.sidebar-hidden .sidebar-toggle { position:fixed; left:16px; right:auto; background:var(--surface); }
   main { min-width:0; max-width:1680px!important; padding:24px 32px 42px!important; }.top { min-width:0; display:flex!important; align-items:center; justify-content:flex-end!important; min-height:48px; margin:0 0 18px!important; padding:6px 14px!important; background:var(--surface)!important; border:1px solid var(--line)!important; border-radius:14px!important; box-shadow:none!important; }
   .primary { padding:8px 12px!important; border-radius:8px!important; background:var(--accent)!important; color:#fff!important; font-size:12px!important; line-height:1.2; box-shadow:none!important; }.primary:hover { transform:none!important; filter:brightness(1.08); }
@@ -84,8 +84,9 @@ uiStyle.textContent = `
 import JSZip from 'https://cdn.jsdelivr.net/npm/jszip@3.10.2/+esm';
 import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify@3.4.16/+esm';
 import Dexie from 'https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm';
-import { diffWordsWithSpace } from 'https://cdn.jsdelivr.net/npm/diff@9.0.0/+esm';
-import { applySourceEdits, buildProofreadRequest, diagnosticToSourceEdit } from './proofread-xhtml.js';
+import { diffChars } from 'https://cdn.jsdelivr.net/npm/diff@9.0.0/+esm';
+import { requestGeminiStructuredJson } from './gemini-interactions.js';
+import { applySourceEdits, chunkProofreadParagraphs, dedupeAdjacentParagraphs, diffPartsToSourceEdits, extractProofreadParagraphs, isSuspiciousCorrection } from './gemini-proofread.js?v=20261007-57';
 
 window.addEventListener('DOMContentLoaded', () => {
   document.head.append(uiStyle);
@@ -223,7 +224,7 @@ window.addEventListener('DOMContentLoaded', () => {
   `);
   side.querySelector('.tip').insertAdjacentHTML('beforebegin', `
     <div class="theme-settings">
-      <span>화면 설정</span>
+      <div class="theme-settings__head"><span>화면 설정</span><button class="api-settings-button" type="button" aria-label="API 설정" title="API 설정">⚙</button></div>
       <div><button type="button" data-theme="dark">다크</button><button type="button" data-theme="light">라이트</button></div>
     </div>
   `);
@@ -339,6 +340,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!preset) { updatePresetDeleteButton(); return; }
     cssEditor.value = preset.css;
     cssEditor.dispatchEvent(new Event('input', { bubbles:true }));
+    // 프리셋 선택은 곧 현재 책의 공통 CSS 변경이다. 별도 적용 단계 없이
+    // 편집기·미리보기·내보내기가 같은 값을 사용하도록 즉시 다시 렌더링한다.
+    refreshPreview();
     updatePresetDeleteButton();
   });
   cssEditor.addEventListener('input', () => { cssPreset.value = matchingCssPreset(); updatePresetDeleteButton(); });
@@ -562,6 +566,7 @@ window.addEventListener('DOMContentLoaded', () => {
     chapterList.querySelectorAll('.chapter[data-i]').forEach((chapter) => chapter.classList.toggle('active', chapter === target));
     setCurrentChapter({ ...snapshot, fileName:currentChapterFileName(index) });
     syncOpenChapterEditor();
+    refreshPreview();
     validateHtml();
     scheduleChapterControlsRefresh();
   };
@@ -570,6 +575,8 @@ window.addEventListener('DOMContentLoaded', () => {
       if (event.target.closest('.toc-toggle,.drag-handle')) return;
       const bounds = chapter.getBoundingClientRect();
       if (bounds.right - event.clientX <= 38) return;
+      event.preventDefault();
+      event.stopPropagation();
       selectManagedChapter(Number(chapter.dataset.i));
     };
   };
@@ -1477,7 +1484,7 @@ window.addEventListener('DOMContentLoaded', () => {
   proofreadButton.type = 'button';
   proofreadButton.className = 'secondary';
   proofreadButton.textContent = '교정';
-  proofreadButton.title = '현재 장의 본문 텍스트만 맞춤법·띄어쓰기·문법으로 검사합니다.';
+  proofreadButton.title = '현재 장의 텍스트만 Gemini로 교정합니다.';
   proofreadButton.setAttribute('aria-haspopup', 'dialog');
   autoFixHtmlButton.after(proofreadButton);
   const footnoteButton = document.createElement('button');
@@ -1576,6 +1583,53 @@ window.addEventListener('DOMContentLoaded', () => {
     statusToast.className = `status ${type}`;
     scheduleStatusDismissal();
   };
+  const GEMINI_API_KEY_STORAGE = 'epub-gemini-api-key-v1';
+  const GEMINI_PROMPT_STORAGE = 'epub-gemini-proofread-prompt-v1';
+  const DEFAULT_GEMINI_PROMPT = `한국어 맞춤법을 교정해 주세요.
+
+원문의 의미와 문체는 유지하고,
+맞춤법, 띄어쓰기, 표준 표기, 문장부호만 자연스럽게 교정해 주세요.
+
+불필요한 문장 재작성이나 표현 개선은 하지 마세요.
+
+교정된 본문만 반환하세요.`;
+  const geminiSettingsStyle = document.createElement('style');
+  geminiSettingsStyle.textContent = `
+    .gemini-settings-dialog{width:min(680px,calc(100vw - 32px));max-height:min(78vh,760px);padding:0;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);box-shadow:0 24px 72px #000a}.gemini-settings-dialog::backdrop{background:#0009}.gemini-dialog-head,.gemini-dialog-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}.gemini-dialog-footer{border-top:1px solid var(--line);border-bottom:0}.gemini-dialog-head h2{margin:0;font-size:14px}.gemini-dialog-tabs{display:flex;gap:4px;padding:10px 16px 0}.gemini-dialog-tabs button{border:0;border-bottom:2px solid var(--accent);padding:6px 2px;background:transparent;color:var(--text);font:700 12px inherit}.gemini-settings-form{display:grid;gap:12px;padding:14px 16px}.gemini-settings-form label{display:grid;gap:6px;color:var(--sub);font-size:12px}.gemini-settings-form input,.gemini-settings-form textarea{width:100%;box-sizing:border-box}.gemini-settings-form textarea{min-height:180px;resize:vertical;line-height:1.55}.gemini-dialog-head button,.gemini-dialog-footer button,.gemini-settings-form button{min-height:30px;border:1px solid var(--line);border-radius:7px;padding:5px 8px;background:var(--surface-2);color:var(--text);font:600 12px inherit;cursor:pointer}.gemini-dialog-head button:hover,.gemini-dialog-footer button:hover,.gemini-settings-form button:hover{border-color:var(--accent);color:var(--accent)}
+  `;
+  document.head.append(geminiSettingsStyle);
+  const geminiSettingsDialog = document.createElement('dialog');
+  geminiSettingsDialog.className = 'gemini-settings-dialog';
+  geminiSettingsDialog.innerHTML = `<div class="gemini-dialog-head"><h2>설정</h2><button type="button" data-close>닫기</button></div><div class="gemini-dialog-tabs"><button type="button" aria-current="page">API 설정</button></div><form class="gemini-settings-form"><label>Gemini API Key<input name="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="AIza…" /></label><label>기본 프롬프트<textarea name="prompt" spellcheck="false"></textarea></label><div><button type="button" data-restore>기본값 복원</button></div><div class="gemini-dialog-footer"><span>키는 이 브라우저에만 저장되며 EPUB·프로젝트에는 포함되지 않습니다.</span><button type="submit" class="primary">저장</button></div></form>`;
+  document.body.append(geminiSettingsDialog);
+  const geminiSettingsForm = geminiSettingsDialog.querySelector('form');
+  const geminiApiKeyField = geminiSettingsForm.elements.apiKey;
+  const geminiPromptField = geminiSettingsForm.elements.prompt;
+  const readGeminiSettings = () => ({ apiKey:localStorage.getItem(GEMINI_API_KEY_STORAGE) || '', prompt:localStorage.getItem(GEMINI_PROMPT_STORAGE) || DEFAULT_GEMINI_PROMPT });
+  const openGeminiSettings = () => {
+    const settings = readGeminiSettings();
+    geminiApiKeyField.value = settings.apiKey;
+    geminiPromptField.value = settings.prompt;
+    if (!geminiSettingsDialog.open) geminiSettingsDialog.showModal();
+    geminiApiKeyField.focus();
+  };
+  geminiSettingsDialog.querySelector('[data-close]').addEventListener('click', () => geminiSettingsDialog.close());
+  geminiSettingsForm.querySelector('[data-restore]').addEventListener('click', () => { geminiPromptField.value = DEFAULT_GEMINI_PROMPT; });
+  geminiSettingsForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const apiKey = geminiApiKeyField.value.trim();
+    if (!apiKey) { geminiApiKeyField.focus(); setStatus('Gemini API Key를 입력하세요.', 'error'); return; }
+    localStorage.setItem(GEMINI_API_KEY_STORAGE, apiKey);
+    localStorage.setItem(GEMINI_PROMPT_STORAGE, geminiPromptField.value.trim() || DEFAULT_GEMINI_PROMPT);
+    geminiSettingsDialog.close(); setStatus('Gemini API 설정을 저장했습니다.');
+  });
+  side.querySelector('.api-settings-button').addEventListener('click', openGeminiSettings);
+  const geminiApiRequiredDialog = document.createElement('dialog');
+  geminiApiRequiredDialog.className = 'gemini-settings-dialog';
+  geminiApiRequiredDialog.innerHTML = '<div class="gemini-dialog-head"><h2>Gemini API 설정이 필요합니다</h2><button type="button" data-close>닫기</button></div><div class="gemini-dialog-footer"><span>현재 브라우저에 API Key를 저장한 뒤 교정을 시작할 수 있습니다.</span><button type="button" class="primary" data-open-settings>설정 열기</button></div>';
+  document.body.append(geminiApiRequiredDialog);
+  geminiApiRequiredDialog.querySelector('[data-close]').addEventListener('click', () => geminiApiRequiredDialog.close());
+  geminiApiRequiredDialog.querySelector('[data-open-settings]').addEventListener('click', () => { geminiApiRequiredDialog.close(); openGeminiSettings(); });
   const setCurrentChapter = (chapter) => {
     const index = activeChapterIndex();
     const next = {
@@ -1591,7 +1645,9 @@ window.addEventListener('DOMContentLoaded', () => {
       $('#clevel').value = String(next.level);
       sigilFileName.value = next.fileName;
       htmlEditor.value = next.body;
-      if (!visualEditor.hidden) setVisualHtml(next.body);
+      // 일반편집기가 숨겨진 XHTML 모드에서도 내부 Tiptap 문서를 함께 갱신한다.
+      // 그렇지 않으면 나중에 일반편집으로 전환할 때 이전 장/기본 본문이 다시 보일 수 있다.
+      setVisualHtml(next.body);
       // Update Monaco directly without a textarea input event.  Its own
       // synchronisation guard prevents the old model from being saved back.
       const monacoEditor = window.epubMonacoEditor;
@@ -2151,6 +2207,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }, true);
   const loadDraft = async (draft) => {
     if (!draft?.chapters?.length) return;
+    draft = { ...draft, chapters:draft.chapters.map((chapter) => ({ ...chapter, body:dedupeAdjacentParagraphs(chapter.body) })) };
     importedEpub = null;
     footnotes.clear();
     (draft.footnotes || []).forEach((note) => {
@@ -2597,9 +2654,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     snapshotCurrentChapter();
   }
-  chapterList.addEventListener('click', (event) => {
-    if (event.target.closest('.chapter[data-i]')) saveCurrentChapter();
-  }, true);
   const previewBlockSelector = 'p,h1,h2,h3,h4,h5,li,blockquote,td,th';
   const sourceBlocksForTag = (tag) => Array.from(htmlEditor.value.matchAll(new RegExp(`<${tag}\\b[^>]*>`, 'gi')));
   const previewBlockIndex = (block) => Array.from(preview.querySelectorAll(previewBlockSelector)).indexOf(block);
@@ -2909,142 +2963,66 @@ window.addEventListener('DOMContentLoaded', () => {
     const malformedOpenings = Array.from(before.matchAll(/<\s+[A-Za-z][\w:-]*/g)).length;
     return Math.max(1, voidFixes + malformedOpenings);
   };
-  const proofreadDialogStyle = document.createElement('style');
-  proofreadDialogStyle.textContent = `
-    .proofread-dialog{width:min(720px,calc(100vw - 32px);max-height:min(78vh,760px);padding:0;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);box-shadow:0 24px 72px #000a}
-    .proofread-dialog::backdrop{background:#0009}.proofread-dialog__head,.proofread-dialog__footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}.proofread-dialog__footer{border-top:1px solid var(--line);border-bottom:0}.proofread-dialog__head h2{margin:0;font-size:14px}.proofread-dialog__body{max-height:calc(min(78vh,760px) - 126px);overflow:auto;padding:8px 16px}.proofread-dialog__summary{margin:4px 0 10px;color:var(--sub);font-size:12px}.proofread-result{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:10px;padding:12px 0;border-top:1px solid var(--line)}.proofread-result:first-of-type{border-top:0}.proofread-kind{display:inline-flex;margin-top:2px;padding:3px 6px;border-radius:5px;background:var(--accent-soft);color:var(--accent);font-size:10px;font-weight:800;white-space:nowrap}.proofread-copy{min-width:0;font-size:12px;line-height:1.55}.proofread-message{margin:0 0 5px;color:var(--sub)}.proofread-diff del{margin-right:4px;color:#ff9c75;text-decoration-color:#ff9c75}.proofread-diff ins{color:#8fd6a4;text-decoration-color:#8fd6a4}.proofread-actions{display:flex;gap:5px}.proofread-actions button,.proofread-dialog__head button,.proofread-dialog__footer button{min-height:30px;border:1px solid var(--line);border-radius:7px;padding:5px 8px;background:var(--surface-2);color:var(--text);font:600 12px inherit;cursor:pointer}.proofread-actions button:hover,.proofread-dialog__head button:hover,.proofread-dialog__footer button:hover{border-color:var(--accent);color:var(--accent)}.proofread-dialog__footer .primary{border-color:var(--accent)!important}.proofread-empty{padding:24px 0;color:var(--sub);font-size:13px;text-align:center}
-  `;
-  document.head.append(proofreadDialogStyle);
-  const proofreadDialog = document.createElement('dialog');
-  proofreadDialog.className = 'proofread-dialog';
-  proofreadDialog.setAttribute('aria-label', '교정 제안');
-  document.body.append(proofreadDialog);
-  let proofreaderWorker = null;
-  let proofreadRequestId = 0;
-  let proofreadState = null;
-  const correctionKind = (diagnostic) => {
-    const ruleId = String(diagnostic.ruleId || diagnostic.rule_id || '').toLowerCase();
-    if (ruleId.includes('spacing')) return '띄어쓰기';
-    if (ruleId.startsWith('spelling.') || ruleId.includes('spelling')) return '맞춤법';
-    if (ruleId.startsWith('grammar.') || ruleId.includes('grammar')) return '문법';
-    return '교정';
-  };
-  const engineDiagnostics = (result) => Array.isArray(result?.diagnostics) ? result.diagnostics
-    : Array.isArray(result?.items) ? result.items : Array.isArray(result) ? result : [];
-  const getProofreaderWorker = () => {
-    if (proofreaderWorker) return proofreaderWorker;
-    proofreaderWorker = new Worker(new URL('./proofreader-worker.js', import.meta.url), { type:'module' });
-    return proofreaderWorker;
-  };
-  const runProofreader = (text) => new Promise((resolve, reject) => {
-    const worker = getProofreaderWorker();
-    const id = ++proofreadRequestId;
-    const onMessage = ({ data }) => {
-      if (data?.id !== id) return;
-      worker.removeEventListener('message', onMessage);
-      worker.removeEventListener('error', onError);
-      if (data.error) reject(new Error(data.error));
-      else resolve(data.result);
-    };
-    const onError = (event) => {
-      worker.removeEventListener('message', onMessage);
-      worker.removeEventListener('error', onError);
-      reject(event.error || new Error('교정 엔진을 시작하지 못했습니다.'));
-    };
-    worker.addEventListener('message', onMessage);
-    worker.addEventListener('error', onError, { once:true });
-    worker.postMessage({ id, text });
-  });
-  const renderDiff = (container, original, suggestion) => {
-    const fragment = document.createDocumentFragment();
-    diffWordsWithSpace(original, suggestion).forEach((part) => {
-      const node = document.createElement(part.added ? 'ins' : part.removed ? 'del' : 'span');
-      node.textContent = part.value;
-      fragment.append(node);
-    });
-    container.replaceChildren(fragment);
-  };
-  const renderProofreadDialog = () => {
-    const state = proofreadState;
-    const active = state?.items.filter((item) => !item.ignored && !item.applied) || [];
-    proofreadDialog.replaceChildren();
-    const head = document.createElement('div'); head.className = 'proofread-dialog__head';
-    const heading = document.createElement('h2'); heading.textContent = '교정 제안';
-    const close = document.createElement('button'); close.type = 'button'; close.textContent = '닫기'; close.addEventListener('click', () => proofreadDialog.close());
-    head.append(heading, close);
-    const body = document.createElement('div'); body.className = 'proofread-dialog__body';
-    const summary = document.createElement('p'); summary.className = 'proofread-dialog__summary'; summary.textContent = `현재 장에서 ${active.length}건의 제안을 찾았습니다.`; body.append(summary);
-    if (!active.length) { const empty = document.createElement('p'); empty.className = 'proofread-empty'; empty.textContent = '남은 교정 제안이 없습니다.'; body.append(empty); }
-    active.forEach((item) => {
-      const row = document.createElement('section'); row.className = 'proofread-result';
-      const kind = document.createElement('span'); kind.className = 'proofread-kind'; kind.textContent = item.kind;
-      const copy = document.createElement('div'); copy.className = 'proofread-copy';
-      const message = document.createElement('p'); message.className = 'proofread-message'; message.textContent = item.message || `${item.kind} 제안`;
-      const diff = document.createElement('div'); diff.className = 'proofread-diff'; renderDiff(diff, item.original, item.suggestion); copy.append(message, diff);
-      const actions = document.createElement('div'); actions.className = 'proofread-actions';
-      const apply = document.createElement('button'); apply.type = 'button'; apply.textContent = '적용'; apply.addEventListener('click', () => applyProofreadItems([item]));
-      const ignore = document.createElement('button'); ignore.type = 'button'; ignore.textContent = '무시'; ignore.addEventListener('click', () => { item.ignored = true; renderProofreadDialog(); });
-      actions.append(apply, ignore); row.append(kind, copy, actions); body.append(row);
-    });
-    const footer = document.createElement('div'); footer.className = 'proofread-dialog__footer';
-    const hint = document.createElement('span'); hint.textContent = '적용 전에는 원문이 바뀌지 않습니다.';
-    const applyAll = document.createElement('button'); applyAll.type = 'button'; applyAll.className = 'primary'; applyAll.textContent = '전체 적용'; applyAll.disabled = !active.length; applyAll.addEventListener('click', () => applyProofreadItems(active));
-    footer.append(hint, applyAll); proofreadDialog.append(head, body, footer);
-  };
-  const applyProofreadItems = (items) => {
-    const state = proofreadState;
-    if (!state || activeChapterIndex() !== state.chapterIndex) { setStatus('검사한 장이 바뀌었습니다. 현재 장을 다시 검사하세요.', 'error'); proofreadDialog.close(); return; }
+  const GEMINI_MAX_CHUNK_CHARACTERS = 12000;
+  const applyGeminiSuggestions = (items, chapterIndex) => {
+    if (activeChapterIndex() !== chapterIndex) { setStatus('검사한 장이 바뀌었습니다. 현재 장을 다시 검사하세요.', 'error'); return false; }
+    if (!items.length) { setStatus('수정할 항목이 없습니다.'); return true; }
     try {
       const before = htmlEditor.value;
-      const edits = items.map((item) => ({ start:item.start, end:item.end, original:item.original, replacement:item.replacement }));
+      const edits = items.map(({ start, end, original, replacement }) => ({ start, end, original, replacement }));
       const after = applySourceEdits(before, edits);
       const monacoEditor = window.epubMonacoEditor;
-      if (monacoEditor && monacoEditor.getValue() === before && window.monaco) {
+      if (!visualEditor.hidden) {
+        // 일반편집은 Tiptap 한 곳에만 반영한다. Monaco까지 동시에 갱신하면 재저장 때 본문이 중복될 수 있다.
+        htmlEditor.value = after;
+        setVisualHtml(after);
+        htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
+      } else if (monacoEditor && monacoEditor.getValue() === before && window.monaco) {
         const model = monacoEditor.getModel();
-        monacoEditor.executeEdits('proofread-apply', edits.sort((a, b) => b.start - a.start).map((edit) => {
+        monacoEditor.executeEdits('gemini-proofread', edits.sort((a, b) => b.start - a.start).map((edit) => {
           const from = model.getPositionAt(edit.start); const to = model.getPositionAt(edit.end);
           return { range:new window.monaco.Range(from.lineNumber, from.column, to.lineNumber, to.column), text:edit.replacement };
         }));
       } else { htmlEditor.value = after; htmlEditor.dispatchEvent(new Event('input', { bubbles:true })); }
       if (htmlEditor.value !== after) { htmlEditor.value = after; htmlEditor.dispatchEvent(new Event('input', { bubbles:true })); }
-      if (!visualEditor.hidden) setVisualHtml(after);
       snapshotCurrentChapter();
-      items.forEach((item) => { item.applied = true; });
-      // 한 건만 적용한 뒤에도 나머지 제안의 원본 위치가 현재 XHTML을 계속 가리키도록
-      // 뒤쪽 range만 이동한다. 겹치는 제안은 안전하게 무시 처리한다.
-      if (items.length === 1) {
-        const applied = items[0];
-        const delta = applied.replacement.length - (applied.end - applied.start);
-        state.items.forEach((candidate) => {
-          if (candidate === applied || candidate.applied || candidate.ignored) return;
-          if (candidate.start >= applied.end) { candidate.start += delta; candidate.end += delta; }
-          else if (candidate.end > applied.start) candidate.ignored = true;
-        });
-      }
-      setStatus(`${items.length}건의 교정 제안을 적용했습니다.`);
-      renderProofreadDialog();
-    } catch (error) { setStatus(error.message || '교정을 적용하지 못했습니다. 다시 검사하세요.', 'error'); }
+      refreshPreview();
+      setStatus(`${items.length}건의 교정을 적용했습니다.`); return true;
+    } catch (error) { setStatus(error.message || '교정을 적용하지 못했습니다. 다시 검사하세요.', 'error'); return false; }
   };
   proofreadButton.addEventListener('click', async () => {
+    if (geminiProofreadBusy) return;
+    const settings = readGeminiSettings();
+    if (!settings.apiKey) {
+      setStatus('Gemini API 설정이 필요합니다.', 'error');
+      if (!geminiApiRequiredDialog.open) geminiApiRequiredDialog.showModal();
+      return;
+    }
     saveCurrentChapter();
     const chapterIndex = activeChapterIndex();
     const source = htmlEditor.value;
-    const request = buildProofreadRequest(source);
-    if (!request.text.trim()) { setStatus('현재 장에서 검사할 한국어 본문 텍스트가 없습니다.', 'error'); return; }
-    proofreadButton.disabled = true; proofreadButton.textContent = '교정 중...'; setStatus('교정 중...');
+    const paragraphs = extractProofreadParagraphs(source);
+    if (!paragraphs.length) { setStatus('현재 장에서 검사할 본문 텍스트가 없습니다.', 'error'); return; }
+    geminiProofreadBusy = true; proofreadButton.disabled = true; proofreadButton.textContent = '교정 중...'; setStatus('교정 중...');
     try {
-      // 한 장의 모든 안전한 텍스트 노드를 한 번의 WASM 검사 호출로 처리한다.
-      const result = await runProofreader(request.text);
-      const items = engineDiagnostics(result).map((diagnostic) => {
-        const edit = diagnosticToSourceEdit(diagnostic, request.segments, source);
-        return edit && { ...edit, kind:correctionKind(diagnostic), message:diagnostic.message || diagnostic.description || '', suggestion:String(diagnostic.suggestion) };
-      }).filter(Boolean);
-      proofreadState = { chapterIndex, source, items };
-      renderProofreadDialog();
-      if (!proofreadDialog.open) proofreadDialog.showModal();
-      setStatus(`교정 제안 ${items.length}건`);
-    } catch (error) { setStatus('교정에 실패했습니다.', 'error'); console.warn('GeulLint 교정 실패', error); }
-    finally { proofreadButton.disabled = false; proofreadButton.textContent = '교정'; }
+      const chunks = chunkProofreadParagraphs(paragraphs, GEMINI_MAX_CHUNK_CHARACTERS);
+      const paragraphById = new Map(paragraphs.map((paragraph) => [paragraph.id, paragraph]));
+      const raw = [];
+      for (const chunk of chunks) raw.push(...await requestGeminiCorrections(settings.apiKey, settings.prompt, chunk));
+      const seen = new Set(); const accepted = [];
+      raw.forEach((result) => {
+        const paragraph = paragraphById.get(result?.id);
+        const correctedText = String(result?.correctedText ?? '');
+        if (!paragraph || correctedText === paragraph.text || isSuspiciousCorrection(paragraph.text, correctedText)) return;
+        diffPartsToSourceEdits(diffChars(paragraph.text, correctedText), paragraph, source).forEach((edit) => {
+          const key = `${edit.start}:${edit.end}:${edit.replacement}`;
+          if (seen.has(key) || accepted.some((item) => edit.start < item.end && edit.end > item.start)) return;
+          seen.add(key); accepted.push({ ...edit, type:'교정' });
+        });
+      });
+      applyGeminiSuggestions(accepted, chapterIndex);
+    } catch (error) { console.warn('Gemini 교정 실패', error); setStatus(error.message || '교정에 실패했습니다.', 'error'); }
+    finally { geminiProofreadBusy = false; proofreadButton.disabled = false; proofreadButton.textContent = '교정'; }
   });
   autoFixHtmlButton.addEventListener('click', () => {
     // Monaco·일반편집 어느 쪽에서 눌러도 현재 보이는 장의 최신 원고를 기준으로 처리한다.
@@ -3152,6 +3130,10 @@ window.addEventListener('DOMContentLoaded', () => {
     return fragment;
   };
   visualEditor.addEventListener('paste', (event) => {
+    // ProseMirror(Tiptap)는 clipboard 이벤트를 자체 transaction으로 이미 처리한다.
+    // 이 fallback 로직까지 같은 이벤트를 삽입하면 같은 조각이 두 번 들어간다.
+    // Tiptap을 사용할 때는 onUpdate가 XHTML·미리보기·장 snapshot을 동기화한다.
+    if (tiptapEditor) return;
     const selection = window.getSelection();
     if (!selection?.rangeCount) return;
     event.preventDefault();
@@ -3473,12 +3455,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     syncFromVisual({ normalise:false });
     updateToolbarState();
-  });
-  chapterList.addEventListener('click', () => {
-    if (!collectingDraft) {
-      syncOpenChapterEditor();
-      validateHtml();
-    }
   });
   // textarea는 장 전환·미리보기·임시저장의 기존 데이터 브리지로 유지하고, HTML 모드의
   // 실제 편집 UI만 Monaco로 대체한다. Monaco를 못 받아도 textarea가 그대로 동작한다.

@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.test.mjs && node --check ui.js && node --check proofreader-worker.js",
+    "test": "node --test tests/*.test.mjs && node --check ui.js && node --check gemini-proofread.js && node --check gemini-interactions.js",
     "verify:epub": "node scripts/verify-epub.mjs",
     "verify:epubcheck": "node scripts/epubcheck.mjs"
   },
