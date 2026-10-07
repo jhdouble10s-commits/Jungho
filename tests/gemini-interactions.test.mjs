@@ -16,6 +16,7 @@ test('Interactions API로 한 번 요청하고 structured JSON 결과를 읽는�
   const body = JSON.parse(request.options.body);
   assert.equal(body.model, GEMINI_PROOFREAD_MODEL);
   assert.equal(body.store, false);
+  assert.equal(body.generation_config.max_output_tokens, 16384);
   assert.deepEqual(body.response_format, { type:'text', mime_type:'application/json', schema:{ type:'object' } });
   assert.deepEqual(result, { suggestions:[] });
 });
@@ -32,4 +33,14 @@ test('교정 요청은 text와 문단 ID만 보내고 structured paragraphs를 �
   assert.deepEqual(JSON.parse(body.input), { paragraphs:[{ id:'paragraph-1', text:'기도를통해' }] });
   assert.equal(body.response_format.schema.required[0], 'paragraphs');
   assert.deepEqual(result, [{ id:'paragraph-1', correctedText:'기도를 통해' }]);
+});
+
+test('잘린 JSON 교정 응답은 적용하지 않고 재시도 오류를 알린다', async () => {
+  await assert.rejects(
+    requestGeminiStructuredJson({
+      apiKey:'test-key', systemInstruction:'교정', input:'{}', schema:{ type:'object' },
+      fetchImpl:async () => ({ ok:true, json:async () => ({ steps:[{ type:'model_output', content:[{ type:'text', text:'{"paragraphs":[{"id":"paragraph-1","correctedText":"기도를 통해' }] }] }) }),
+    }),
+    /JSON이 끝나기 전에 잘렸습니다/,
+  );
 });

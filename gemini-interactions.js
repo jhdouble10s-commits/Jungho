@@ -23,6 +23,18 @@ const interactionText = (interaction) => (interaction?.steps || [])
   .map((content) => content.text || '')
   .join('');
 
+const parseInteractionJson = (text) => {
+  const trimmed = String(text || '').trim();
+  const json = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed)?.[1] || trimmed;
+  try { return JSON.parse(json); }
+  catch (error) {
+    if (/Unexpected end|Unterminated string/i.test(error.message)) {
+      throw new Error('Gemini 응답이 길어 JSON이 끝나기 전에 잘렸습니다. 다시 시도하세요.');
+    }
+    throw new Error('Gemini 교정 응답을 읽지 못했습니다. 다시 시도하세요.');
+  }
+};
+
 export const requestGeminiStructuredJson = async ({ apiKey, systemInstruction, input, schema, fetchImpl = fetch }) => {
   const response = await fetchImpl(INTERACTIONS_ENDPOINT, {
     method:'POST',
@@ -33,7 +45,7 @@ export const requestGeminiStructuredJson = async ({ apiKey, systemInstruction, i
       input,
       store:false,
       response_format:{ type:'text', mime_type:'application/json', schema },
-      generation_config:{ max_output_tokens:4096 },
+      generation_config:{ max_output_tokens:16384 },
     }),
   });
   if (!response.ok) {
@@ -42,7 +54,7 @@ export const requestGeminiStructuredJson = async ({ apiKey, systemInstruction, i
   }
   const text = interactionText(await response.json());
   if (!text) throw new Error('Gemini가 교정 결과를 반환하지 않았습니다.');
-  return JSON.parse(text);
+  return parseInteractionJson(text);
 };
 
 // Gemini는 교정 판단만 담당한다. XHTML과 source offset은 브라우저로 보내지 않고,
