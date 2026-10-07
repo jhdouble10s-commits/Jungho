@@ -13,3 +13,8 @@ test('이미 올바른 XHTML 빈 태그는 변경하지 않는다', () => {
   const source = '<p><br /><img src="../Images/a.jpg" /></p>';
   assert.equal(fixXhtmlVoidElements(source), source);
 });
+
+test('주석·CDATA·script·style 내부의 태그 모양 텍스트는 수정하지 않는다', () => {
+  const source = '<!-- <br> --><![CDATA[<img src="x">]]><script>const x = "<br>";</script><style>p:after{content:"<hr>"}</style><p>본문<br></p>';
+  assert.equal(fixXhtmlVoidElements(source), source.replace('<p>본문<br></p>', '<p>본문<br /></p>'));
+});

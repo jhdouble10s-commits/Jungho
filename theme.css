@@ -1,0 +1,198 @@
+/* Plain CSS semantic tokens. The app has no Tailwind compiler or preflight.
+   Keep legacy --accent (brand) / --muted (text) names compatible; the supplied
+   accent/muted surfaces are --ui-accent / --ui-muted instead. */
+html:root {
+  --background:oklch(0.9383 0.0042 236.4993);
+  --foreground:oklch(0.3211 0 0);
+  --card:oklch(1.0000 0 0);
+  --card-foreground:oklch(0.3211 0 0);
+  --popover:oklch(1.0000 0 0);
+  --popover-foreground:oklch(0.3211 0 0);
+  --primary:oklch(0.6397 0.1720 36.4421);
+  --primary-foreground:oklch(1.0000 0 0);
+  --secondary:oklch(0.9670 0.0029 264.5419);
+  --secondary-foreground:oklch(0.4461 0.0263 256.8018);
+  --ui-muted:oklch(0.9846 0.0017 247.8389);
+  --muted-foreground:oklch(0.5510 0.0234 264.3637);
+  --ui-accent:oklch(0.9119 0.0222 243.8174);
+  --accent-foreground:oklch(0.3791 0.1378 265.5222);
+  --destructive:oklch(0.6368 0.2078 25.3313);
+  --destructive-foreground:oklch(1.0000 0 0);
+  --border:oklch(0.9022 0.0052 247.8822);
+  --input:oklch(0.9700 0.0029 264.5420);
+  --ring:oklch(0.6397 0.1720 36.4421);
+  --chart-1:oklch(0.7156 0.0605 248.6845);
+  --chart-2:oklch(0.7875 0.0917 35.9616);
+  --chart-3:oklch(0.5778 0.0759 254.1573);
+  --chart-4:oklch(0.5016 0.0849 259.4902);
+  --chart-5:oklch(0.4241 0.0952 264.0306);
+  --sidebar:oklch(0.9030 0.0046 258.3257);
+  --sidebar-foreground:oklch(0.3211 0 0);
+  --sidebar-primary:oklch(0.6397 0.1720 36.4421);
+  --sidebar-primary-foreground:oklch(1.0000 0 0);
+  --sidebar-accent:oklch(0.9119 0.0222 243.8174);
+  --sidebar-accent-foreground:oklch(0.3791 0.1378 265.5222);
+  --sidebar-border:oklch(0.9276 0.0058 264.5313);
+  --sidebar-ring:oklch(0.6397 0.1720 36.4421);
+  --font-sans:Inter, sans-serif;
+  --font-serif:Source Serif 4, serif;
+  --font-mono:JetBrains Mono, monospace;
+  --radius:0.75rem;
+  --radius-sm:calc(var(--radius) - 4px);
+  --radius-md:calc(var(--radius) - 2px);
+  --radius-lg:var(--radius);
+  --radius-xl:calc(var(--radius) + 4px);
+  --shadow-x:0px;
+  --shadow-y:1px;
+  --shadow-blur:3px;
+  --shadow-spread:0px;
+  --shadow-opacity:0.1;
+  --shadow-color:hsl(0 0% 0%);
+  --shadow-2xs:0px 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs:0px 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm:0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow:var(--shadow-sm);
+  --shadow-md:0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg:0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl:0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl:0px 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --tracking-normal:0em;
+  --spacing:0.25rem;
+
+  /* Compatibility aliases: no changes to existing UI handlers or EPUB CSS. */
+  --bg:var(--background);
+  --surface:var(--card);
+  --surface-2:var(--ui-muted);
+  --text:var(--foreground);
+  --sub:var(--muted-foreground);
+  --line:var(--border);
+  --accent:var(--primary);
+  --accent-soft:var(--ui-accent);
+  --ink:var(--foreground);
+  --muted:var(--muted-foreground);
+  --nav:var(--sidebar);
+  --soft:var(--ui-accent);
+  --editor-background:var(--background);
+  --editor-foreground:var(--foreground);
+  --tooltip-background:var(--popover);
+  --tooltip-foreground:var(--popover-foreground);
+  --overlay:color-mix(in srgb,var(--shadow-color) 55%,transparent);
+  --focus-fill:color-mix(in srgb,var(--ring) 18%,transparent);
+  --error-fill:color-mix(in srgb,var(--destructive) 12%,var(--card));
+  color-scheme:light;
+}
+/* data-theme stays authoritative. .dark also works when no app preference is set. */
+html:root[data-theme="dark"], html:root.dark:not([data-theme]) {
+  --background:oklch(0.1493 0.0188 262.4048);
+  --foreground:oklch(0.9219 0 0);
+  --card:oklch(0.2265 0.0186 266.1546);
+  --card-foreground:oklch(0.9219 0 0);
+  --popover:oklch(0.1925 0.0189 270.2453);
+  --popover-foreground:oklch(0.9219 0 0);
+  --secondary:oklch(0.6717 0.2205 37.8643);
+  --secondary-foreground:oklch(0.9219 0 0);
+  --ui-muted:oklch(0.3095 0.0266 266.7132);
+  --muted-foreground:oklch(0.7155 0 0);
+  --ui-accent:oklch(0.31 0.03 53.3232);
+  --accent-foreground:oklch(0.74 0.21 41.24);
+  --border:oklch(0.3843 0.0301 269.7337);
+  --input:oklch(0.3843 0.0301 269.7337);
+  --chart-2:oklch(0.7693 0.0876 34.1875);
+  --sidebar:oklch(0.23 0.02 267);
+  --sidebar-foreground:oklch(0.9219 0 0);
+  --sidebar-accent:oklch(0.29 0.03 268);
+  --sidebar-accent-foreground:oklch(0.74 0.21 41.24);
+  --sidebar-border:oklch(47.836% 0.00005 271.152);
+  color-scheme:dark;
+}
+
+/* Paint only. Existing fonts, dimensions, radii, spacing and document styles
+   are deliberately untouched; the supplied font/radius tokens remain available. */
+.app .card { color:var(--card-foreground); }
+.app :is(.code-editor,.rich-editor,.preview) { background:var(--editor-background)!important; color:var(--editor-foreground)!important; }
+.app :is(.book-inline,.fields,.css-preset-control,.rich-toolbar,.device-controls) :is(input:not([type="color"]),textarea,select),
+.gemini-settings-dialog :is(input,textarea),
+.chapter-search-panel input,
+.account-panel input {
+  background:var(--input)!important;
+  color:var(--foreground)!important;
+  border-color:var(--border)!important;
+}
+.app :is(.book-inline,.fields,.css-preset-control,.rich-toolbar,.device-controls) :is(input,textarea,select):focus,
+.gemini-settings-dialog :is(input,textarea):focus,
+.chapter-search-panel input:focus,
+.account-panel input:focus { border-color:var(--ring)!important; box-shadow:0 0 0 3px var(--focus-fill)!important; }
+.app :is(button,summary):focus-visible,
+.gemini-settings-dialog button:focus-visible { outline-color:var(--ring); }
+.app .primary { background:var(--primary)!important; color:var(--primary-foreground)!important; }
+.app .secondary { background:var(--secondary)!important; color:var(--secondary-foreground)!important; }
+.app .danger { color:var(--destructive)!important; }
+.app .secondary.danger,
+.app .css-preset-delete { background:var(--destructive)!important; color:var(--destructive-foreground)!important; border-color:var(--destructive)!important; }
+.app :is(.chapter,.left-tab,.editor-mode button,.rich-toolbar button).active,
+.app .parent-toc-option[aria-selected="true"] { background:var(--ui-accent)!important; color:var(--accent-foreground)!important; }
+.app .chapter::after { background:var(--primary)!important; }
+.app .chapter.is-toc-hidden::after { background:var(--muted-foreground)!important; }
+.app .num { color:var(--muted-foreground); }
+.app .rich-editor:focus { border-color:var(--ring); box-shadow:0 0 0 3px var(--focus-fill); }
+.app .preview .preview-focus { background:var(--focus-fill); outline-color:var(--ring); }
+.app .preview mark.preview-context { background:var(--focus-fill); }
+.app .preview[data-device-preview="true"] { border-color:var(--border)!important; box-shadow:var(--shadow-lg); }
+.app .editor-error-alert,
+.app .editor-error-alert:hover,
+.app .editor-error-alert[aria-expanded="true"] { border-color:var(--destructive); background:var(--error-fill); color:var(--destructive); }
+.chapter-error-popover.chapter-error-popover,
+.chapter-search-panel.chapter-search-panel,
+.app .parent-toc-menu,
+.side[data-sidebar] .account-panel,
+.gemini-settings-dialog.gemini-settings-dialog {
+  background:var(--popover);
+  color:var(--popover-foreground);
+  border-color:var(--border);
+  box-shadow:var(--shadow-lg);
+}
+.chapter-error-popover .chapter-error-popover__head { color:var(--destructive); }
+.gemini-settings-dialog.gemini-settings-dialog::backdrop { background:var(--overlay); }
+.gemini-settings-dialog :is(h2,label) { color:var(--popover-foreground)!important; }
+.gemini-settings-dialog.gemini-settings-dialog button { background:var(--secondary); color:var(--secondary-foreground); border-color:var(--border); }
+.gemini-settings-dialog.gemini-settings-dialog .primary { background:var(--primary)!important; color:var(--primary-foreground)!important; }
+.gemini-settings-dialog .gemini-dialog-tabs button { background:transparent; color:var(--popover-foreground); }
+.app #status.status { background:var(--popover)!important; color:var(--popover-foreground)!important; border-color:var(--border); box-shadow:var(--shadow-md); }
+.app #status.status.error { border-color:var(--destructive); }
+.app .monaco-editor .xhtml-emmet-suggestion { color:var(--primary)!important; }
+.app-tooltip {
+  position:fixed; inset:auto; top:0; left:0; margin:0; width:max-content;
+  max-width:min(280px,calc(100vw - 16px)); padding:6px 8px;
+  border:1px solid var(--border); border-radius:var(--radius-sm);
+  background:var(--tooltip-background); color:var(--tooltip-foreground);
+  box-shadow:var(--shadow-sm); font:12px/1.5 system-ui,sans-serif;
+  z-index:2000; overflow-wrap:anywhere; pointer-events:none;
+}
+.app-tooltip[hidden] { display:none; }
+
+/* Workspace controls: scoped to moved UI nodes, never to book content. */
+.app .epub-file-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:8px; margin:0 0 12px; }
+.app .epub-file-actions button { display:inline-flex; align-items:center; gap:8px; height:32px; }
+.app .epub-file-actions .new-book { position:static; width:auto; padding:0 12px; font-size:12px; line-height:1.2; }
+.app .epub-file-actions > svg { flex:none; }
+.app .chapter-footer { display:flex; flex:none; align-items:center; gap:8px; padding:8px; border-top:1px solid var(--border); background:var(--card); }
+.app .chapter-footer #add { flex:1; width:auto!important; margin:0!important; min-height:32px; }
+.app .chapter-footer #del { flex:none; min-height:32px; padding:0 12px; }
+.app .editor > .toolbar { flex-wrap:wrap; gap:8px; }
+.app .editor > .toolbar > button { white-space:nowrap; }
+.app .editor > .toolbar .draft-save { margin-left:auto; }
+.app #status.status:is(.ok,.error) { top:auto!important; bottom:16px; }
+.app #css-monaco-editor,
+.app #css-monaco-editor .monaco-editor,
+.app #css-monaco-editor .monaco-editor-background,
+.app #css-monaco-editor .margin { background:var(--editor-background)!important; }
+.app-settings-dialog.app-settings-dialog { width:min(420px,calc(100vw - 32px)); }
+.app-settings-dialog .app-settings-content { display:grid; gap:16px; padding:16px; overflow:auto; }
+.app-settings-dialog .api-settings-button { min-height:36px; padding:8px 12px; border:1px solid var(--border); border-radius:6px; text-align:left; cursor:pointer; }
+.app-settings-dialog .theme-setting { display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:13px; }
+.app-settings-dialog .theme-switch-label { display:flex; align-items:center; gap:8px; cursor:pointer; }
+.app-settings-dialog input.theme-switch { appearance:none; position:relative; flex:none; width:36px; height:20px; margin:0; padding:0!important; border:1px solid var(--border); border-radius:12px; background:var(--ui-muted)!important; cursor:pointer; }
+.app-settings-dialog input.theme-switch::before { content:''; position:absolute; width:14px; height:14px; left:2px; top:2px; border-radius:50%; background:var(--foreground); transition:transform 180ms; }
+.app-settings-dialog input.theme-switch:checked { background:var(--primary)!important; }
+.app-settings-dialog input.theme-switch:checked::before { transform:translateX(16px); background:var(--primary-foreground); }
+.app-settings-dialog input.theme-switch:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }

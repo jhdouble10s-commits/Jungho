@@ -1,0 +1,133 @@
+/* Scoped Sidebar primitives. No editor, project state, or global element rules. */
+.app.epub-sidebar-layout {
+  --sidebar-width:240px;
+  --sidebar-width-icon:56px;
+  grid-template-columns:var(--sidebar-width) minmax(0,1fr);
+  transition:grid-template-columns 200ms ease;
+}
+.app.epub-sidebar-layout[data-sidebar-state="collapsed"] { grid-template-columns:var(--sidebar-width-icon) minmax(0,1fr); }
+.app.epub-sidebar-layout > main { max-width:none!important; }
+.side[data-sidebar="sidebar"] {
+  --surface:var(--sidebar);
+  --surface-2:var(--sidebar-accent);
+  --text:var(--sidebar-foreground);
+  --sub:color-mix(in srgb,var(--sidebar-foreground) 75%,var(--sidebar));
+  --line:var(--sidebar-border);
+  --accent:var(--sidebar-primary);
+  --sb-hover:color-mix(in srgb,var(--sidebar-accent) 60%,var(--sidebar));
+  --sb-active:var(--sidebar-accent);
+  position:sticky;
+  top:0;
+  display:flex;
+  align-self:start;
+  width:100%;
+  min-width:0;
+  height:100dvh;
+  padding:0!important;
+  background:var(--surface)!important;
+  border-right:1px solid var(--sidebar-border);
+  color:var(--text);
+  font-size:13px;
+  overflow:hidden;
+}
+.side[data-sidebar] > .tabs[hidden] { display:none; }
+.side[data-sidebar] .sb-header { display:flex; flex:none; align-items:center; gap:4px; height:72px; padding:16px 12px; }
+.side[data-sidebar] .sb-brand { display:flex; flex:1; min-width:0; align-items:center; gap:8px; font-size:14px; font-weight:600; letter-spacing:-.3px; white-space:nowrap; }
+.side[data-sidebar] .sb-brand-mark { display:grid; place-items:center; width:28px; height:28px; flex:none; border-radius:50%; background:var(--sidebar-primary); color:var(--sidebar-primary-foreground); font:600 17px/1 system-ui,sans-serif; }
+.side[data-sidebar] .sb-content { display:flex; flex:1; min-height:0; flex-direction:column; gap:4px; overflow-y:auto; overflow-x:hidden; scrollbar-width:thin; padding:4px 8px 16px; }
+.side[data-sidebar] .sb-group-label { margin:0 12px 8px; font-size:11px; font-weight:500; color:var(--sub); white-space:nowrap; }
+.side[data-sidebar] .sb-menu-button {
+  position:relative;
+  top:auto;
+  right:auto;
+  z-index:auto;
+  display:flex;
+  flex:none;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  min-width:0;
+  height:36px;
+  margin:0;
+  padding:0 12px!important;
+  border:0!important;
+  border-radius:6px!important;
+  background:transparent!important;
+  box-shadow:none;
+  color:var(--sub)!important;
+  font:400 13px/1.4 'Noto Sans KR',system-ui,sans-serif!important;
+  text-align:left;
+  text-decoration:none;
+  cursor:pointer;
+  transition:background 120ms,color 120ms;
+  transform:none!important;
+  filter:none;
+}
+.side[data-sidebar] .sb-menu-button:hover { background:var(--sb-hover)!important; color:var(--text)!important; }
+.side[data-sidebar] .sb-menu-button:disabled { opacity:.45; cursor:not-allowed; }
+.side[data-sidebar] .sb-menu-button[data-active="true"],
+.side[data-sidebar] .sb-menu-button[aria-expanded="true"] { background:var(--sb-active)!important; color:var(--sidebar-accent-foreground)!important; font-weight:500!important; }
+.side[data-sidebar] .sb-menu-button > svg { width:18px; height:18px; flex:none; }
+.side[data-sidebar] .sb-label { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.side[data-sidebar] .sb-chevron { width:14px!important; height:14px!important; margin-left:auto; transition:transform 180ms ease; }
+.side[data-sidebar] .sb-group[open] > summary > .sb-chevron,
+.side[data-sidebar] [aria-expanded="true"] > .sb-chevron { transform:rotate(90deg); }
+.side[data-sidebar] .sb-group { flex:none; }
+.side[data-sidebar] .sb-group > summary { list-style:none; }
+.side[data-sidebar] .sb-group > summary[data-active="true"] { background:var(--sb-hover)!important; }
+.side[data-sidebar] .sb-group > summary::-webkit-details-marker { display:none; }
+.side[data-sidebar] .sb-submenu { display:grid; gap:2px; padding:4px 0 4px 28px; }
+.side[data-sidebar] .sb-submenu .sb-menu-button { font-size:12px!important; height:34px; padding-left:12px!important; }
+.side[data-sidebar] .sb-submenu .sb-menu-button > svg { width:16px; height:16px; }
+@supports (interpolate-size:allow-keywords) {
+  .side[data-sidebar] .sb-group::details-content { interpolate-size:allow-keywords; height:0; overflow:hidden; transition:height 180ms ease,content-visibility 180ms allow-discrete; }
+  .side[data-sidebar] .sb-group[open]::details-content { height:auto; }
+}
+.side[data-sidebar] .sb-projects { margin:0; border:0; }
+.side[data-sidebar] .drafts-panel { margin:4px 0; padding:0 0 0 12px; gap:2px; }
+.side[data-sidebar] .drafts-panel[hidden] { display:none; }
+.side[data-sidebar] .draft-row { min-width:0; gap:0; }
+.side[data-sidebar] .draft-item { min-width:0; border:0; border-radius:6px; padding:8px 12px; font-size:12px; font-weight:400; }
+.side[data-sidebar] .draft-item:hover { background:var(--sb-hover); color:var(--text); }
+.side[data-sidebar] .draft-delete { display:grid; place-items:center; flex:none; width:28px; border:0; border-radius:6px; color:var(--sub); }
+.side[data-sidebar] .draft-delete:hover { background:var(--sb-hover); color:var(--destructive); }
+.side[data-sidebar] .draft-delete > svg { width:14px; height:14px; }
+.side[data-sidebar] .drafts-empty { padding:4px 12px; color:var(--sub); font-size:12px; }
+.side[data-sidebar] .sb-footer { flex:none; padding:8px; border-top:1px solid color-mix(in srgb,var(--line) 65%,transparent); }
+.side[data-sidebar] .theme-settings { margin:0; padding:0; border:0; }
+.side[data-sidebar] .account-area { margin:4px 0 0; }
+.side[data-sidebar] .account-button { padding-left:40px!important; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.side[data-sidebar] .sb-account-icon { position:absolute; left:12px; top:9px; z-index:1; pointer-events:none; color:var(--sub); }
+.side[data-sidebar] .account-panel { position:fixed; top:auto; bottom:16px; left:248px; right:auto; max-width:calc(100vw - 32px); }
+.side[data-sidebar] .sb-icon-button,
+.epub-sidebar-layout .sb-mobile-trigger { display:grid; place-items:center; position:static; flex:none; width:28px; height:28px; border:0; border-radius:6px; background:transparent; color:var(--sub); cursor:pointer; }
+.side[data-sidebar] .sb-icon-button:hover,
+.epub-sidebar-layout .sb-mobile-trigger:hover { background:var(--sb-hover,var(--surface-2)); color:var(--text); }
+.side[data-sidebar] :is(button,summary):focus-visible,
+.epub-sidebar-layout .sb-mobile-trigger:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+.side[data-sidebar][data-state="collapsed"] .sb-header { flex-direction:column; height:96px; gap:8px; padding:12px 0; }
+.side[data-sidebar][data-state="collapsed"] .sb-brand { flex:none; }
+.side[data-sidebar][data-state="collapsed"] :is(.sb-label,.sb-chevron,.sb-group-label,.sb-submenu,.drafts-panel) { display:none!important; }
+.side[data-sidebar][data-state="collapsed"] .sb-content { padding-inline:8px; }
+.side[data-sidebar][data-state="collapsed"] .sb-menu-button { justify-content:center; gap:0; padding:0!important; }
+.side[data-sidebar][data-state="collapsed"] summary[data-active="true"] { background:var(--sb-active)!important; }
+.side[data-sidebar][data-state="collapsed"] .account-button { font-size:0!important; }
+.side[data-sidebar][data-state="collapsed"] .sb-account-icon { left:11px; }
+.side[data-sidebar][data-state="collapsed"] .account-panel { left:64px; }
+.epub-sidebar-layout .sb-mobile-trigger { display:none; }
+.sb-drawer { inset:0 auto 0 0; width:240px; max-width:calc(100vw - 32px); height:100dvh; max-height:100dvh; margin:0; padding:0; border:0; background:var(--sidebar); color:var(--sidebar-foreground); }
+.sb-drawer::backdrop { background:var(--overlay); }
+.sb-drawer[open] { display:flex; }
+.sb-drawer .side[data-sidebar] { position:static; height:100%; border:0; }
+@media(max-width:700px) {
+  .app.epub-sidebar-layout { grid-template-columns:minmax(0,1fr)!important; }
+  .epub-sidebar-layout .sb-mobile-trigger { display:grid; margin:0 0 8px; }
+  .sb-drawer .side[data-sidebar] { display:flex; }
+  .sb-drawer .account-panel { left:8px; bottom:64px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .app.epub-sidebar-layout,
+  .side[data-sidebar] .sb-menu-button,
+  .side[data-sidebar] .sb-chevron,
+  .side[data-sidebar] .sb-group::details-content { transition:none; }
+}

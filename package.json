@@ -4,6 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
+    "test:browser": "playwright test",
     "test": "node --test tests/*.test.mjs && node --check ui.js && node --check gemini-proofread.js && node --check gemini-interactions.js",
     "verify:epub": "node scripts/verify-epub.mjs",
     "verify:epubcheck": "node scripts/epubcheck.mjs"
@@ -21,13 +22,19 @@
   },
   "homepage": "https://github.com/jhdouble10s-commits/Jungho#readme",
   "dependencies": {
+    "@floating-ui/dom": "1.8.0",
     "dexie": "^4.4.6",
     "diff": "^9.0.0",
     "dompurify": "^3.4.16",
+    "focus-trap": "8.2.3",
     "jszip": "^3.10.2",
-    "ky": "^2.1.0"
+    "ky": "^2.1.0",
+    "lucide": "^1.52.0",
+    "vscode-html-languageservice": "^5.6.2",
+    "vscode-languageserver-textdocument": "^1.0.12"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@xmldom/xmldom": "^0.9.12"
   }
 }
