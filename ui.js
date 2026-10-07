@@ -1716,7 +1716,7 @@ window.addEventListener('DOMContentLoaded', () => {
     button.replaceChildren(lucideElement(glyph, {width:16,height:16,'aria-hidden':'true'}), document.createTextNode(label));
     fileActions.append(button);
   }
-  top.before(fileActions);
+  top.append(fileActions);
   let draftsExpanded = false;
   let openedDraftTitle = null;
   editorTab?.setAttribute('aria-expanded', 'false');

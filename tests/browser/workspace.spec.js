@@ -16,6 +16,39 @@ async function record(page, title) {
   },title);
 }
 
+test('file actions share the book information card, align centrally and wrap without overlap at 56px from the viewport', async ({page}) => {
+  await start(page);
+  const card=page.locator('.epub-topbar');
+  await expect(card.locator('.epub-file-actions button')).toHaveCount(3);
+  await expect(page.locator('main > .epub-file-actions')).toHaveCount(0);
+  for(const width of [1600,1280,768,700,390,320,2560]) {
+    await page.setViewportSize({width,height:1000});
+    await expect.poll(async ()=>(await card.boundingBox()).y).toBe(56);
+    for(const id of ['title','author','language']) await expect(card.locator(`#${id}`)).toBeVisible();
+    const geometry=await card.evaluate(node=>{
+      const rect=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,center:r.top+r.height/2};};
+      return {card:rect(node),items:[...node.querySelectorAll('.field,.epub-file-actions button')].map(rect),
+        inputs:[...node.querySelectorAll('.book-inline input')].map(rect),
+        actions:rect(node.querySelector('.epub-file-actions')),
+        overflow:document.documentElement.scrollWidth-innerWidth};
+    });
+    expect(geometry.overflow).toBe(0);
+    for(const item of geometry.items) {
+      expect(item.left).toBeGreaterThanOrEqual(geometry.card.left);
+      expect(item.right).toBeLessThanOrEqual(geometry.card.right);
+      expect(item.top).toBeGreaterThanOrEqual(geometry.card.top);
+      expect(item.bottom).toBeLessThanOrEqual(geometry.card.bottom);
+    }
+    for(let i=0;i<geometry.items.length;i++) for(let j=i+1;j<geometry.items.length;j++) {
+      const a=geometry.items[i],b=geometry.items[j];
+      expect(a.right<=b.left || b.right<=a.left || a.bottom<=b.top || b.bottom<=a.top).toBe(true);
+    }
+    if(width>=1600) for(const input of geometry.inputs) expect(Math.abs(input.center-geometry.actions.center)).toBeLessThanOrEqual(1);
+    expect(geometry.card.right-geometry.actions.right).toBeLessThanOrEqual(30);
+    if([1600,390].includes(width)) await page.screenshot({path:test.info().outputPath(`book-actions-${width}.png`)});
+  }
+});
+
 test('compact workspace actions, fixed chapter footer, CSS backgrounds, settings and automatic preview', async ({page}) => {
   const errors=[]; page.on('pageerror',error=>errors.push(error.message));
   await start(page);

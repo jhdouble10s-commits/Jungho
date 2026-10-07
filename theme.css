@@ -171,10 +171,19 @@ html:root[data-theme="dark"], html:root.dark:not([data-theme]) {
 .app-tooltip[hidden] { display:none; }
 
 /* Workspace controls: scoped to moved UI nodes, never to book content. */
-.app .epub-file-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:8px; margin:0 0 12px; }
-.app .epub-file-actions button { display:inline-flex; align-items:center; gap:8px; height:32px; }
+.app.epub-sidebar-layout > main { padding-top:56px!important; }
+.app .epub-topbar { flex:none; flex-flow:row wrap; align-items:center!important; gap:12px; }
+.app .epub-topbar .book-inline { flex:1 1 620px; min-width:0; margin:0; overflow:visible; }
+.app .epub-topbar .book-inline section { flex-wrap:wrap; }
+.app .epub-topbar .book-inline .field { display:flex; }
+.app .epub-file-actions { display:flex; flex:0 1 auto; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:8px; margin:0 0 0 auto; }
+.app .epub-file-actions button { display:inline-flex; flex:none; align-self:center; align-items:center; gap:8px; width:auto; height:32px; margin:0; white-space:nowrap; }
 .app .epub-file-actions .new-book { position:static; width:auto; padding:0 12px; font-size:12px; line-height:1.2; }
 .app .epub-file-actions > svg { flex:none; }
+@media(max-width:700px) {
+  /* The existing in-flow drawer trigger (28px + 8px margin) precedes the card. */
+  .app.epub-sidebar-layout > main { padding-top:20px!important; }
+}
 .app .chapter-footer { display:flex; flex:none; align-items:center; gap:8px; padding:8px; border-top:1px solid var(--border); background:var(--card); }
 .app .chapter-footer #add { flex:1; width:auto!important; margin:0!important; min-height:32px; }
 .app .chapter-footer #del { flex:none; min-height:32px; padding:0 12px; }
