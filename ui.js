@@ -588,6 +588,36 @@ window.addEventListener('DOMContentLoaded', () => {
   };
   Array.from(chapterList.querySelectorAll('.chapter[data-i]')).forEach(bindManagedChapter);
   addChapter.addEventListener('click', () => {
+    if (!bookProject.chapters.some(chapter => chapter.type === 'cover')) {
+      saveCurrentChapter();
+      // Reuse the special-page factory; an image resource alone is not a cover page.
+      const meta = importedEpub?.chapterMeta.find(item => importedEpub.coverPagePaths.includes(item.path));
+      const cover = addSpecialChapter('cover', meta ? {
+        originalPath:meta.path, fileName:meta.path.split('/').pop(), xhtml:meta.body,
+        title:meta.tocTitle || '표지', includeInToc:meta.includeInToc, generated:false,
+      } : importedEpub ? { generated:false } : {});
+      if (importedEpub) {
+        importedEpub.coverDeleted = false;
+        const asset = previewAssetForPath(importedEpub.coverImagePath);
+        if (asset) {
+          asset.isCover = true;
+          coverPreview.src = asset.url;
+          coverPreview.hidden = false;
+          if (!meta) bookProject.update(cover.id, {
+            xhtml:`<p><img src="${epubEscape(relativeEpubPath(`${importedEpub.packageBase}text/${cover.fileName}`, importedEpub.coverImagePath))}" alt="표지" /></p>`,
+          });
+        }
+      }
+      // Keep a selected body chapter in place so the next click uses the
+      // existing sibling insertion rule. An empty project selects its cover.
+      if (!bookProject.selectedChapter) {
+        const row = chapterList.querySelector(`[data-chapter-id="${cover.id}"]`);
+        selectManagedChapter(Number(row.dataset.i));
+      }
+      refreshChapterControls();
+      setStatus('표지를 추가했습니다. 다시 장 추가를 누르면 일반 장을 추가합니다.');
+      return;
+    }
     snapshotCurrentChapter();
     const indexes = Array.from(chapterList.querySelectorAll('.chapter[data-i]')).map((chapter) => Number(chapter.dataset.i));
     const index = indexes.length ? Math.max(...indexes) + 1 : 0;
