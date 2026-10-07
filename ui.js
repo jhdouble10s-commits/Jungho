@@ -85,8 +85,8 @@ import JSZip from 'https://cdn.jsdelivr.net/npm/jszip@3.10.2/+esm';
 import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify@3.4.16/+esm';
 import Dexie from 'https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm';
 import { diffChars } from 'https://cdn.jsdelivr.net/npm/diff@9.0.0/+esm';
-import { requestGeminiStructuredJson } from './gemini-interactions.js';
-import { applySourceEdits, chunkProofreadParagraphs, dedupeAdjacentParagraphs, diffPartsToSourceEdits, extractProofreadParagraphs, isSuspiciousCorrection } from './gemini-proofread.js?v=20261007-57';
+import { requestGeminiCorrections } from './gemini-interactions.js?v=20261007-59';
+import { applySourceEdits, chunkProofreadParagraphs, dedupeAdjacentParagraphs, diffPartsToSourceEdits, extractProofreadParagraphs, isSuspiciousCorrection } from './gemini-proofread.js?v=20261007-59';
 
 window.addEventListener('DOMContentLoaded', () => {
   document.head.append(uiStyle);
@@ -2964,6 +2964,9 @@ window.addEventListener('DOMContentLoaded', () => {
     return Math.max(1, voidFixes + malformedOpenings);
   };
   const GEMINI_MAX_CHUNK_CHARACTERS = 12000;
+  // 교정 요청은 현재 장 하나에 대해 한 번만 실행한다. 완료·실패 여부와 관계없이
+  // finally에서 해제해 다음 교정 요청을 막지 않는다.
+  let geminiProofreadBusy = false;
   const applyGeminiSuggestions = (items, chapterIndex) => {
     if (activeChapterIndex() !== chapterIndex) { setStatus('검사한 장이 바뀌었습니다. 현재 장을 다시 검사하세요.', 'error'); return false; }
     if (!items.length) { setStatus('수정할 항목이 없습니다.'); return true; }
@@ -3008,7 +3011,11 @@ window.addEventListener('DOMContentLoaded', () => {
       const chunks = chunkProofreadParagraphs(paragraphs, GEMINI_MAX_CHUNK_CHARACTERS);
       const paragraphById = new Map(paragraphs.map((paragraph) => [paragraph.id, paragraph]));
       const raw = [];
-      for (const chunk of chunks) raw.push(...await requestGeminiCorrections(settings.apiKey, settings.prompt, chunk));
+      for (const chunk of chunks) raw.push(...await requestGeminiCorrections({
+        apiKey:settings.apiKey,
+        systemInstruction:settings.prompt,
+        paragraphs:chunk,
+      }));
       const seen = new Set(); const accepted = [];
       raw.forEach((result) => {
         const paragraph = paragraphById.get(result?.id);
