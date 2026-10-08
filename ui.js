@@ -90,6 +90,7 @@ import { BookProject } from './book-project.js?v=20261008-styles';
 import { stylesFromCss, applyCustomStyle, applyTagStyle } from './text-styles.js';
 import { mountTextStyles } from './text-styles-ui.js';
 import { styleShortcutBindings } from './style-shortcuts.js';
+import { cloudAssetPath } from './cloud-asset-path.js';
 import { validateXhtml, equivalentXhtml } from './xhtml-validation.js?v=20261007-70';
 import { formatXhtml, sourceElements, sourceAttribute, elementAtOffset, elementAtPath } from './xhtml-source.js?v=20261007-70';
 import { xhtmlCompletionContext, monacoAttributeSuggestions, registerXhtmlEmmet } from './xhtml-completion.js';
@@ -1624,7 +1625,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     return workspaceWrite;
   };
-  const cloudAssetPath = (title, name) => `${supabaseUser.id}/${encodeURIComponent(title)}/${encodeURIComponent(name)}`;
   const saveDraftAssets = async (title, assets, ownerId) => {
     await projectDatabase.transaction('rw', projectDatabase.assets, async () => {
       await projectDatabase.assets.where('[ownerId+title]').equals([ownerId, title]).delete();
@@ -1642,7 +1642,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!blob) {
         const client = await cloudReady;
         if (client && supabaseUser) {
-          const { data } = await client.storage.from('epub-assets').download(cloudAssetPath(draft.title, asset.name));
+          const { data } = await client.storage.from('epub-assets').download(await cloudAssetPath(ownerId, draft.title, asset.name));
           blob = data || null;
         }
       }
@@ -1663,20 +1663,21 @@ window.addEventListener('DOMContentLoaded', () => {
   const deleteDraftAssets = async (draft) => {
     await projectDatabase.assets.where('[ownerId+title]').equals([persistenceOwnerId(), draft.title]).delete();
   };
-  const saveCloudDraft = async (draft) => {
+  const saveCloudDraft = async (draft, assets, ownerId) => {
     const client = await cloudReady;
-    if (!client || !supabaseUser) return false;
+    if (!client || !supabaseUser || supabaseUser.id !== ownerId) return false;
     for (const asset of draft.assets) {
-      const stored = previewAssets.get(asset.name);
-      if (!stored?.blob) continue;
+      const stored = assets.get(asset.name);
+      if (!stored?.blob) throw new Error(`이미지 “${asset.name}”의 원본 파일을 찾지 못했습니다.`);
       const { error } = await client.storage.from('epub-assets').upload(
-        cloudAssetPath(draft.title, asset.name), stored.blob,
+        await cloudAssetPath(ownerId, draft.title, asset.name), stored.blob,
         { contentType:asset.type, upsert:true },
       );
-      if (error) throw error;
+      if (error) throw new Error(`이미지 “${asset.name}” 업로드 실패: ${error.message}`);
     }
+    if (supabaseUser?.id !== ownerId) return false;
     const { error } = await client.from('epub_drafts').upsert({
-      owner_id:supabaseUser.id,
+      owner_id:ownerId,
       title:draft.title,
       payload:draft,
       updated_at:new Date().toISOString(),
@@ -1688,7 +1689,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const client = await cloudReady;
     if (!client || !supabaseUser) return;
     const ownerId = supabaseUser.id;
-    const paths = (draft.assets || []).map((asset) => cloudAssetPath(draft.title, asset.name));
+    const paths = await Promise.all((draft.assets || []).map((asset) => cloudAssetPath(ownerId, draft.title, asset.name)));
     if (paths.length) {
       const { error } = await client.storage.from('epub-assets').remove(paths);
       if (error) throw error;
@@ -2948,11 +2949,11 @@ window.addEventListener('DOMContentLoaded', () => {
       if (epoch === restoreEpoch && savedRevision === bookProject.revision) bookProject.dirty = false;
       if (htmlErrors.length) setStatus(`임시저장은 완료했지만 HTML 오류 ${htmlErrors.length}건이 있습니다.`, 'error');
       try {
-        const synced = await saveCloudDraft(draft);
+        const synced = await saveCloudDraft(draft, new Map(assets), ownerId);
         if (!htmlErrors.length) setStatus(synced ? '로컬 저장됨 · 서버 동기화됨' : '로컬에 저장되었습니다.');
       } catch (error) {
         console.warn('Supabase 저장 동기화 실패', error);
-        setStatus('브라우저에는 저장했지만 서버 동기화에 실패했습니다.', 'error');
+        setStatus(`브라우저에는 저장했지만 서버 동기화에 실패했습니다. ${error.message}`, 'error');
         return false;
       }
       return true;
