@@ -1,11 +1,16 @@
+import { defaultTypography, restoreStyles } from './text-styles.js';
+
 // Application state only. Persistence receives plain snapshots, never editor caches.
 export class BookProject {
+  typographyStyles = defaultTypography();
+  customStyles = [];
   selectedChapterId = null;
   chapters = [];
   dirty = false;
   revision = 0;
   get selectedChapter() { return this.chapters.find(chapter => chapter.id === this.selectedChapterId) || null; }
-  replace(chapters, selectedId) {
+  replace(chapters, selectedId, styles = {}) {
+    Object.assign(this, restoreStyles(styles));
     this.chapters = chapters.map(source => this.createChapter(source));
     this.selectedChapterId = this.chapters.some(chapter => chapter.id === selectedId) ? selectedId : this.chapters[0]?.id || null;
     this.revision++;
@@ -37,5 +42,5 @@ export class BookProject {
     this.dirty = true;
     this.revision++;
   }
-  snapshot() { return { selectedChapterId:this.selectedChapterId, chapters:this.chapters.map(chapter => ({ ...chapter })) }; }
+  snapshot() { return { typographyStyles:structuredClone(this.typographyStyles), customStyles:structuredClone(this.customStyles), selectedChapterId:this.selectedChapterId, chapters:this.chapters.map(chapter => ({ ...chapter })) }; }
 }

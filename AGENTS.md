@@ -1,5 +1,22 @@
 # AGENTS.md
 
+## Regression / Scope Safety
+
+- 한 작업에서 요청받은 기능 외 다른 영역은 수정하지 않는다.
+- 수정 전 반드시 영향받는 함수/DOM/state를 먼저 확인한다.
+- 공통 함수 수정 시 호출처를 전부 검색하고 회귀 영향 확인.
+- unrelated refactor/cleanup/rename 금지.
+- 전체 파일 rewrite 금지.
+- 전체 formatter 금지.
+- global CSS(body, *, div 등) 수정 금지.
+- DOM id/data-* selector 변경 전 reference search 필수.
+- innerHTML로 큰 영역 전체 재렌더 금지. 필요한 노드만 업데이트.
+- 기존 event listener를 덮어쓰거나 중복 등록하지 않는다.
+- selectedChapterId 이외의 새로운 selection state를 만들지 않는다.
+- index 기반 chapter identity 사용 금지.
+- async callback은 target chapter.id를 캡처하고 stale 결과는 버린다.
+- 기능 수정 후 반드시 관련 기존 기능 smoke test를 함께 실행한다.
+
 ## 1. OSS First
 
 기능을 수정하거나 추가하기 전에 적절한 유지보수 중인 오픈소스가 있는지 먼저 확인한다.
@@ -81,3 +98,4 @@ npm run verify:epub
 - 제거한 custom 구현
 - 테스트 결과
 - 남은 리스크
+

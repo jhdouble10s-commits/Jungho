@@ -15,14 +15,14 @@ uiStyle.textContent = `
   .book-inline { flex:1; margin-right:14px; }.book-inline .settings { max-width:none!important; padding:0!important; background:none!important; border:0!important; box-shadow:none!important; }.book-inline section { display:flex; align-items:center; gap:10px; }.book-inline .field { display:flex; align-items:center; gap:7px; margin:0!important; }.book-inline label { margin:0!important; white-space:nowrap; color:var(--sub)!important; font-size:clamp(12px,.73vw,18px)!important; }.book-inline input { width:130px!important; padding:3.5px 8px!important; }.book-inline .field:first-child input { width:195px!important; }.book-inline .cover { display:contents!important; border:0!important; padding:0!important; }.book-inline #coverInput,.book-inline .cover img { display:none!important; }.book-inline .cover-upload-button { display:inline-flex!important; align-items:center; height:29px; padding:0 10px; border:1px solid var(--accent)!important; border-radius:7px; background:var(--accent-soft); color:var(--accent)!important; font-size:12px!important; font-weight:700; cursor:pointer; }.book-inline .hint { display:none; }
   .grid { --chapter-width:270px; --preview-width:440px; min-width:0; max-width:100%; position:relative; grid-template-columns:var(--chapter-width) minmax(420px,1fr) var(--preview-width)!important; gap:16px!important; }.panel-resize-handle { position:absolute; top:0; bottom:0; z-index:10; width:14px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.panel-resize-handle::after { content:''; position:absolute; top:20%; bottom:20%; left:6px; width:2px; border-radius:2px; background:transparent; transition:background .15s; }.panel-resize-handle:hover::after,.panel-resize-handle.is-resizing::after { background:var(--accent); }.card { min-width:0; background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { min-width:0; padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
   .chapter-card { display:flex; flex-direction:column; }.left-tabs { grid-template-columns:repeat(3,1fr)!important; }.left-panel-host { position:relative; flex:1; min-height:0; overflow:hidden; }.left-panel { display:none!important; position:absolute; inset:0; overflow:auto; }.left-panel.active { display:block!important; }.left-panel#chaptersPanel.active { display:flex!important; flex-direction:column; overflow:hidden; }.left-panel#chaptersPanel .chapters { flex:1; min-height:0; overflow-y:auto; padding:8px 8px 20px!important; }.chapter { position:relative; overflow:hidden; padding-left:34px!important; padding-right:38px!important; text-overflow:ellipsis; white-space:nowrap; }.toc-toggle { position:absolute; right:29px; top:50%; z-index:2; width:18px; height:18px; transform:translateY(-50%); border:0; padding:0; background:transparent; color:var(--sub); font-size:14px; cursor:pointer; }.toc-toggle:hover { color:var(--accent); }.toc-eye { position:absolute; left:7px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:var(--sub); cursor:pointer; }.toc-eye.is-hidden { opacity:.35; }.add { flex:none; width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:var(--surface)!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel,.left-panel#assetsPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel #images { display:none!important; }.left-panel#cssPanel .hint,.asset-hint { color:var(--sub)!important; }.asset-upload { display:flex; align-items:center; justify-content:center; width:100%; margin-bottom:10px; border:1px dashed var(--accent); border-radius:8px; padding:10px; color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; }.asset-hint { color:var(--sub); }.asset-row { display:flex; align-items:center; gap:6px; margin:5px 0; }.asset-row .draft-item { flex:1; }.asset-insert { width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--accent-soft); color:var(--accent); font-size:18px; cursor:pointer; }.draft-row { display:flex; gap:4px; }.draft-row .draft-item { flex:1; }.draft-delete { width:30px; border:1px solid var(--line); border-radius:8px; background:transparent; color:#ff9c75; cursor:pointer; }.cover-chapter { display:flex!important; align-items:center; gap:8px; }.cover-chapter::before { content:'▧'; color:var(--accent); font-size:14px; }
-  .editor-controls { min-width:0; display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.toolbar-viewport { position:relative; min-width:0; flex:1; overflow:hidden; }.rich-toolbar { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow:hidden; padding:5px 44px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); scrollbar-width:none; }.rich-toolbar::-webkit-scrollbar { display:none; }.toolbar-viewport::before,.toolbar-viewport::after { display:none; content:''; pointer-events:none; position:absolute; top:1px; bottom:1px; z-index:1; width:44px; }.toolbar-viewport.show-previous::before,.toolbar-viewport.show-next::after { display:block; }.toolbar-viewport::before { left:38px; background:linear-gradient(90deg,var(--surface-2),transparent); }.toolbar-viewport::after { right:38px; background:linear-gradient(90deg,transparent,var(--surface-2)); }.toolbar-previous,.toolbar-next { position:absolute; top:50%; z-index:2; width:29px; height:29px; transform:translateY(-50%); border:1px solid var(--accent); border-radius:7px; background:var(--surface-2); color:var(--accent); font:700 20px/22px system-ui; cursor:pointer; }.toolbar-previous { left:5px; }.toolbar-next { right:5px; }.toolbar-previous:hover,.toolbar-next:hover { background:var(--accent-soft); }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
+  .editor-controls { min-width:0; display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.toolbar-viewport { position:relative; min-width:0; flex:1; overflow:hidden; }.rich-toolbar { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow-x:auto; overflow-y:hidden; justify-content:space-between; padding:5px 4px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); scrollbar-width:none; }.rich-toolbar::-webkit-scrollbar { display:none; }.toolbar-viewport::before,.toolbar-viewport::after { content:''; pointer-events:none; opacity:0; transition:opacity .2s ease; position:absolute; top:1px; bottom:1px; z-index:1; width:64px; }.toolbar-viewport.show-previous::before,.toolbar-viewport.show-next::after { opacity:1; }.toolbar-viewport::before { left:1px; border-radius:9px 0 0 9px; background:linear-gradient(90deg,var(--surface-2) 15%,color-mix(in srgb,var(--surface-2) 85%,transparent) 48%,transparent); }.toolbar-viewport::after { right:1px; border-radius:0 9px 9px 0; background:linear-gradient(270deg,var(--surface-2) 15%,color-mix(in srgb,var(--surface-2) 85%,transparent) 48%,transparent); }.toolbar-previous,.toolbar-next { position:absolute; top:50%; z-index:2; width:29px; height:29px; transform:translateY(-50%); border:0; border-radius:7px; padding:6px; background:transparent; color:var(--text); cursor:pointer; }.toolbar-previous { left:5px; }.toolbar-next { right:5px; }.toolbar-previous:hover,.toolbar-next:hover { background:var(--accent-soft); color:var(--accent); }.toolbar-previous svg,.toolbar-next svg { display:block; }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
   .preview-card .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }.device-controls { display:flex; align-items:center; gap:6px; }.device-controls select { max-width:118px; height:28px; border:1px solid var(--line); border-radius:6px; padding:0 5px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.preview-card { overflow:hidden; }.preview .cover-preview-page { display:flex; align-items:center; justify-content:center; min-height:100%; }.preview .cover-preview-page img { display:block; max-width:100%; max-height:100%; object-fit:contain; }.preview[data-device-preview="true"] { box-sizing:content-box; flex:none; margin:0 auto; border:8px solid #1b1b1e!important; border-radius:22px; box-shadow:0 10px 30px #00000045; transition:width .2s,height .2s; }
   .rich-toolbar button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }.rich-toolbar button svg { display:block; width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }.rich-toolbar input[data-font-size] { width:62px!important; height:29px; flex:none; font-size:11px!important; }.rich-toolbar input[data-table-color] { width:29px!important; height:29px; flex:none; }.table-color-control { display:flex; align-items:center; gap:4px; height:29px; flex:none; }.rich-toolbar .tool-label { flex:none; color:var(--sub); font-size:12px; line-height:29px; white-space:nowrap; }
   .rich-editor { height:clamp(420px,calc(100vh - 310px),900px); min-height:0; }.preview-card { position:sticky; top:24px; align-self:start; max-height:calc(100vh - 48px); display:flex; flex-direction:column; overflow:hidden; }.preview-card .preview { flex:none; }.preview .preview-focus { background:#ff510018; outline:1px solid #ff5100aa; outline-offset:4px; border-radius:4px; transition:background .15s; }.preview mark.preview-context { background:#ff510052; color:inherit; border-radius:2px; padding:0 1px; }
   h1,h2,label { color:var(--text)!important; } input,textarea { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; } input:focus,textarea:focus { border-color:var(--accent)!important; box-shadow:0 0 0 3px #ff510030!important; }.secondary { background:var(--surface-2)!important; border-color:var(--line)!important; color:var(--text)!important; }.danger { color:#ff8660!important; }.chapter { color:var(--text)!important; }.chapter:hover { background:var(--surface-2)!important; }.chapter.active { background:var(--accent-soft)!important; color:var(--accent)!important; }.preview { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; }.preview-card .head { padding:0 0 12px!important; border-bottom:1px solid var(--line)!important; margin-bottom:12px; }.code { height:610px!important; }
   @media(max-width:1550px) { .grid { grid-template-columns:minmax(210px,var(--chapter-width)) minmax(0,1fr)!important; }.panel-resize-handle { display:none; }.preview-card { grid-column:1/-1; position:static; max-height:none; }.preview-card .preview { margin:auto; }.book-inline { min-width:0; overflow:hidden; } }
   @media(max-width:1050px) { .grid { grid-template-columns:240px minmax(0,1fr)!important; }.panel-resize-handle { display:none; }.preview-card { grid-column:1/-1; }.book-inline .field:nth-child(3) { display:none; } }
-  @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:wrap; }.left-panel#cssPanel .css { height:260px!important; } }
+  @media(max-width:700px) { .app { grid-template-columns:1fr!important; }.side { display:none; } main { padding:14px!important; }.top { align-items:stretch!important; flex-direction:column; }.book-inline { margin:0; }.book-inline section { flex-wrap:wrap; }.book-inline input { width:110px!important; }.primary { align-self:flex-end; }.grid { display:block!important; }.editor,.preview-card { margin-top:16px; }.editor-controls { align-items:stretch; flex-direction:column; }.rich-toolbar { flex-wrap:nowrap; }.left-panel#cssPanel .css { height:260px!important; } }
   .side nav { position:relative; }.new-book { position:absolute; top:7px; right:7px; z-index:2; width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--surface); color:var(--accent); font-size:19px; line-height:20px; cursor:pointer; }.new-book:hover { background:var(--accent-soft); }.chapter { padding-left:10px!important; padding-right:38px!important; }.chapter::after { content:''; position:absolute; right:11px; top:50%; width:16px; height:16px; transform:translateY(-50%); background:var(--accent); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.chapter.is-toc-hidden { color:var(--sub)!important; background:transparent!important; }.chapter.is-toc-hidden::after { background:#777; opacity:1; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.asset-rename { width:28px; height:28px; border:1px solid var(--line); border-radius:7px; background:var(--surface-2); color:var(--sub); font-size:15px; cursor:pointer; }.asset-rename:hover { border-color:var(--accent); color:var(--accent); }.fields select { height:36px; width:100%; border:1px solid var(--line); border-radius:8px; padding:0 30px 0 10px; background:var(--bg); color:var(--text); font:600 13px inherit; cursor:pointer; appearance:auto; }.fields select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; outline:0; }.editor > .toolbar label[for="image"] { display:none!important; }.css-save { width:100%; margin:0 0 10px; padding:8px; font-size:12px; }.status.ok,.status.error { position:fixed!important; top:20px; right:20px; z-index:1000; display:flex!important; align-items:center; min-height:46px; max-width:min(440px,calc(100vw - 40px)); margin:0!important; padding:12px 44px 12px 15px!important; border:1px solid #ffffff38; border-radius:11px; background:#0000001a!important; color:#fff!important; box-shadow:0 14px 36px #00000028; -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px); opacity:1; transform:translateY(0); transition:opacity .28s ease,transform .28s ease; }.status.error { border-color:#ff8b72aa; }.status.is-leaving { opacity:0; transform:translateY(-8px); }
   .fields { grid-template-columns:minmax(0,1fr) minmax(170px,.3fr)!important; align-items:end; }.fields > div:not(.full) { display:flex; min-width:0; flex-direction:column; }.fields > div:not(.full) label { height:16px; margin-bottom:6px!important; font-size:12px!important; line-height:16px!important; }.fields > div:not(.full) input,.fields > div:not(.full) select { height:36px!important; min-height:36px; padding:0 10px!important; }.chapter::after { background:#FF5100!important; }.chapter.is-toc-hidden::after { background:#707078!important; }.chapter.is-toc-hidden { color:#707078!important; }
   .chapter { padding-right:56px!important; }
@@ -86,10 +86,14 @@ import { requestGeminiCorrections } from './gemini-interactions.js?v=20261007-63
 import { applySourceEdits, chunkProofreadParagraphs, diffPartsToSourceEdits, extractProofreadParagraphs, isSuspiciousCorrection } from './gemini-proofread.js?v=20261007-63';
 import { fixXhtmlVoidElements } from './xhtml-tools.js?v=20261007-64';
 import { nearestPreviousTopLevelId } from './chapter-hierarchy.js?v=20261007-66';
-import { BookProject } from './book-project.js?v=20261007-70';
+import { BookProject } from './book-project.js?v=20261008-styles';
+import { stylesFromCss, applyCustomStyle } from './text-styles.js';
+import { mountTextStyles } from './text-styles-ui.js';
+import { styleShortcutBindings } from './style-shortcuts.js';
 import { validateXhtml, equivalentXhtml } from './xhtml-validation.js?v=20261007-70';
 import { formatXhtml, sourceElements, sourceAttribute, elementAtOffset, elementAtPath } from './xhtml-source.js?v=20261007-70';
-import { createElement as lucideElement, Quote, Table, TableRowsSplit, TableColumnsSplit, FilePlus, Upload, Download, ListEnd } from 'https://cdn.jsdelivr.net/npm/lucide@1.52.0/+esm';
+import { xhtmlCompletionContext, monacoAttributeSuggestions, registerXhtmlEmmet } from './xhtml-completion.js';
+import { createElement as lucideElement, Quote, Table, TableRowsSplit, TableColumnsSplit, FilePlus, Upload, Download, ListEnd, ChevronLeft, ChevronRight } from 'https://cdn.jsdelivr.net/npm/lucide@1.52.0/+esm';
 import { mountAppSidebar } from './sidebar.js?v=20261008-76';
 import { installMonacoTheme } from './theme.js?v=20261007-75';
 
@@ -1371,6 +1375,11 @@ window.addEventListener('DOMContentLoaded', () => {
     <span class="table-color-control"><span class="tool-label">헤더</span><input type="color" data-table-color="head" value="#ffffff" aria-label="표 헤더 배경색"></span>
     <span class="table-color-control"><span class="tool-label">본문</span><input type="color" data-table-color="body" value="#ffffff" aria-label="표 본문 배경색"></span>
   `;
+  const textStylesUi = mountTextStyles({
+    project:bookProject, toolbar:richToolbar, cssEditor,
+    onCssChange:() => cssEditor.dispatchEvent(new Event('input', { bubbles:true })),
+    onError:message => setStatus(message, 'error'),
+  });
   const mode = document.createElement('div');
   mode.className = 'editor-mode';
   mode.innerHTML = '<button type="button" data-mode-toggle aria-pressed="false">XHTML편집</button>';
@@ -1397,12 +1406,14 @@ window.addEventListener('DOMContentLoaded', () => {
   toolbarPrevious.type = 'button';
   toolbarPrevious.className = 'toolbar-previous';
   toolbarPrevious.setAttribute('aria-label', '이전 편집 도구 보기');
-  toolbarPrevious.textContent = '‹';
+  toolbarPrevious.hidden = true;
+  toolbarPrevious.append(lucideElement(ChevronLeft, {width:17,height:17,'aria-hidden':'true'}));
   const toolbarNext = document.createElement('button');
   toolbarNext.type = 'button';
   toolbarNext.className = 'toolbar-next';
   toolbarNext.setAttribute('aria-label', '다음 편집 도구 보기');
-  toolbarNext.textContent = '›';
+  toolbarNext.hidden = true;
+  toolbarNext.append(lucideElement(ChevronRight, {width:17,height:17,'aria-hidden':'true'}));
   toolbarViewport.append(richToolbar, toolbarPrevious, toolbarNext);
   editorControls.append(mode, chapterErrorAlert, toolbarViewport);
   editorFields.before(editorControls);
@@ -1942,13 +1953,14 @@ window.addEventListener('DOMContentLoaded', () => {
       hydratingChapter = false;
     }
   };
-  const replaceProjectChapters = (chapters, selectedId) => {
+  const replaceProjectChapters = (chapters, selectedId, styles = {}) => {
     if (isCoverSelected()) closeCoverReadOnly();
     chapterList.replaceChildren();
     chapterFileNames.clear();
     parentTocMap.clear();
     tocExcluded.clear();
-    bookProject.replace(chapters, selectedId);
+    bookProject.replace(chapters, selectedId, styles);
+    textStylesUi.render();
     bookProject.chapters.forEach((chapter, index) => {
       const row = document.createElement('button');
       row.type = 'button'; row.className = 'chapter';
@@ -1993,6 +2005,7 @@ window.addEventListener('DOMContentLoaded', () => {
     chapterList.replaceChildren();
     bookProject.selectedChapterId = null;
     bookProject.replace([], null);
+    textStylesUi.render();
     chapterFileNames.clear();
     $('#ctitle').value = '';
     $('#clevel').value = '1';
@@ -2164,6 +2177,8 @@ window.addEventListener('DOMContentLoaded', () => {
       author: $('#author').value,
       language: $('#language').value,
       css: $('#css').value,
+      typographyStyles:structuredClone(bookProject.typographyStyles),
+      customStyles:structuredClone(bookProject.customStyles),
       chapters,
       selectedChapterId:bookProject.selectedChapterId,
       activeIndex: Math.max(0, orderedIndexes.indexOf(activeSourceIndex)),
@@ -2549,7 +2564,7 @@ window.addEventListener('DOMContentLoaded', () => {
     (draft.footnotes || []).forEach((note) => {
       if (note?.id && note?.referenceId) footnotes.set(note.id, { ...note });
     });
-    replaceProjectChapters(draft.chapters, draft.selectedChapterId || draft.chapters[draft.activeIndex || 0]?.id);
+    replaceProjectChapters(draft.chapters, draft.selectedChapterId || draft.chapters[draft.activeIndex || 0]?.id, draft.typographyStyles ? draft : stylesFromCss(draft.css || ''));
     $('#title').value = draft.title;
     openedDraftTitle = draft.title;
     draftButton.textContent = '임시저장';
@@ -2707,6 +2722,8 @@ window.addEventListener('DOMContentLoaded', () => {
     $('#language').value = elementText(packageDocument, 'language') || 'ko';
     const stylesheet = Array.from(manifest.values()).find((item) => item.type === 'text/css' && files.has(item.href));
     $('#css').value = stylesheet ? zipText(files.get(stylesheet.href)) : '';
+    Object.assign(bookProject, stylesFromCss($('#css').value));
+    textStylesUi.render();
     window.epubCssMonacoEditor?.setValue($('#css').value);
     cssPreset.value = 'custom';
     tocExcluded.clear();
@@ -3462,10 +3479,18 @@ window.addEventListener('DOMContentLoaded', () => {
     rememberVisualRange();
   });
   richToolbar.querySelector('[data-heading]').addEventListener('change', (event) => {
+    if (event.target.value === 'add-style') { textStylesUi.open(true); event.target.value = ''; return; }
+    if (event.target.value.startsWith('custom:')) {
+      const style = bookProject.customStyles.find(item => `custom:${item.id}` === event.target.value);
+      if (!tiptapEditor || !style) return;
+      if (!applyCustomStyle(tiptapEditor, style)) setStatus('스타일을 적용할 텍스트 또는 블록을 선택하세요.', 'error');
+      syncFromVisual();
+      return;
+    }
     if (tiptapEditor) {
       const level = Number(String(event.target.value).replace('h', ''));
       const chain = tiptapEditor.chain().focus();
-      if (level) chain.toggleHeading({ level }).run();
+      if (level) chain.setHeading({ level }).run();
       else chain.setParagraph().run();
       syncFromVisual();
       return;
@@ -3680,20 +3705,14 @@ window.addEventListener('DOMContentLoaded', () => {
       `;
       document.head.append(editorStyle);
       const tags = ['html','head','body','title','meta','link','style','script','div','section','article','header','footer','main','nav','aside','p','span','strong','em','b','i','u','h1','h2','h3','h4','h5','h6','ul','ol','li','table','thead','tbody','tr','th','td','a','img','figure','figcaption','br','hr'];
-      const attributes = {
-        img:['src','alt','width','height'], a:['href','target','title'], div:['class','id','style'],
-        meta:['name','content','charset'], link:['rel','href','type'], '*':['class','id','style','title'],
-      };
       monaco.languages.registerCompletionItemProvider('html', {
-        triggerCharacters:['<',' ','.'],
+        triggerCharacters:['<',' ','.',':'],
         provideCompletionItems(model, position) {
-          const line = model.getLineContent(position.lineNumber);
-          const left = line.slice(0, position.column - 1);
-          const openingTag = /<([\w:-]+)(?:\s[^<>]*)?$/.exec(left);
-          if (openingTag && !/[/>]$/.test(left)) {
-            const names = [...new Set([...(attributes[openingTag[1].toLowerCase()] || []), ...attributes['*']])];
-            return { suggestions:names.map((name) => ({ label:name, kind:monaco.languages.CompletionItemKind.Property, insertText:`${name}="$0"`, insertTextRules:monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, range:undefined })) };
+          const context = xhtmlCompletionContext(model.getValue(), model.getOffsetAt(position));
+          if (context.attributes) {
+            return { suggestions:monacoAttributeSuggestions(monaco, model, position) };
           }
+          if (!context.emmet) return { suggestions:[] };
           return { suggestions:tags.map((tag) => {
             const voidTag = xhtmlVoidTags.has(tag);
             const defaultAttributes = tag === 'img' ? ' src="$1" alt="$2"' : '';
@@ -3768,7 +3787,7 @@ window.addEventListener('DOMContentLoaded', () => {
             br:'<br />', hr:'<hr />', img:'<img src="${1}" alt="${2}" />', input:'<input type="${1}" />',
             meta:'<meta charset="UTF-8" />', link:'<link rel="stylesheet" href="${1}" type="text/css" />',
           });
-          window.emmetMonaco.emmetHTML(monaco, ['html']);
+          registerXhtmlEmmet(monaco, window.emmetMonaco);
           window.emmetMonaco.emmetCSS?.(monaco, ['css']);
         };
         if (window.emmetMonaco) return activate();
@@ -3828,6 +3847,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const expandEmmet = () => {
         const model = editor.getModel();
         const position = editor.getPosition();
+        if (!xhtmlCompletionContext(model.getValue(), model.getOffsetAt(position)).emmet) return false;
         const line = model.getLineContent(position.lineNumber);
         const before = line.slice(0, position.column - 1);
         const match = /([A-Za-z][A-Za-z0-9:._#>+*${}\[\]="'-]*)$/.exec(before);
@@ -3843,11 +3863,24 @@ window.addEventListener('DOMContentLoaded', () => {
       };
       editor.addAction({
         id:'epub.xhtml.tab', label:'XHTML Emmet 확장 또는 들여쓰기',
-        keybindings:[monaco.KeyCode.Tab], precondition:'editorTextFocus',
+        keybindings:[monaco.KeyCode.Tab], precondition:'editorTextFocus && !suggestWidgetVisible && !inSnippetMode',
         run:() => {
+          const model = editor.getModel();
+          const position = editor.getPosition();
+          if (xhtmlCompletionContext(model.getValue(), model.getOffsetAt(position)).attributes) {
+            const suggestions = monacoAttributeSuggestions(monaco, model, position);
+            const match = suggestions.find(item => {
+              const prefix = model.getValueInRange({ ...item.range, endLineNumber:position.lineNumber, endColumn:position.column });
+              return prefix && item.label.startsWith(prefix);
+            });
+            if (match) {
+              editor.setSelection(match.range);
+              editor.getContribution('snippetController2').insert(match.insertText);
+              return;
+            }
+            if (suggestions.length) return editor.getAction('editor.action.triggerSuggest')?.run();
+          }
           if (expandEmmet()) return;
-          const suggest = host.querySelector('.suggest-widget.visible, .suggest-widget[style*="display: block"]');
-          if (suggest) return editor.getAction('acceptSelectedSuggestion')?.run();
           return editor.getAction('editor.action.indentLines')?.run();
         },
       });
@@ -3927,6 +3960,18 @@ window.addEventListener('DOMContentLoaded', () => {
           }];
         },
       });
+      const StyleShortcuts = Extension.create({
+        name:'projectStyleShortcuts', priority:1000,
+        addKeyboardShortcuts() {
+          return styleShortcutBindings(bookProject, style => {
+            if (visualEditor.hidden || isCoverSelected() || !this.editor.isEditable || this.editor.view.composing
+              || visualLoadedChapterId !== bookProject.selectedChapterId) return false;
+            if (style.tag === 'p') return this.editor.commands.setParagraph();
+            if (style.tag) return this.editor.commands.setHeading({ level:Number(style.tag.slice(1)) });
+            return applyCustomStyle(this.editor, style);
+          });
+        },
+      });
       // Remove any legacy read-only shell before ProseMirror mounts, so the
       // rich editor has exactly one document and no preserved sibling content.
       visualEditor.replaceChildren();
@@ -3937,7 +3982,7 @@ window.addEventListener('DOMContentLoaded', () => {
           colorModule.default.configure({ types:['textStyle'] }), imageModule.default,
           tableModule.default.configure({ resizable:true }), tableRowModule.default, tableHeaderModule.default, tableCellModule.default,
           alignModule.default.configure({ types:['heading','paragraph'] }), superModule.default, subModule.default,
-          linkModule.default.configure({ openOnClick:false }), underlineModule.default, Div, Span, Aside, Section, PreserveAttributes,
+          linkModule.default.configure({ openOnClick:false }), underlineModule.default, Div, Span, Aside, Section, PreserveAttributes, StyleShortcuts,
         ],
         content:htmlEditor.value,
         parseOptions:{ preserveWhitespace:'full' },
