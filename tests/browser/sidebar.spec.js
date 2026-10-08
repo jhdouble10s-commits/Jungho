@@ -115,7 +115,7 @@ test('sidebar menus delegate to original controls, native submenu keyboard, impo
   await expect(page.locator('dialog').filter({has:page.locator('input[name="apiKey"]')})).toBeVisible();
   await page.keyboard.press('Escape');
   const chooserPromise = page.waitForEvent('filechooser');
-  await page.getByRole('button', {name:'EPUB 가져오기', exact:true}).click();
+  await page.getByRole('button', {name:'불러오기', exact:true}).click();
   const chooser = await chooserPromise;
   page.once('dialog', dialog => dialog.accept());
   await chooser.setFiles('기도먼저.epub');

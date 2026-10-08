@@ -91,10 +91,12 @@ import { stylesFromCss, applyCustomStyle, applyTagStyle } from './text-styles.js
 import { mountTextStyles } from './text-styles-ui.js';
 import { styleShortcutBindings } from './style-shortcuts.js';
 import { cloudAssetPath } from './cloud-asset-path.js';
+import { imageAssetPath, imageReferences, resolveImagePath } from './image-references.js';
 import { validateXhtml, equivalentXhtml } from './xhtml-validation.js?v=20261007-70';
 import { formatXhtml, sourceElements, sourceAttribute, elementAtOffset, elementAtPath } from './xhtml-source.js?v=20261007-70';
 import { xhtmlCompletionContext, monacoAttributeSuggestions, registerXhtmlEmmet } from './xhtml-completion.js';
-import { createElement as lucideElement, Quote, Table, TableRowsSplit, TableColumnsSplit, FilePlus, Upload, Download, ListEnd, ChevronLeft, ChevronRight } from 'https://cdn.jsdelivr.net/npm/lucide@1.52.0/+esm';
+import { mountEditorTools, editorSearchPlugin, setEditorActionIcon } from './editor-tools.js';
+import { createElement as lucideElement, Quote, FilePlus, Upload, Download, ListEnd, ChevronLeft, ChevronRight, Pencil, Plus } from 'https://cdn.jsdelivr.net/npm/lucide@1.52.0/+esm';
 import { mountAppSidebar } from './sidebar.js?v=20261008-76';
 import { installMonacoTheme } from './theme.js?v=20261007-75';
 
@@ -295,6 +297,7 @@ window.addEventListener('DOMContentLoaded', () => {
   cssSettings.querySelector('.head')?.remove();
   const cssPresetStoragePrefix = 'epub-builder-css-presets-v2';
   let cssPresetOwnerId = null;
+  let activeCssPresetId = null;
   // 프리셋은 사용자가 저장한 항목만 제공한다. 가져온 CSS는 항상 그대로 유지한다.
   const CSS_PRESETS = [];
   const cssEditor = cssSettings.querySelector('#css');
@@ -312,8 +315,21 @@ window.addEventListener('DOMContentLoaded', () => {
   rebuildCssPresetOptions();
   cssSettings.querySelector('section')?.prepend(cssPresetControl);
   const matchingCssPreset = () => CSS_PRESETS.find((preset) => preset.css.trim() === cssEditor.value.trim())?.id || 'custom';
+  const activeCssPreset = () => CSS_PRESETS.find((preset) => preset.id === activeCssPresetId) || null;
   const updatePresetDeleteButton = () => {
     cssPresetDelete.hidden = !CSS_PRESETS.some((preset) => preset.id === cssPreset.value);
+  };
+  const updatePresetSaveButton = () => {
+    const isUpdating = !cssPresetName.value.trim() && activeCssPreset();
+    cssPresetSave.textContent = isUpdating ? '현재 프리셋 저장' : 'CSS저장';
+    cssPresetSave.disabled = !cssPresetName.value.trim() && !activeCssPreset();
+  };
+  const selectMatchingCssPreset = () => {
+    const presetId = matchingCssPreset();
+    cssPreset.value = presetId;
+    if (presetId !== 'custom') activeCssPresetId = presetId;
+    updatePresetDeleteButton();
+    updatePresetSaveButton();
   };
   const cssPresetStorageKey = () => cssPresetOwnerId ? `${cssPresetStoragePrefix}:${cssPresetOwnerId}` : null;
   const saveAccountCssPresets = () => {
@@ -330,14 +346,19 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     CSS_PRESETS.splice(0, CSS_PRESETS.length, ...saved.filter((preset) => preset?.id && preset?.name && typeof preset.css === 'string'));
     rebuildCssPresetOptions();
-    cssPreset.value = matchingCssPreset();
-    updatePresetDeleteButton();
+    activeCssPresetId = null;
+    selectMatchingCssPreset();
   };
-  cssPreset.value = matchingCssPreset();
-  updatePresetDeleteButton();
+  selectMatchingCssPreset();
   cssPreset.addEventListener('change', () => {
     const preset = CSS_PRESETS.find((item) => item.id === cssPreset.value);
-    if (!preset) { updatePresetDeleteButton(); return; }
+    if (!preset) {
+      activeCssPresetId = null;
+      updatePresetDeleteButton();
+      updatePresetSaveButton();
+      return;
+    }
+    activeCssPresetId = preset.id;
     cssEditor.value = preset.css;
     cssEditor.dispatchEvent(new Event('input', { bubbles:true }));
     // 프리셋 선택은 곧 현재 책의 공통 CSS 변경이다. 별도 적용 단계 없이
@@ -345,13 +366,19 @@ window.addEventListener('DOMContentLoaded', () => {
     refreshPreview();
     updatePresetDeleteButton();
   });
-  cssEditor.addEventListener('input', () => { cssPreset.value = matchingCssPreset(); updatePresetDeleteButton(); });
+  cssPresetName.addEventListener('input', updatePresetSaveButton);
+  cssEditor.addEventListener('input', selectMatchingCssPreset);
   cssPresetSave.addEventListener('click', () => {
     if (!cssPresetOwnerId) { setStatus('CSS 프리셋은 로그인한 계정에서만 저장할 수 있습니다.', 'error'); return; }
     const name = cssPresetName.value.trim();
-    if (!name) { cssPresetName.focus(); return; }
-    const existing = CSS_PRESETS.find((preset) => preset.custom && preset.name === name);
-    if (existing && !window.confirm(`“${name}” 프리셋을 현재 CSS로 덮어쓸까요?`)) return;
+    const currentPreset = activeCssPreset();
+    if (!name && !currentPreset) {
+      cssPresetName.focus();
+      setStatus('저장할 프리셋을 선택하거나 CSS 이름을 입력하세요.', 'error');
+      return;
+    }
+    const existing = name ? CSS_PRESETS.find((preset) => preset.custom && preset.name === name) : currentPreset;
+    if (existing && !window.confirm(`“${existing.name}” 프리셋을 현재 CSS로 덮어쓸까요?`)) return;
     const preset = existing || { id:`user-${Date.now()}`, name, css:'', custom:true };
     preset.css = cssEditor.value;
     if (!existing) {
@@ -359,9 +386,11 @@ window.addEventListener('DOMContentLoaded', () => {
       cssPreset.add(new Option(preset.name, preset.id));
     }
     saveAccountCssPresets();
+    activeCssPresetId = preset.id;
     cssPreset.value = preset.id;
     cssPresetName.value = '';
     updatePresetDeleteButton();
+    updatePresetSaveButton();
     setStatus(`“${preset.name}” 프리셋을 저장했습니다.`);
   });
   cssPresetDelete.addEventListener('click', () => {
@@ -373,8 +402,10 @@ window.addEventListener('DOMContentLoaded', () => {
     CSS_PRESETS.splice(presetIndex, 1);
     Array.from(cssPreset.options).find((option) => option.value === preset.id)?.remove();
     saveAccountCssPresets();
+    if (activeCssPresetId === preset.id) activeCssPresetId = null;
     cssPreset.value = 'custom';
     updatePresetDeleteButton();
+    updatePresetSaveButton();
     setStatus(`“${preset.name}” 프리셋을 삭제했습니다.`);
   });
   chapterHeader.textContent = '';
@@ -1067,8 +1098,12 @@ window.addEventListener('DOMContentLoaded', () => {
     hydrateResourceImages(preview, activeChapterIndex());
   };
   const resolveResourceUrl = (source, chapterIndex = activeChapterIndex()) => {
-      const activePath = chapterAt(chapterIndex)?.originalPath;
       if (!source || /^(?:data:|blob:|https?:|#)/i.test(source)) return source;
+      const chapter = chapterAt(chapterIndex);
+      const activePath = chapter?.originalPath;
+      const resolvedPath = resolveImagePath(source,activePath || `EPUB/text/${chapter?.fileName || 'chapter.xhtml'}`);
+      const exact = Array.from(previewAssets).find(([name,asset]) => imageAssetPath(name,asset) === resolvedPath);
+      if (exact) return exact[1].url;
       let path = source;
       if (source.startsWith('images/')) path = source.slice(7);
       else if (source.startsWith('../Image/')) path = source.slice('../Image/'.length);
@@ -1093,9 +1128,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const imageInput = $('#image');
   const renderAssetShelf = () => {
     const list = $('#assetList');
-    list.replaceChildren();
+    Array.from(list.children).forEach(row => { if (!previewAssets.has(row.dataset.assetName) || previewAssets.get(row.dataset.assetName) !== row.asset) row.remove(); });
     previewAssets.forEach((asset, name) => {
+      if (Array.from(list.children).some(row => row.dataset.assetName === name)) return;
       const item = document.createElement('li');
+      item.dataset.assetName = name;
+      item.asset = asset;
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'draft-item';
@@ -1112,24 +1150,68 @@ window.addEventListener('DOMContentLoaded', () => {
       const insert = document.createElement('button');
       insert.type = 'button';
       insert.className = 'asset-insert';
-      insert.textContent = '+';
+      insert.append(lucideElement(Plus,{width:15,height:15,'aria-hidden':'true'}));
+      insert.setAttribute('aria-label',`${name} 본문 삽입`);
       insert.title = '현재 커서 위치에 이미지 삽입';
       insert.addEventListener('click', () => insertImageTag(name));
       const rename = document.createElement('button');
       rename.type = 'button';
       rename.className = 'asset-rename';
-      rename.textContent = '✎';
-      rename.title = '이미지 파일명 변경';
-      rename.addEventListener('click', () => renameAsset(name));
-      item.append(button, insert, rename);
+      rename.append(lucideElement(Pencil,{width:15,height:15,'aria-hidden':'true'}));
+      rename.title = '이미지 관리';
+      rename.setAttribute('aria-label',`${name} 관리`);
+      rename.setAttribute('aria-expanded','false');
+      const actions = document.createElement('div'); actions.className = 'asset-actions'; actions.hidden = true;
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '삭제';
+      const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = '이름변경';
+      actions.append(remove,edit);
+      rename.addEventListener('click', () => { actions.hidden = !actions.hidden; rename.setAttribute('aria-expanded',String(!actions.hidden)); });
+      remove.addEventListener('click', () => {
+        try { deleteAsset(name); } catch (error) { setStatus(`이미지 삭제 실패: ${error.message}`, 'error'); }
+      });
+      edit.addEventListener('click', () => {
+        if (item.querySelector('.asset-name-input')) return;
+        const input = document.createElement('input'); input.className = 'asset-name-input'; input.value = name;
+        input.setAttribute('aria-label','이미지 파일명'); button.replaceWith(input);
+        let finished = false;
+        const finish = save => {
+          if (finished) return;
+          finished = true;
+          if (!input.isConnected || previewAssets.get(name) !== asset) return;
+          if (!save) { input.replaceWith(button); rename.focus(); return; }
+          try { renameAsset(name,input.value); if (input.isConnected) input.replaceWith(button); }
+          catch (error) { finished = false; input.setCustomValidity(error.message); input.reportValidity(); input.focus(); }
+        };
+        input.addEventListener('input', () => input.setCustomValidity(''));
+        input.addEventListener('keydown', event => {
+          if (event.isComposing) return;
+          if (event.key === 'Enter' || event.key === 'Escape') { event.preventDefault(); finish(event.key === 'Enter'); }
+        });
+        input.addEventListener('blur', () => finish(true));
+        input.focus(); input.setSelectionRange(0,name.lastIndexOf('.') > 0 ? name.lastIndexOf('.') : name.length);
+      });
+      item.append(button, insert, rename, actions);
       list.append(item);
     });
   };
   imageInput.onchange = async (event) => {
+    const projectChapters = bookProject.chapters;
     const files = Array.from(event.target.files || []);
     for (const file of files) {
+      const asset = await toPreviewAsset(file);
+      if (bookProject.chapters !== projectChapters) { revokePreviewAssetUrl(asset); return; }
       const name = uniqueAssetName(file.name);
-      previewAssets.set(name, await toPreviewAsset(file));
+      if (importedEpub) {
+        const imported = importedEpub;
+        const bytes = new Uint8Array(await asset.blob.arrayBuffer());
+        if (bookProject.chapters !== projectChapters || importedEpub !== imported) { revokePreviewAssetUrl(asset); return; }
+        asset.originalPath = `${imported.packageBase}Image/${name}`;
+        if (imported.files.has(asset.originalPath)) { revokePreviewAssetUrl(asset); setStatus('같은 이미지 경로가 이미 있습니다.', 'error'); continue; }
+        imported.files.set(asset.originalPath,bytes);
+        imported.manifest.push({id:`image-${crypto.randomUUID()}`,href:asset.originalPath,rawHref:relativeEpubPath(imported.packagePath,asset.originalPath),type:asset.type,properties:''});
+      }
+      previewAssets.set(name, asset);
+      bookProject.dirty = true; bookProject.revision++;
     }
     renderAssetShelf();
     hydrateResourceImages(visualEditor);
@@ -1164,11 +1246,13 @@ window.addEventListener('DOMContentLoaded', () => {
   // 일반편집은 Tiptap이 준비되면 그 문서 모델을 사용한다. textarea는 XHTML
   // 모드·저장·EPUB 내보내기와 호환되는 HTML 브리지로 계속 유지한다.
   let tiptapEditor = null;
+  let editorTools = null;
   let suppressTiptapUpdate = false;
   let visualLoadedChapterId = null;
   let visualBaseline = '';
   const getVisualHtml = () => tiptapEditor ? tiptapEditor.getHTML() : '';
   const setVisualHtml = (html) => {
+    editorTools?.close();
     suppressTiptapUpdate = true;
     try {
       if (tiptapEditor) tiptapEditor.commands.setContent(html || '', false);
@@ -1292,7 +1376,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const source = asset?.originalPath && activePath
       ? relativeEpubPath(activePath, asset.originalPath)
       : `../Image/${name}`;
-    const markup = `<img src="${source}" alt="" />`;
+    const markup = `<img src="${source.split('/').map(encodeURIComponent).join('/')}" alt="" />`;
     if (visualEditor.hidden) {
       const monacoEditor = window.epubMonacoEditor;
       if (monacoEditor?.getModel()) {
@@ -1327,23 +1411,103 @@ window.addEventListener('DOMContentLoaded', () => {
     syncFromVisual();
     refreshPreview();
   };
-  const renameAsset = (oldName) => {
-    const requested = window.prompt('이미지 파일명을 입력하세요.', oldName);
-    if (requested === null) return;
+  const assetReferencePlan = (name, nextPath) => {
+    const target = imageAssetPath(name,previewAssets.get(name));
+    const chapters = bookProject.chapters.map(chapter => ({
+      chapter, ...imageReferences(chapter.xhtml,chapter.originalPath || `EPUB/text/${chapter.fileName || 'chapter.xhtml'}`,target,{nextPath}),
+    }));
+    const cssPath = importedEpub?.stylesheetPath || 'EPUB/styles/book.css';
+    const css = imageReferences(cssEditor.value,cssPath,target,{nextPath,css:true});
+    const notesPage = bookProject.chapters.find(chapter => chapter.type === 'footnotes' && chapter.generated);
+    const notes = notesPage ? Array.from(footnotes.values(), note => ({note,...imageReferences(note.content,
+      notesPage.originalPath || `EPUB/text/${notesPage.fileName}`,target,{nextPath})})) : [];
+    const files = [];
+    if (importedEpub) for (const [path,bytes] of importedEpub.files) {
+      if (!/\.(?:xhtml|html|svg|css|opf|ncx)$/i.test(path)) continue;
+      const original = zipText(bytes);
+      files.push({path,original,...imageReferences(original,path,target,{nextPath,css:path.endsWith('.css')})});
+    }
+    return {target,chapters,css,files,notes};
+  };
+  const noteRemovedAsset = name => {
+    if (!bookProject.removedAssetNames.includes(name)) bookProject.removedAssetNames.push(name);
+    bookProject.dirty = true; bookProject.revision++;
+  };
+  const deleteAsset = name => {
+    const asset = previewAssets.get(name);
+    if (!asset) return;
+    saveCurrentChapter();
+    const plan = assetReferencePlan(name);
+    const locations = plan.chapters.filter(item => item.hits.length).map(({chapter,hits}) =>
+      `${chapter.title || chapter.fileName || '제목 없는 장'} — 본문 XHTML ${[...new Set(hits.map(offset => chapter.xhtml.slice(0,offset).split('\n').length))].join(', ')}행 (${hits.length}회)`);
+    if (plan.css.hits.length) locations.push(`공통 CSS (${plan.css.hits.length}회)`);
+    const chapterPaths = new Set(bookProject.chapters.map(chapter => chapter.originalPath));
+    plan.files.filter(file => file.hits.length && file.path !== importedEpub?.packagePath && file.path !== importedEpub?.stylesheetPath)
+      .forEach(file => {
+        const body = chapterPaths.has(file.path) && sourceElements(file.original).find(node => node.tag === 'body');
+        const hits = body ? file.hits.filter(offset => offset < body.start || offset >= body.end) : file.hits;
+        if (hits.length) locations.push(`${file.path}${body ? ' 문서 헤더' : ''} (${hits.length}회)`);
+      });
+    if (coverPreview.getAttribute('src') === asset.url) locations.push('표지 이미지');
+    if (locations.length && !window.confirm(`“${name}” 이미지가 사용 중입니다.\n\n${locations.join('\n')}\n\n삭제하면 해당 위치의 이미지가 표시되지 않을 수 있습니다. 본문은 유지됩니다. 삭제할까요?`)) return;
+    previewAssets.delete(name);
+    if (asset.originalPath && importedEpub) {
+      importedEpub.files.delete(asset.originalPath);
+      const removedId = importedEpub.manifest.find(item => item.href === asset.originalPath)?.id;
+      importedEpub.manifest = importedEpub.manifest.filter(item => item.href !== asset.originalPath);
+      if (importedEpub.coverImagePath === asset.originalPath) {
+        importedEpub.coverImagePath = '';
+        const extras = importedEpub.metadataExtras || '';
+        const nodes = sourceElements(extras).filter(node => node.tag === 'meta' && sourceAttribute(node,'name') === 'cover' && sourceAttribute(node,'content') === removedId);
+        importedEpub.metadataExtras = nodes.sort((a,b) => b.start-a.start).reduce((source,node) => source.slice(0,node.start)+source.slice(node.end),extras);
+      }
+    }
+    if (coverPreview.getAttribute('src') === asset.url) { coverPreview.removeAttribute('src'); coverPreview.hidden = true; }
+    noteRemovedAsset(name);
+    revokePreviewAssetUrl(asset);
+    // Discard old hydrated blob URLs without changing the canonical XHTML.
+    if (!visualEditor.hidden) setVisualHtml(bookProject.selectedChapter?.xhtml || '');
+    renderAssetShelf(); refreshPreview();
+    if (isCoverSelected()) openCoverReadOnly();
+    setStatus(`“${name}” 이미지를 삭제했습니다. 임시저장하면 저장본에도 반영됩니다.`);
+  };
+  const renameAsset = (oldName, requested) => {
+    if (!requested.trim()) throw new Error('파일명을 입력하세요.');
     const extension = oldName.includes('.') ? oldName.slice(oldName.lastIndexOf('.')) : '';
     const nextName = uniqueAssetName(requested.includes('.') ? requested : `${requested}${extension}`, oldName);
     if (nextName === oldName) return;
     const asset = previewAssets.get(oldName);
     if (!asset) return;
+    saveCurrentChapter();
+    const oldPath = imageAssetPath(oldName,asset);
+    const nextPath = oldPath.slice(0,oldPath.lastIndexOf('/')+1) + nextName;
+    if (importedEpub?.files.has(nextPath)) throw new Error('같은 경로의 파일이 이미 있습니다. 다른 이름을 입력하세요.');
+    const plan = assetReferencePlan(oldName,nextPath);
+    // Prepare all parser edits before applying any changes.
+    const metas = importedEpub?.chapterMeta.map(meta => ({...meta,
+      source:imageReferences(meta.source,meta.path,oldPath,{nextPath}).source,
+      body:imageReferences(meta.body,meta.path,oldPath,{nextPath}).source,
+    }));
+    plan.chapters.forEach(({chapter,source}) => { if (source !== chapter.xhtml) bookProject.update(chapter.id,{xhtml:source}); });
+    plan.notes.forEach(({note,source}) => { note.content = source; });
+    if (plan.css.source !== cssEditor.value) { cssEditor.value = plan.css.source; cssEditor.dispatchEvent(new Event('input',{bubbles:true})); }
+    if (importedEpub) {
+      plan.files.forEach(file => { if (file.source !== file.original) importedEpub.files.set(file.path,epubText(file.source)); });
+      importedEpub.chapterMeta = metas;
+      if (asset.originalPath) {
+        importedEpub.files.set(nextPath,importedEpub.files.get(oldPath)); importedEpub.files.delete(oldPath);
+        importedEpub.manifest.forEach(item => { if (item.href === oldPath) { item.href = nextPath; item.rawHref = relativeEpubPath(importedEpub.packagePath,nextPath); } });
+        if (importedEpub.coverImagePath === oldPath) importedEpub.coverImagePath = nextPath;
+      }
+    }
     previewAssets.delete(oldName);
+    if (asset.originalPath) asset.originalPath = nextPath;
     previewAssets.set(nextName, asset);
-    htmlEditor.value = htmlEditor.value
-      .replace(new RegExp(`images/${escapeRegExp(oldName)}`, 'g'), `images/${nextName}`)
-      .replace(new RegExp(`\.\./Image/${escapeRegExp(oldName)}`, 'g'), `../Image/${nextName}`);
-    if (!visualEditor.hidden) setVisualHtml(htmlEditor.value);
-    htmlEditor.dispatchEvent(new Event('input', { bubbles:true }));
+    noteRemovedAsset(oldName);
+    if (bookProject.selectedChapter) setCurrentChapter(bookProject.selectedChapter);
     renderAssetShelf();
     refreshPreview();
+    setStatus(`“${nextName}”으로 이름을 변경했습니다. 임시저장하면 저장본에도 반영됩니다.`);
   };
   const richToolbar = document.createElement('div');
   richToolbar.className = 'rich-toolbar';
@@ -1369,9 +1533,6 @@ window.addEventListener('DOMContentLoaded', () => {
     <select data-list aria-label="목록 종류"><option value="">목록</option><option value="disc">• 글머리</option><option value="decimal">1. 숫자</option><option value="upper-roman">I. 로마</option></select>
     <button type="button" data-command="formatBlock" data-value="blockquote" title="인용" aria-label="인용"></button>
     <span class="tool-separator"></span>
-    <button type="button" data-table title="2×2 표 삽입" aria-label="2×2 표 삽입"></button>
-    <button type="button" data-table-action="row" title="선택한 표에 행 추가" aria-label="선택한 표에 행 추가"></button>
-    <button type="button" data-table-action="column" title="선택한 표에 열 추가" aria-label="선택한 표에 열 추가"></button>
     <span class="table-color-control"><span class="tool-label">헤더</span><input type="color" data-table-color="head" value="#ffffff" aria-label="표 헤더 배경색"></span>
     <span class="table-color-control"><span class="tool-label">본문</span><input type="color" data-table-color="body" value="#ffffff" aria-label="표 본문 배경색"></span>
   `;
@@ -1397,7 +1558,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const editorControls = document.createElement('div');
   editorControls.className = 'editor-controls';
   const toolbarViewport = document.createElement('div');
-  for (const [selector, icon] of [['[data-value="blockquote"]', Quote], ['[data-table]', Table], ['[data-table-action="row"]', TableRowsSplit], ['[data-table-action="column"]', TableColumnsSplit]]) {
+  for (const [selector, icon] of [['[data-value="blockquote"]', Quote]]) {
     richToolbar.querySelector(selector)?.append(lucideElement(icon, { 'aria-hidden':'true', width:15, height:15 }));
   }
   toolbarViewport.className = 'toolbar-viewport';
@@ -1683,6 +1844,16 @@ window.addEventListener('DOMContentLoaded', () => {
       updated_at:new Date().toISOString(),
     }, { onConflict:'owner_id,title' });
     if (error) throw error;
+    // The saved payload no longer references these objects. Keep the tombstones
+    // in the project so a failed Storage removal is retried on the next save.
+    const activeNames = new Set(draft.assets.map(asset => asset.name));
+    const removed = [...new Set(draft.removedAssetNames || [])].filter(name => !activeNames.has(name));
+    for (let start=0;start<removed.length;start+=1000) {
+      if (supabaseUser?.id !== ownerId) throw new Error('계정이 변경되어 이미지 정리를 중단했습니다.');
+      const paths = await Promise.all(removed.slice(start,start+1000).map(name => cloudAssetPath(ownerId,draft.title,name)));
+      const { error:removeError } = await client.storage.from('epub-assets').remove(paths);
+      if (removeError) throw new Error(`삭제한 이미지의 서버 정리에 실패했습니다: ${removeError.message}`);
+    }
     return true;
   };
   const deleteCloudDraft = async (draft) => {
@@ -1719,6 +1890,9 @@ window.addEventListener('DOMContentLoaded', () => {
   proofreadButton.title = '현재 장의 텍스트만 Gemini로 교정합니다.';
   proofreadButton.setAttribute('aria-haspopup', 'dialog');
   autoFixHtmlButton.before(proofreadButton);
+  setEditorActionIcon(draftButton,'Save','임시저장');
+  setEditorActionIcon(autoFixHtmlButton,'CodeXml','XHTML 자동수정');
+  setEditorActionIcon(proofreadButton,'SpellCheck','맞춤법 교정');
   const footnoteButton = document.createElement('button');
   footnoteButton.type = 'button';
   footnoteButton.className = 'footnote-insert';
@@ -1730,7 +1904,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const importButton = document.createElement('button');
   importButton.type = 'button';
   importButton.className = 'primary';
-  importButton.textContent = 'EPUB 가져오기';
+  importButton.textContent = '불러오기';
   const importInput = document.createElement('input');
   importInput.type = 'file';
   importInput.accept = '.epub,application/epub+zip,application/zip';
@@ -1750,7 +1924,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const fileActions = document.createElement('nav');
   fileActions.className = 'epub-file-actions';
   fileActions.setAttribute('aria-label', 'EPUB 파일');
-  for (const [button, label, glyph] of [[newBookButton,'새 EPUB',FilePlus], [importButton,'EPUB 가져오기',Upload], [exportButton,'EPUB3 내보내기',Download]]) {
+  for (const [button, label, glyph] of [[newBookButton,'새 EPUB',FilePlus], [importButton,'불러오기',Upload], [exportButton,'내보내기',Download]]) {
     button.setAttribute('aria-label', label);
     button.title = label;
     button.replaceChildren(lucideElement(glyph, {width:16,height:16,'aria-hidden':'true'}), document.createTextNode(label));
@@ -2017,12 +2191,15 @@ window.addEventListener('DOMContentLoaded', () => {
     textStylesUi.render();
     window.epubCssMonacoEditor?.setValue('');
     cssPreset.value = 'custom';
+    activeCssPresetId = null;
+    updatePresetDeleteButton();
+    updatePresetSaveButton();
     tocExcluded.clear();
     parentTocMap.clear();
     collapsedTocRoots.clear();
     clearPreviewAssets();
     openedDraftTitle = null;
-    draftButton.textContent = '임시저장';
+    setEditorActionIcon(draftButton,'Save','임시저장');
     coverPreview.removeAttribute('src');
     coverPreview.hidden = true;
     const cover = addSpecialChapter('cover');
@@ -2178,6 +2355,7 @@ window.addEventListener('DOMContentLoaded', () => {
       css: $('#css').value,
       typographyStyles:structuredClone(bookProject.typographyStyles),
       customStyles:structuredClone(bookProject.customStyles),
+      removedAssetNames:[...bookProject.removedAssetNames],
       chapters,
       selectedChapterId:bookProject.selectedChapterId,
       activeIndex: Math.max(0, orderedIndexes.indexOf(activeSourceIndex)),
@@ -2564,15 +2742,17 @@ window.addEventListener('DOMContentLoaded', () => {
       if (note?.id && note?.referenceId) footnotes.set(note.id, { ...note });
     });
     replaceProjectChapters(draft.chapters, draft.selectedChapterId || draft.chapters[draft.activeIndex || 0]?.id, draft.typographyStyles ? draft : stylesFromCss(draft.css || ''));
+    bookProject.removedAssetNames = [...new Set(draft.removedAssetNames || [])];
     $('#title').value = draft.title;
     openedDraftTitle = draft.title;
-    draftButton.textContent = '임시저장';
+    setEditorActionIcon(draftButton,'Save','임시저장');
     $('#author').value = draft.author || '';
     $('#language').value = draft.language || 'ko';
+    activeCssPresetId = null;
     $('#css').value = draft.css || '';
     textStylesUi.render();
     window.epubCssMonacoEditor?.setValue($('#css').value);
-    cssPreset.value = matchingCssPreset();
+    selectMatchingCssPreset();
     tocExcluded.clear();
     (draft.tocExcluded || []).forEach((index) => tocExcluded.add(index));
     parentTocMap.clear();
@@ -2726,6 +2906,9 @@ window.addEventListener('DOMContentLoaded', () => {
     textStylesUi.render();
     window.epubCssMonacoEditor?.setValue($('#css').value);
     cssPreset.value = 'custom';
+    activeCssPresetId = null;
+    updatePresetDeleteButton();
+    updatePresetSaveButton();
     tocExcluded.clear();
     chapterMeta.forEach((meta) => { if (!meta.includeInToc) tocExcluded.add(meta.index); });
     parentTocMap.clear();
@@ -2778,7 +2961,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     bookProject.chapters.forEach(chapter => { if (chapter.originalPath === footnoteItem?.href) chapter.type = 'footnotes'; });
     openedDraftTitle = null;
-    draftButton.textContent = '임시저장';
+    setEditorActionIcon(draftButton,'Save','임시저장');
     chapterList.querySelector('.chapter[data-i="0"]')?.click();
     // 가져온 원문은 contenteditable의 HTML 재직렬화를 거치지 않도록 XHTML 모드에서 연다.
     htmlField.hidden = false;
@@ -2859,7 +3042,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
         if (openedDraftTitle === draft.title) {
           openedDraftTitle = null;
-          draftButton.textContent = '임시저장';
+          setEditorActionIcon(draftButton,'Save','임시저장');
         }
         renderDrafts();
         setStatus(`“${draft.title}” 임시저장본을 삭제했습니다.`);
@@ -2941,7 +3124,7 @@ window.addEventListener('DOMContentLoaded', () => {
       else draftIndex.push(draft);
       if (epoch === restoreEpoch) {
         openedDraftTitle = draft.title;
-        draftButton.textContent = '임시저장';
+        setEditorActionIcon(draftButton,'Save','임시저장');
         setStatus(`“${draft.title}”을(를) 임시저장했습니다.`);
       }
       renderDrafts();
@@ -3280,7 +3463,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const source = htmlEditor.value;
     const paragraphs = extractProofreadParagraphs(source);
     if (!paragraphs.length) { setStatus('현재 장에서 검사할 본문 텍스트가 없습니다.', 'error'); return; }
-    geminiProofreadBusy = true; proofreadButton.disabled = true; proofreadButton.textContent = '교정 중...'; setStatus('교정 중...');
+    geminiProofreadBusy = true; proofreadButton.disabled = true; setEditorActionIcon(proofreadButton,'LoaderCircle','교정 중...'); setStatus('교정 중...');
     try {
       const chunks = chunkProofreadParagraphs(paragraphs, GEMINI_MAX_CHUNK_CHARACTERS);
       const paragraphById = new Map(paragraphs.map((paragraph) => [paragraph.id, paragraph]));
@@ -3303,7 +3486,7 @@ window.addEventListener('DOMContentLoaded', () => {
       });
       applyGeminiSuggestions(accepted, chapterIndex);
     } catch (error) { console.warn('Gemini 교정 실패', error); setStatus(error.message || '교정에 실패했습니다.', 'error'); }
-    finally { geminiProofreadBusy = false; proofreadButton.disabled = false; proofreadButton.textContent = '맞춤법 교정'; }
+    finally { geminiProofreadBusy = false; proofreadButton.disabled = false; setEditorActionIcon(proofreadButton,'SpellCheck','맞춤법 교정'); }
   });
   autoFixHtmlButton.addEventListener('click', () => {
     saveCurrentChapter();
@@ -3375,13 +3558,10 @@ window.addEventListener('DOMContentLoaded', () => {
     scheduleStatusDismissal();
   };
   new MutationObserver(decorateStatus).observe(statusBox, { childList:true, characterData:true, attributes:true });
-  mode.addEventListener('click', () => setMode(htmlField.hidden ? 'html' : 'visual'));
-  let activeTable = null;
+  mode.addEventListener('click', () => { editorTools?.close(); setMode(htmlField.hidden ? 'html' : 'visual'); });
   let activeBlock = null;
   const editableBlock = (node) => node?.closest?.('p,h1,h2,h3,h4,h5,li,blockquote,td,th');
-  const currentTable = () => activeTable || visualEditor.querySelector('table:last-of-type');
   visualEditor.addEventListener('click', (event) => {
-    activeTable = event.target.closest('table');
     activeBlock = editableBlock(event.target);
   });
   const updateToolbarState = () => {
@@ -3427,13 +3607,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     if (tiptapEditor) {
       const chain = tiptapEditor.chain().focus();
-      if (button.dataset.table !== undefined) {
-        chain.insertTable({ rows:2, cols:2, withHeaderRow:true }).run();
-      } else if (button.dataset.tableAction === 'row') {
-        chain.addRowAfter().run();
-      } else if (button.dataset.tableAction === 'column') {
-        chain.addColumnAfter().run();
-      } else if (button.dataset.list) {
+      if (button.dataset.list) {
         (button.dataset.list === 'disc' ? chain.toggleBulletList() : chain.toggleOrderedList()).run();
       } else if (button.dataset.block) {
         chain.toggleBlockquote().run();
@@ -3455,20 +3629,7 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
     restoreVisualRange() || visualEditor.focus();
-    if (button.dataset.table !== undefined) {
-      document.execCommand('insertHTML', false, '<table><thead><tr><th>제목 1</th><th>제목 2</th></tr></thead><tbody><tr><td>내용</td><td>내용</td></tr></tbody></table><p></p>');
-      activeTable = visualEditor.querySelector('table:last-of-type');
-    } else if (button.dataset.tableAction) {
-      const table = currentTable();
-      if (!table) return;
-      if (button.dataset.tableAction === 'row') {
-        const row = table.insertRow();
-        const count = table.rows[0]?.cells.length || 1;
-        for (let i = 0; i < count; i += 1) row.insertCell().textContent = '내용';
-      } else {
-        Array.from(table.rows).forEach((row) => row.insertCell().textContent = row.parentElement.tagName === 'THEAD' ? '제목' : '내용');
-      }
-    } else if (button.dataset.list) {
+    if (button.dataset.list) {
       document.execCommand('insertOrderedList', false, null);
       const selection = window.getSelection();
       const node = selection?.anchorNode?.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
@@ -3659,12 +3820,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (span) keepVisualSelection(span);
     else rememberVisualRange();
   });
-  richToolbar.querySelectorAll('[data-table-color]').forEach((input) => input.addEventListener('input', (event) => {
-    const table = currentTable();
-    if (!table) return;
-    table.querySelectorAll(event.target.dataset.tableColor === 'head' ? 'th' : 'td').forEach((cell) => { cell.style.backgroundColor = event.target.value; });
-    syncFromVisual();
-  }));
+  editorTools = mountEditorTools({
+    toolbar:richToolbar, getEditor:() => tiptapEditor, cssEditor,
+    canEdit:() => Boolean(tiptapEditor && !visualEditor.hidden && !isCoverSelected() && visualLoadedChapterId === bookProject.selectedChapterId),
+    onError:message => setStatus(message, 'error'),
+  });
   document.addEventListener('keydown', (event) => {
     if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z') return;
     // 일반편집 본문에 포커스가 있을 때만 가로챈다. XHTML Monaco, 제목 입력칸
@@ -3935,7 +4095,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const Span = Mark.create({
         name:'epubSpan', inclusive:false,
         addAttributes:() => ({ class:{default:null}, id:{default:null}, style:{default:null}, 'data-footnote-content':{default:null} }),
-        parseHTML:() => [{ tag:'span' }], renderHTML:({ HTMLAttributes }) => ['span', HTMLAttributes, 0],
+        parseHTML:() => [{ tag:'span', consuming:false, priority:110 }], renderHTML:({ HTMLAttributes }) => ['span', HTMLAttributes, 0],
       });
       const Aside = Node.create({
         name:'epubAside', group:'block', content:'block*', defining:true,
@@ -3951,7 +4111,7 @@ window.addEventListener('DOMContentLoaded', () => {
         name:'epubPreserveAttributes',
         addGlobalAttributes() {
           return [{
-            types:['paragraph','heading','blockquote','bulletList','orderedList','listItem','tableCell','tableHeader','image','link'],
+            types:['paragraph','heading','blockquote','bulletList','orderedList','listItem','table','tableRow','tableCell','tableHeader','image','link'],
             attributes:{
               class:{default:null}, id:{default:null}, style:{default:null},
               'epub:type':{ default:null, parseHTML:(element) => element.getAttribute('epub:type'), renderHTML:(attributes) => attributes['epub:type'] ? { 'epub:type':attributes['epub:type'] } : {} },
@@ -3970,6 +4130,22 @@ window.addEventListener('DOMContentLoaded', () => {
           });
         },
       });
+      // Tiptap's resizable TableView owns the DOM; mirror persisted attributes
+      // into that view without replacing its cells or resizing implementation.
+      class PreservedTableView extends tableModule.default.options.View {
+        constructor(node, cellMinWidth, view) {
+          super(node, cellMinWidth, view);
+          this.update(node);
+        }
+        update(node) {
+          if (node.type !== this.node.type) return false;
+          for (const name of ['id','class','style','epub:type']) {
+            if (node.attrs[name]) this.table.setAttribute(name,node.attrs[name]);
+            else this.table.removeAttribute(name);
+          }
+          return super.update(node);
+        }
+      }
       // Remove any legacy read-only shell before ProseMirror mounts, so the
       // rich editor has exactly one document and no preserved sibling content.
       visualEditor.replaceChildren();
@@ -3977,8 +4153,9 @@ window.addEventListener('DOMContentLoaded', () => {
         element:visualEditor,
         extensions:[
           StarterKit.configure({ link:false, underline:false }), InlineStyle,
+          Extension.create({ name:'documentSearch', addProseMirrorPlugins:() => [editorSearchPlugin()] }),
           colorModule.default.configure({ types:['textStyle'] }), imageModule.default,
-          tableModule.default.configure({ resizable:true }), tableRowModule.default, tableHeaderModule.default, tableCellModule.default,
+          tableModule.default.configure({ resizable:true, View:PreservedTableView }), tableRowModule.default, tableHeaderModule.default, tableCellModule.default,
           alignModule.default.configure({ types:['heading','paragraph'] }), superModule.default, subModule.default,
           linkModule.default.configure({ openOnClick:false }), underlineModule.default, Div, Span, Aside, Section, PreserveAttributes, StyleShortcuts,
         ],

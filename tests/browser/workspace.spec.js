@@ -60,9 +60,10 @@ test('compact workspace actions, fixed chapter footer, CSS backgrounds, settings
   await expect(page.getByRole('button',{name:'미리보기 갱신',exact:true})).toHaveCount(0);
   await expect(page.locator('.clear-drafts')).toHaveCount(0);
   await expect(page.locator('.rich-toolbar [data-editor-action="undo"] + .footnote-insert svg')).toHaveCount(1);
-  await expect(page.locator('.editor > .toolbar .draft-save')).toHaveText('임시저장');
+  await expect(page.locator('.editor > .toolbar .draft-save')).toHaveAttribute('aria-label','임시저장');
   const tools=page.locator('.editor > .toolbar > button');
-  expect(await tools.allTextContents()).toEqual(['맞춤법 교정','XHTML 자동수정','임시저장']);
+  expect(await tools.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label')))).toEqual(['맞춤법 교정','XHTML 자동수정','임시저장']);
+  await expect(tools.locator('svg')).toHaveCount(3);
   const a=await tools.nth(0).boundingBox(), b=await tools.nth(1).boundingBox();
   expect(a.y).toBe(b.y);
   const footer=page.locator('.chapter-footer');

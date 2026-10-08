@@ -4,6 +4,7 @@ import { defaultTypography, restoreStyles } from './text-styles.js';
 export class BookProject {
   typographyStyles = defaultTypography();
   customStyles = [];
+  removedAssetNames = [];
   selectedChapterId = null;
   chapters = [];
   dirty = false;
@@ -11,6 +12,7 @@ export class BookProject {
   get selectedChapter() { return this.chapters.find(chapter => chapter.id === this.selectedChapterId) || null; }
   replace(chapters, selectedId, styles = {}) {
     Object.assign(this, restoreStyles(styles));
+    this.removedAssetNames = [...new Set((styles.removedAssetNames || []).filter(name => typeof name === 'string'))];
     this.chapters = chapters.map(source => this.createChapter(source));
     this.selectedChapterId = this.chapters.some(chapter => chapter.id === selectedId) ? selectedId : this.chapters[0]?.id || null;
     this.revision++;
@@ -42,5 +44,5 @@ export class BookProject {
     this.dirty = true;
     this.revision++;
   }
-  snapshot() { return { typographyStyles:structuredClone(this.typographyStyles), customStyles:structuredClone(this.customStyles), selectedChapterId:this.selectedChapterId, chapters:this.chapters.map(chapter => ({ ...chapter })) }; }
+  snapshot() { return { typographyStyles:structuredClone(this.typographyStyles), customStyles:structuredClone(this.customStyles), removedAssetNames:[...this.removedAssetNames], selectedChapterId:this.selectedChapterId, chapters:this.chapters.map(chapter => ({ ...chapter })) }; }
 }

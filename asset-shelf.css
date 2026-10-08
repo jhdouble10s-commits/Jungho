@@ -1,0 +1,8 @@
+.asset-row { flex-wrap:wrap; }
+.asset-row > .draft-item,.asset-name-input { flex:1 1 90px; min-width:0; }
+.asset-name-input { width:0; box-sizing:border-box; padding:8px; border:1px solid var(--accent); border-radius:8px; font:inherit; font-size:12px; }
+.asset-row .asset-insert,.asset-row .asset-rename { display:inline-flex; align-items:center; justify-content:center; flex:none; }
+.asset-actions { display:flex; gap:6px; margin-left:auto; }
+.asset-actions[hidden] { display:none; }
+.asset-actions button { padding:5px 7px; border:1px solid var(--line); border-radius:6px; background:var(--surface-2); color:var(--text); font-size:12px; white-space:nowrap; cursor:pointer; }
+.asset-actions button:first-child { color:#dc6555; }
