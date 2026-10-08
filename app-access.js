@@ -1,5 +1,6 @@
 import { client } from './auth-client.js';
 import { readAccess } from './auth-access.js';
+import { showStartupPhase } from './startup-screen.js';
 
 let revision = 0;
 let activeUserId = null;
@@ -22,6 +23,7 @@ async function checkAccess() {
     if (targetRevision !== revision) return null;
     if (activeUserId && activeUserId !== access.user.id) { location.reload(); return null; }
     activeUserId = access.user.id;
+    showStartupPhase('editor');
     if (document.documentElement.dataset.appUiReady === 'true') markAppUiReady();
     return access;
   } catch (error) {

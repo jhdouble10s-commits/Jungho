@@ -11,4 +11,4 @@ createServer(async (request, response) => {
     response.setHeader('Content-Type', ({'.js':'application/javascript','.mjs':'application/javascript','.html':'text/html','.css':'text/css','.json':'application/json'})[extname(path)] || 'application/octet-stream');
     response.end(data);
   } catch { response.writeHead(404).end(); }
-}).listen(4173, '127.0.0.1');
+}).listen(Number(process.env.PORT || 4173), '127.0.0.1');

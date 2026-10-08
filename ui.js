@@ -10,9 +10,9 @@ uiStyle.textContent = `
   .html-validation,.xhtml-diagnostics { display:none!important; }.editor-error-alert { flex:none; min-width:58px; height:32px; border:1px solid #ff8b72aa; border-radius:8px; padding:0 9px; background:#351916; color:#ffb09a; font:700 11px inherit; white-space:nowrap; cursor:pointer; }.editor-error-alert:hover,.editor-error-alert[aria-expanded="true"] { border-color:#ffb09a; background:#4b1e18; }.editor-error-alert[hidden] { display:none; }.chapter-error-popover { position:fixed; z-index:1100; width:min(320px,calc(100vw - 28px)); padding:12px; border:1px solid #ff8b72aa; border-radius:10px; background:var(--surface); color:var(--text); box-shadow:0 16px 42px #0008; }.chapter-error-popover[hidden] { display:none; }.chapter-error-popover__head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; color:#ffb09a; font-size:12px; font-weight:800; }.chapter-error-popover__close { width:24px; height:24px; border:0; border-radius:6px; background:transparent; color:var(--sub); font-size:19px; line-height:1; cursor:pointer; }.chapter-error-popover__close:hover { background:var(--surface-2); color:var(--text); }.chapter-error-popover__list { max-height:180px; margin:0; padding-left:18px; overflow:auto; color:var(--sub); font-size:12px; line-height:1.55; }.fields input[type="checkbox"] { width:18px!important; height:18px; padding:0!important; box-shadow:none!important; }.code-editor { display:grid; grid-template-columns:46px minmax(0,1fr); overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.code-editor > .line-numbers { min-height:610px; margin:0; padding:10px 8px; overflow:hidden; border-right:1px solid var(--line); color:var(--sub); font:13px/1.65 Consolas,"Courier New",monospace; text-align:right; user-select:none; white-space:pre; }.code-editor > .code { height:610px!important; min-width:0; border:0!important; border-radius:0!important; box-shadow:none!important; }.status { position:relative; padding-right:42px!important; }.status-close { position:absolute; top:50%; right:10px; width:24px; height:24px; transform:translateY(-50%); border:0; border-radius:6px; background:transparent; color:currentColor; font-size:20px; line-height:20px; cursor:pointer; }.status-close:hover { background:#00000018; }
   .theme-settings { margin-top:auto; padding:16px 10px; border-top:1px solid var(--line); color:var(--sub); font-size:12px; font-weight:700; }
   .theme-settings > div:not(.theme-settings__head) { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }.theme-settings__head { display:flex; align-items:center; justify-content:space-between; }.theme-settings .api-settings-button { width:26px; height:26px; padding:0; font-size:14px; }.theme-settings button { border:1px solid var(--line); border-radius:7px; padding:7px 4px; background:var(--surface-2); color:var(--text); font:600 11px inherit; cursor:pointer; }.theme-settings button:hover { border-color:var(--accent); color:var(--accent); }
-  main { min-width:0; max-width:1680px!important; padding:24px 32px 42px!important; }.top { min-width:0; display:flex!important; align-items:center; justify-content:flex-end!important; min-height:48px; margin:0 0 18px!important; padding:6px 14px!important; background:var(--surface)!important; border:1px solid var(--line)!important; border-radius:14px!important; box-shadow:none!important; }
-  .primary { padding:8px 12px!important; border-radius:8px!important; background:var(--accent)!important; color:#fff!important; font-size:12px!important; line-height:1.2; box-shadow:none!important; }.primary:hover { transform:none!important; filter:brightness(1.08); }
-  .book-inline { flex:1; margin-right:14px; }.book-inline .settings { max-width:none!important; padding:0!important; background:none!important; border:0!important; box-shadow:none!important; }.book-inline section { display:flex; align-items:center; gap:10px; }.book-inline .field { display:flex; align-items:center; gap:7px; margin:0!important; }.book-inline label { margin:0!important; white-space:nowrap; color:var(--sub)!important; font-size:clamp(12px,.73vw,18px)!important; }.book-inline input { width:130px!important; padding:3.5px 8px!important; }.book-inline .field:first-child input { width:195px!important; }.book-inline .cover { display:contents!important; border:0!important; padding:0!important; }.book-inline #coverInput,.book-inline .cover img { display:none!important; }.book-inline .cover-upload-button { display:inline-flex!important; align-items:center; height:29px; padding:0 10px; border:1px solid var(--accent)!important; border-radius:7px; background:var(--accent-soft); color:var(--accent)!important; font-size:12px!important; font-weight:700; cursor:pointer; }.book-inline .hint { display:none; }
+  main { min-width:0; max-width:1680px!important; padding:24px 32px 42px!important; }.top { min-width:0; display:flex!important; align-items:center; justify-content:flex-end!important; min-height:52px; margin:0 0 18px!important; padding:8px 16px!important; background:var(--surface)!important; border:1px solid var(--line)!important; border-radius:14px!important; box-shadow:none!important; }
+  .primary { padding:8px 12px!important; border-radius:8px!important; background:var(--accent)!important; color:#fff!important; font-size:14px!important; line-height:1.2; box-shadow:none!important; }.primary:hover { transform:none!important; filter:brightness(1.08); }
+  .book-inline { flex:1; margin-right:14px; }.book-inline .settings { max-width:none!important; padding:0!important; background:none!important; border:0!important; box-shadow:none!important; }.book-inline section { display:flex; align-items:center; gap:10px; }.book-inline .field { display:flex; align-items:center; gap:7px; margin:0!important; }.book-inline label { margin:0!important; white-space:nowrap; color:var(--sub)!important; font-size:14px!important; }.book-inline input { width:130px!important; height:34px!important; padding:0 10px!important; }.book-inline .field:first-child input { width:195px!important; }.book-inline .cover { display:contents!important; border:0!important; padding:0!important; }.book-inline #coverInput,.book-inline .cover img { display:none!important; }.book-inline .cover-upload-button { display:inline-flex!important; align-items:center; height:34px; padding:0 10px; border:1px solid var(--accent)!important; border-radius:7px; background:var(--accent-soft); color:var(--accent)!important; font-size:14px!important; font-weight:600; cursor:pointer; }.book-inline .hint { display:none; }
   .grid { --chapter-width:270px; --preview-width:440px; min-width:0; max-width:100%; position:relative; grid-template-columns:var(--chapter-width) minmax(420px,1fr) var(--preview-width)!important; gap:16px!important; }.panel-resize-handle { position:absolute; top:0; bottom:0; z-index:10; width:14px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.panel-resize-handle::after { content:''; position:absolute; top:20%; bottom:20%; left:6px; width:2px; border-radius:2px; background:transparent; transition:background .15s; }.panel-resize-handle:hover::after,.panel-resize-handle.is-resizing::after { background:var(--accent); }.card { min-width:0; background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { min-width:0; padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
   .chapter-card { display:flex; flex-direction:column; }.left-tabs { grid-template-columns:repeat(3,1fr)!important; }.left-panel-host { position:relative; flex:1; min-height:0; overflow:hidden; }.left-panel { display:none!important; position:absolute; inset:0; overflow:auto; }.left-panel.active { display:block!important; }.left-panel#chaptersPanel.active { display:flex!important; flex-direction:column; overflow:hidden; }.left-panel#chaptersPanel .chapters { flex:1; min-height:0; overflow-y:auto; padding:8px 8px 20px!important; }.chapter { position:relative; overflow:hidden; padding-left:34px!important; padding-right:38px!important; text-overflow:ellipsis; white-space:nowrap; }.toc-toggle { position:absolute; right:29px; top:50%; z-index:2; width:18px; height:18px; transform:translateY(-50%); border:0; padding:0; background:transparent; color:var(--sub); font-size:14px; cursor:pointer; }.toc-toggle:hover { color:var(--accent); }.toc-eye { position:absolute; left:7px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:var(--sub); cursor:pointer; }.toc-eye.is-hidden { opacity:.35; }.add { flex:none; width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:var(--surface)!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel,.left-panel#assetsPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel #images { display:none!important; }.left-panel#cssPanel .hint,.asset-hint { color:var(--sub)!important; }.asset-upload { display:flex; align-items:center; justify-content:center; width:100%; margin-bottom:10px; border:1px dashed var(--accent); border-radius:8px; padding:10px; color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; }.asset-hint { color:var(--sub); font-size:12px; }.asset-row { display:flex; align-items:center; gap:6px; margin:5px 0; }.asset-row .draft-item { flex:1; }.asset-insert { width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--accent-soft); color:var(--accent); font-size:18px; cursor:pointer; }.draft-row { display:flex; gap:4px; }.draft-row .draft-item { flex:1; }.draft-delete { width:30px; border:1px solid var(--line); border-radius:8px; background:transparent; color:#ff9c75; cursor:pointer; }.cover-chapter { display:flex!important; align-items:center; gap:8px; }.cover-chapter::before { content:'▧'; color:var(--accent); font-size:14px; }
   .editor-controls { min-width:0; display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.toolbar-viewport { position:relative; min-width:0; flex:1; overflow:hidden; }.rich-toolbar { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow-x:auto; overflow-y:hidden; justify-content:space-between; padding:5px 4px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); scrollbar-width:none; }.rich-toolbar::-webkit-scrollbar { display:none; }.toolbar-viewport::before,.toolbar-viewport::after { content:''; pointer-events:none; opacity:0; transition:opacity .2s ease; position:absolute; top:1px; bottom:1px; z-index:1; width:64px; }.toolbar-viewport.show-previous::before,.toolbar-viewport.show-next::after { opacity:1; }.toolbar-viewport::before { left:1px; border-radius:9px 0 0 9px; background:linear-gradient(90deg,var(--surface-2) 15%,color-mix(in srgb,var(--surface-2) 85%,transparent) 48%,transparent); }.toolbar-viewport::after { right:1px; border-radius:0 9px 9px 0; background:linear-gradient(270deg,var(--surface-2) 15%,color-mix(in srgb,var(--surface-2) 85%,transparent) 48%,transparent); }.toolbar-previous,.toolbar-next { position:absolute; top:50%; z-index:2; width:29px; height:29px; transform:translateY(-50%); border:0; border-radius:7px; padding:6px; background:transparent; color:var(--text); cursor:pointer; }.toolbar-previous { left:5px; }.toolbar-next { right:5px; }.toolbar-previous:hover,.toolbar-next:hover { background:var(--accent-soft); color:var(--accent); }.toolbar-previous svg,.toolbar-next svg { display:block; }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
@@ -31,16 +31,16 @@ uiStyle.textContent = `
   .drag-handle { display:inline-flex; width:16px; margin-right:5px; color:var(--sub); cursor:grab; user-select:none; }.drag-handle:active { cursor:grabbing; }.chapter.is-dragging { opacity:.45; }.chapter.drop-before { box-shadow:inset 0 2px var(--accent); }.chapter.drop-after { box-shadow:inset 0 -2px var(--accent); }.chapter.drop-child { background:var(--accent-soft)!important; outline:1px dashed var(--accent); }
   .fields { grid-template-columns:minmax(0,1fr) minmax(125px,.5fr) minmax(125px,.38fr)!important; }.fields > .full { grid-column:1/-1!important; }
   .code-editor > .code { overflow:auto!important; white-space:pre-wrap!important; overflow-wrap:break-word; }.preview p,.preview h1,.preview h2,.preview h3,.preview h4,.preview h5,.preview li,.preview blockquote,.preview td,.preview th { cursor:text; }.fields { position:relative; }.fields.is-custom-width { grid-template-columns:minmax(220px,min(var(--chapter-title-width),calc(100% - 182px))) minmax(170px,1fr)!important; }.field-resize-handle { position:absolute; top:0; bottom:auto; left:0; z-index:4; width:14px; height:58px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.field-resize-handle::after { content:''; position:absolute; top:20px; bottom:2px; left:6px; width:2px; border-radius:2px; background:var(--line); transition:background .15s; }.field-resize-handle:hover::after,.field-resize-handle.is-resizing::after { background:var(--accent); }
-  .fields.is-custom-width { grid-template-columns:minmax(0,1fr) minmax(125px,.5fr) minmax(125px,.38fr)!important; }
+  .editor .fields.is-custom-width { grid-template-columns:minmax(120px,min(var(--chapter-title-width),calc(100% - 244px))) minmax(110px,1fr) minmax(110px,.76fr)!important; }
   @media(min-width:1921px) {
     main { max-width:none!important; width:100%!important; margin:0!important; padding:clamp(28px,2vw,72px)!important; }
     .grid { --chapter-width:clamp(270px,16vw,480px); --preview-width:minmax(480px,1fr); grid-template-columns:var(--chapter-width) minmax(620px,1.65fr) var(--preview-width)!important; gap:clamp(16px,1vw,30px)!important; }
-    .top { min-height:clamp(48px,3.2vw,76px); padding:clamp(6px,.45vw,12px) clamp(14px,1.1vw,28px)!important; }
+    .top { min-height:52px; padding:8px 16px!important; }
     .code { height:clamp(610px,48vw,1080px)!important; }.preview { height:clamp(680px,53vw,1180px)!important; }
-    .book-inline input { width:clamp(130px,8vw,240px)!important; padding:clamp(3.5px,.25vw,6px)!important; }.book-inline .field:first-child input { width:clamp(195px,12vw,360px)!important; }
-    .primary { padding:clamp(8px,.5vw,14px) clamp(12px,.75vw,20px)!important; font-size:clamp(12px,.6vw,18px)!important; }
-    .left-tab,.secondary { font-size:clamp(12px,.58vw,17px)!important; }.chapter { padding:clamp(10px,.65vw,17px)!important; font-size:clamp(14px,.7vw,20px)!important; }
-    label,.head { font-size:clamp(12px,.58vw,17px)!important; }.top { font-size:clamp(14px,.7vw,20px); }
+    .book-inline input { width:160px!important; padding:0 10px!important; }.book-inline .field:first-child input { width:240px!important; }
+    .primary { padding:8px 12px!important; font-size:14px!important; }
+    .left-tab,.secondary { font-size:14px!important; }.chapter { padding:10px!important; font-size:14px!important; }
+    label,.head { font-size:14px!important; }.top { font-size:14px; }
   }
   /* 작업 화면은 viewport 안에서 남은 높이를 패널에 전달한다. 페이지가 아닌 각 패널 내부만 스크롤한다. */
   .app { height:100dvh; min-height:0; overflow:hidden; }
@@ -88,6 +88,7 @@ import { requestGeminiCorrections } from './gemini-interactions.js?v=20261007-63
 import { applySourceEdits, chunkProofreadParagraphs, diffPartsToSourceEdits, extractProofreadParagraphs, isSuspiciousCorrection } from './gemini-proofread.js?v=20261007-63';
 import { fixXhtmlVoidElements } from './xhtml-tools.js?v=20261007-64';
 import { nearestPreviousTopLevelId } from './chapter-hierarchy.js?v=20261007-66';
+import { createChapterHistory } from './chapter-history.js';
 import { BookProject } from './book-project.js?v=20261008-styles';
 import { stylesFromCss, applyCustomStyle, applyTagStyle } from './text-styles.js';
 import { mountTextStyles } from './text-styles-ui.js';
@@ -99,14 +100,13 @@ import { formatXhtml, sourceElements, sourceAttribute, elementAtOffset, elementA
 import { xhtmlCompletionContext, monacoAttributeSuggestions, registerXhtmlEmmet } from './xhtml-completion.js';
 import { mountEditorTools, editorSearchPlugin, setEditorActionIcon } from './editor-tools.js';
 import { createElement as lucideElement, Quote, FilePlus, Upload, Download, ListEnd, ChevronLeft, ChevronRight, Pencil, Plus } from 'https://cdn.jsdelivr.net/npm/lucide@1.52.0/+esm';
+import { createFocusTrap } from 'https://cdn.jsdelivr.net/npm/focus-trap@8.2.3/+esm';
 import { mountAppSidebar } from './sidebar.js?v=20261008-76';
 import { installMonacoTheme } from './theme.js?v=20261007-75';
 
 export async function initializeApp() {
   const initialAccess = await appAccess;
   if (!initialAccess) return;
-  const accessMessage = document.querySelector('#accessMessage');
-  if (accessMessage) accessMessage.textContent = '편집기 준비 중…';
   document.head.append(uiStyle);
   // Existing markup is ID-heavy.  Accept both CSS selectors (`#body`) and
   // bare legacy IDs (`body`) so one selector typo cannot abort UI startup.
@@ -250,7 +250,7 @@ export async function initializeApp() {
   }));
   const accountArea = document.createElement('div');
   accountArea.className = 'account-area';
-  accountArea.innerHTML = `<a class="account-button account-admin-link" href="admin/" hidden>회원 관리</a><button type="button" class="account-button">로그인</button><div class="account-panel" hidden>
+  accountArea.innerHTML = `<button type="button" class="account-button">로그인</button><div class="account-panel" hidden>
     <h3>Sitescout 로그인</h3>
     <form class="login-form"><label>아이디<input name="username" autocomplete="username" required pattern="[a-z0-9][a-z0-9_.-]{2,31}" /></label><label>비밀번호<input name="password" type="password" autocomplete="current-password" required minlength="6" /></label><div class="account-actions"><button type="submit" class="primary">로그인</button><button type="button" class="secondary account-close">닫기</button></div></form>
     <p class="account-message" aria-live="polite"></p><div class="admin-panel" hidden><h3>사용자 아이디 발급</h3><form class="admin-form"><label>새 아이디<input name="username" required pattern="[a-z0-9][a-z0-9_.-]{2,31}" /></label><label>임시 비밀번호<input name="password" type="password" required minlength="6" /></label><button type="submit" class="secondary" style="width:100%;margin-top:10px">아이디 발급</button></form></div>
@@ -492,10 +492,23 @@ export async function initializeApp() {
   tocField.append(parentToc, parentTocPicker);
   const fieldResizeHandle = document.createElement('div');
   fieldResizeHandle.className = 'field-resize-handle';
+  fieldResizeHandle.tabIndex = 0;
+  fieldResizeHandle.setAttribute('role', 'separator');
+  fieldResizeHandle.setAttribute('aria-orientation', 'vertical');
+  fieldResizeHandle.setAttribute('aria-label', '장 제목 영역 너비 조절');
+  fieldResizeHandle.addEventListener('keydown', event => {
+    if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const width = Math.max(120, Math.min(editorFields.clientWidth - 260, titleField.clientWidth + (event.key === 'ArrowRight' ? 16 : -16)));
+    editorFields.classList.add('is-custom-width');
+    editorFields.style.setProperty('--chapter-title-width', `${width}px`);
+    localStorage.setItem('epub-chapter-title-width', String(width));
+    positionFieldResizeHandle();
+  });
   fieldResizeHandle.title = '장 제목과 Sigil 파일명 영역 너비 조절';
   editorFields.append(fieldResizeHandle);
   const savedFieldWidth = Number(localStorage.getItem('epub-chapter-title-width'));
-  if (Number.isFinite(savedFieldWidth) && savedFieldWidth > 220) {
+  if (Number.isFinite(savedFieldWidth) && savedFieldWidth >= 120) {
     editorFields.classList.add('is-custom-width');
     editorFields.style.setProperty('--chapter-title-width', `${savedFieldWidth}px`);
   }
@@ -504,6 +517,7 @@ export async function initializeApp() {
     const titleBounds = titleField.getBoundingClientRect();
     const sigilBounds = sigilFileField.getBoundingClientRect();
     const fieldsBounds = editorFields.getBoundingClientRect();
+    fieldResizeHandle.hidden = Math.abs(titleBounds.top - sigilBounds.top) > 1;
     fieldResizeHandle.style.left = `${Math.round((titleBounds.right + sigilBounds.left) / 2 - fieldsBounds.left)}px`;
   };
   new ResizeObserver(positionFieldResizeHandle).observe(editorFields);
@@ -516,7 +530,7 @@ export async function initializeApp() {
   fieldResizeHandle.addEventListener('pointermove', (event) => {
     if (!fieldResizeHandle.hasPointerCapture(event.pointerId)) return;
     const bounds = editorFields.getBoundingClientRect();
-    const width = Math.max(220, Math.min(bounds.width - 180, event.clientX - bounds.left));
+    const width = Math.max(120, Math.min(bounds.width - 260, event.clientX - bounds.left));
     editorFields.classList.add('is-custom-width');
     editorFields.style.setProperty('--chapter-title-width', `${Math.round(width)}px`);
     requestAnimationFrame(positionFieldResizeHandle);
@@ -586,6 +600,7 @@ export async function initializeApp() {
       body: htmlEditor.value,
       fileName: currentChapterFileName(index),
     };
+    window.recordChapterEdit?.(bookProject.selectedChapter, snapshot.body);
     bookProject.update(bookProject.selectedChapterId, snapshot);
     const chapterButton = chapterList.querySelector(`.chapter[data-i="${index}"]`);
     if (chapterButton) setChapterButtonLabel(chapterButton, snapshot.title, index);
@@ -1517,7 +1532,7 @@ export async function initializeApp() {
   richToolbar.className = 'rich-toolbar';
   richToolbar.hidden = true;
   richToolbar.innerHTML = `
-    <button type="button" data-editor-action="undo" title="되돌리기 (Ctrl/Cmd+Z)" aria-label="되돌리기"><span aria-hidden="true">↶</span></button>
+    <button type="button" data-editor-action="undo" title="되돌리기 (Ctrl/Cmd+Z)" aria-label="되돌리기" disabled>↶</button><button type="button" data-editor-action="redo" title="다시 실행 (Ctrl/Cmd+Shift+Z)" aria-label="다시 실행" disabled>↷</button>
     <button type="button" data-command="bold" title="굵게"><b>B</b></button>
     <button type="button" data-command="italic" title="기울임"><i>I</i></button>
     <button type="button" data-command="superscript" title="위첨자">x<sup>2</sup></button>
@@ -1593,11 +1608,11 @@ export async function initializeApp() {
     if (!isCoverSelected() || !htmlField.hidden) return;
     const view = document.createElement('div');
     view.className = 'cover-read-only-view';
-    view.style.cssText = 'display:grid;place-items:center;min-height:240px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);';
+    view.style.cssText = 'display:grid;grid-template-rows:minmax(0,1fr) auto;place-items:center;gap:12px;box-sizing:border-box;min-height:240px;height:min(560px,calc(100dvh - 320px));margin-top:12px;padding:12px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);';
     const image = document.createElement('img');
     image.alt = '표지 이미지';
     if (source) image.src = source;
-    image.style.cssText = 'display:block;max-width:100%;max-height:560px;object-fit:contain;';
+    image.style.cssText = 'display:block;min-width:0;min-height:0;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;';
     if (source) view.append(image);
     const upload = document.createElement('button');
     upload.type = 'button'; upload.className = 'secondary';
@@ -1692,12 +1707,13 @@ export async function initializeApp() {
   let supabaseUser = initialAccess.user;
   const cloudReady = Promise.resolve(authClient);
   const accountButton = accountArea.querySelector('button.account-button');
-  const adminLink = accountArea.querySelector('.account-admin-link');
   const accountPanel = accountArea.querySelector('.account-panel');
   const loginForm = accountArea.querySelector('.login-form');
   const adminForm = accountArea.querySelector('.admin-form');
   const accountMessage = accountArea.querySelector('.account-message');
   const adminPanel = accountArea.querySelector('.admin-panel');
+  let memberAdminSettingsTab = null;
+  let memberAdminSettingsPanel = null;
   const setAccountMessage = (message, error = false) => {
     accountMessage.textContent = message;
     accountMessage.classList.toggle('error', error);
@@ -1708,7 +1724,8 @@ export async function initializeApp() {
       loadAccountCssPresets(null);
       accountButton.textContent = '로그인';
       adminPanel.hidden = true;
-      adminLink.hidden = true;
+      if (memberAdminSettingsTab) memberAdminSettingsTab.hidden = true;
+      if (memberAdminSettingsPanel) memberAdminSettingsPanel.hidden = true;
       await hydrateDrafts();
       renderDrafts();
       return;
@@ -1719,7 +1736,10 @@ export async function initializeApp() {
     const targetId = supabaseUser.id;
     const { data, error } = await client.from('user_profiles').select('role,status').eq('user_id', targetId).maybeSingle();
     if (supabaseUser?.id !== targetId) return;
-    adminPanel.hidden = adminLink.hidden = !!error || data?.role !== 'admin' || data?.status !== 'approved';
+    const isApprovedAdmin = !error && data?.role === 'admin' && data?.status === 'approved';
+    adminPanel.hidden = !isApprovedAdmin;
+    if (memberAdminSettingsTab) memberAdminSettingsTab.hidden = !isApprovedAdmin;
+    if (memberAdminSettingsPanel) memberAdminSettingsPanel.hidden = !isApprovedAdmin;
     await hydrateDrafts();
   };
   accountButton.addEventListener('click', async () => {
@@ -2007,17 +2027,39 @@ export async function initializeApp() {
   geminiSettingsStyle.textContent += '.gemini-settings-dialog{position:fixed;inset:0;margin:auto;box-sizing:border-box;overflow:hidden}.gemini-settings-dialog[open]{display:flex;flex-direction:column}.gemini-settings-dialog .gemini-settings-form{min-height:0;overflow:auto}.gemini-settings-dialog .gemini-dialog-head,.gemini-settings-dialog .gemini-dialog-tabs{flex:none}';
   const geminiSettingsDialog = document.createElement('dialog');
   geminiSettingsDialog.className = 'gemini-settings-dialog';
-  geminiSettingsDialog.innerHTML = `<div class="gemini-dialog-head"><h2>설정</h2><button type="button" data-close>닫기</button></div><div class="gemini-dialog-tabs"><button type="button" aria-current="page">API 설정</button></div><form class="gemini-settings-form"><label>Gemini API Key<input name="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="AIza…" /></label><label>기본 프롬프트<textarea name="prompt" spellcheck="false"></textarea></label><div><button type="button" data-restore>기본값 복원</button></div><div class="gemini-dialog-footer"><span>키는 이 브라우저에만 저장되며 EPUB·프로젝트에는 포함되지 않습니다.</span><button type="submit" class="primary">저장</button></div></form>`;
+  geminiSettingsDialog.innerHTML = `<div class="gemini-dialog-head"><div><h2>설정</h2><p class="settings-description">작업 환경과 연결된 서비스를 관리하세요.</p></div><button type="button" data-close>닫기</button></div><div class="gemini-dialog-tabs"><button type="button" aria-current="page">API 설정</button></div><form class="gemini-settings-form"><label>Gemini API Key<input name="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="AIza…" /></label><label>기본 프롬프트<textarea name="prompt" spellcheck="false"></textarea></label><div><button type="button" data-restore>기본값 복원</button></div><div class="gemini-dialog-footer"><span>키는 이 브라우저에만 저장되며 EPUB·프로젝트에는 포함되지 않습니다.</span><button type="submit" class="primary">저장</button></div></form>`;
   document.body.append(geminiSettingsDialog);
+  // focus-trap is the shared OSS primitive for settings dialogs and the mobile drawer.
+  // Native dialog supplies the backdrop; focus-trap owns only keyboard containment.
+  const modalTraps = new WeakMap();
+  const openModal = (dialog, initialFocus) => {
+    let trap = modalTraps.get(dialog);
+    if (!trap) {
+      dialog.tabIndex = -1;
+      trap = createFocusTrap(dialog, {
+        initialFocus:initialFocus || dialog.querySelector('[data-close]'), fallbackFocus:dialog,
+        escapeDeactivates:false, allowOutsideClick:true, returnFocusOnDeactivate:false,
+      });
+      dialog.addEventListener('close', () => trap.deactivate());
+      modalTraps.set(dialog, trap);
+    }
+    if (!dialog.open) dialog.showModal();
+    trap.activate();
+  };
   const geminiSettingsForm = geminiSettingsDialog.querySelector('form');
+  geminiSettingsDialog.setAttribute('aria-label','Gemini API 설정');
+  const apiFeedback = document.createElement('p');
+  apiFeedback.className = 'settings-feedback'; apiFeedback.setAttribute('role','status');
+  geminiSettingsForm.append(apiFeedback);
   const geminiApiKeyField = geminiSettingsForm.elements.apiKey;
   const geminiPromptField = geminiSettingsForm.elements.prompt;
   const readGeminiSettings = () => ({ apiKey:localStorage.getItem(GEMINI_API_KEY_STORAGE) || '', prompt:localStorage.getItem(GEMINI_PROMPT_STORAGE) || DEFAULT_GEMINI_PROMPT });
   const openGeminiSettings = () => {
     const settings = readGeminiSettings();
+    apiFeedback.textContent = '';
     geminiApiKeyField.value = settings.apiKey;
     geminiPromptField.value = settings.prompt;
-    if (!geminiSettingsDialog.open) geminiSettingsDialog.showModal();
+    openModal(geminiSettingsDialog, geminiApiKeyField);
     geminiApiKeyField.focus();
   };
   geminiSettingsDialog.querySelector('[data-close]').addEventListener('click', () => geminiSettingsDialog.close());
@@ -2025,20 +2067,54 @@ export async function initializeApp() {
   geminiSettingsForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const apiKey = geminiApiKeyField.value.trim();
-    if (!apiKey) { geminiApiKeyField.focus(); setStatus('Gemini API Key를 입력하세요.', 'error'); return; }
+    if (!apiKey) { geminiApiKeyField.focus(); apiFeedback.textContent = 'Gemini API Key를 입력하세요.'; return; }
     try {
       localStorage.setItem(GEMINI_API_KEY_STORAGE, apiKey);
       localStorage.setItem(GEMINI_PROMPT_STORAGE, geminiPromptField.value.trim() || DEFAULT_GEMINI_PROMPT);
       geminiSettingsDialog.close(); setStatus('Gemini API 설정을 저장했습니다.');
-    } catch { setStatus('API 설정 저장에 실패했습니다.', 'error'); }
+    } catch { apiFeedback.textContent = 'API 설정 저장에 실패했습니다. 브라우저 저장 공간을 확인하세요.'; }
   });
   const settingsDialog = document.createElement('dialog');
   settingsDialog.className = 'gemini-settings-dialog app-settings-dialog';
   settingsDialog.setAttribute('aria-label', '설정');
-  settingsDialog.innerHTML = '<div class="gemini-dialog-head"><h2>설정</h2><button type="button" data-close>닫기</button></div><div class="app-settings-content"><button type="button" class="api-settings-button">API 설정</button><div class="theme-setting"><span>테마 설정</span><label class="theme-switch-label"><span>Light</span><input type="checkbox" role="switch" aria-label="다크 테마" class="theme-switch"><span>Dark</span></label></div></div>';
+  settingsDialog.innerHTML = `<div class="gemini-dialog-head"><div><h2>설정</h2><p class="settings-description">작업 환경과 연결된 서비스를 관리하세요.</p></div><button type="button" data-close>닫기</button></div>
+    <div class="app-settings-shell"><nav class="app-settings-nav" aria-label="설정 메뉴" role="tablist" aria-orientation="vertical">
+      <button type="button" data-settings-tab="general" role="tab" aria-selected="true">일반</button>
+      <button type="button" data-settings-tab="members" role="tab" hidden>회원 관리</button>
+    </nav><div class="app-settings-content">
+      <section class="app-settings-panel" data-settings-panel="general"><h3>작업 환경</h3><p>자주 쓰는 작업실 환경을 이 브라우저에 저장합니다.</p><button type="button" class="api-settings-button">Gemini API 설정 <span aria-hidden="true">›</span></button><div class="theme-setting"><span>다크 테마</span><label class="theme-switch-label"><span>Light</span><input type="checkbox" role="switch" aria-label="다크 테마" class="theme-switch"><span>Dark</span></label></div></section>
+      <section class="app-settings-panel" data-settings-panel="members" hidden><h3>회원 관리</h3><p>승인 대기 회원을 확인하고, 계정을 발급하거나 승인 상태를 관리합니다.</p><a class="member-admin-settings-link" href="admin/">회원 관리 열기 <span aria-hidden="true">›</span></a></section>
+    </div></div>`;
   document.body.append(settingsDialog);
+  memberAdminSettingsTab = settingsDialog.querySelector('[data-settings-tab="members"]');
+  memberAdminSettingsPanel = settingsDialog.querySelector('[data-settings-panel="members"]');
+  const selectSettingsPanel = (name) => {
+    settingsDialog.querySelectorAll('[data-settings-tab]').forEach(tab => {
+      tab.setAttribute('aria-selected', String(tab.dataset.settingsTab === name));
+      tab.tabIndex = tab.dataset.settingsTab === name ? 0 : -1;
+    });
+    settingsDialog.querySelectorAll('[data-settings-panel]').forEach(panel => {
+      panel.hidden = panel.dataset.settingsPanel !== name;
+    });
+  };
+  settingsDialog.querySelectorAll('[data-settings-tab]').forEach(tab => {
+    tab.id = `settings-tab-${tab.dataset.settingsTab}`;
+    tab.setAttribute('aria-controls', `settings-panel-${tab.dataset.settingsTab}`);
+    const panel = settingsDialog.querySelector(`[data-settings-panel="${tab.dataset.settingsTab}"]`);
+    panel.id = `settings-panel-${tab.dataset.settingsTab}`;
+    panel.setAttribute('role','tabpanel'); panel.setAttribute('aria-labelledby',tab.id);
+    tab.addEventListener('click', () => selectSettingsPanel(tab.dataset.settingsTab));
+    tab.addEventListener('keydown', event => {
+      if (!['ArrowDown','ArrowUp','Home','End'].includes(event.key)) return;
+      event.preventDefault();
+      const tabs = [...settingsDialog.querySelectorAll('[data-settings-tab]')].filter(item => !item.hidden);
+      const index = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length-1 : (tabs.indexOf(tab) + (event.key === 'ArrowDown' ? 1 : tabs.length-1)) % tabs.length;
+      selectSettingsPanel(tabs[index].dataset.settingsTab); tabs[index].focus();
+    });
+  });
   side.querySelector('.settings-button').addEventListener('click', () => {
-    if (!settingsDialog.open) settingsDialog.showModal();
+    selectSettingsPanel('general');
+    openModal(settingsDialog, settingsDialog.querySelector('[data-close]'));
   });
   settingsDialog.querySelector('[data-close]').addEventListener('click', () => settingsDialog.close());
   settingsDialog.querySelector('.api-settings-button').addEventListener('click', () => {
@@ -3106,7 +3182,6 @@ export async function initializeApp() {
       else draftIndex.push(draft);
       if (epoch === restoreEpoch) {
         openedDraftTitle = draft.title;
-        setEditorActionIcon(draftButton,'Save','임시저장');
         setStatus(`“${draft.title}”을(를) 임시저장했습니다.`);
       }
       renderDrafts();
@@ -3134,9 +3209,10 @@ export async function initializeApp() {
       return saveInFlight;
     }
     draftButton.disabled = true;
+    setEditorActionIcon(draftButton,'LoaderCircle','저장 중...');
     saveInFlight = performSaveCurrentDraft(options)
       .catch(error => { setStatus(`저장 실패: ${error.message}`, 'error'); return false; })
-      .finally(() => { saveInFlight = null; draftButton.disabled = false; });
+      .finally(() => { saveInFlight = null; draftButton.disabled = false; setEditorActionIcon(draftButton,'Save','임시저장'); });
     return saveInFlight;
   };
   draftButton.addEventListener('click', () => { void saveCurrentDraft(); });
@@ -3406,14 +3482,15 @@ export async function initializeApp() {
   // 교정 요청은 현재 장 하나에 대해 한 번만 실행한다. 완료·실패 여부와 관계없이
   // finally에서 해제해 다음 교정 요청을 막지 않는다.
   let geminiProofreadBusy = false;
-  const applyGeminiSuggestions = (items, chapterIndex) => {
-    if (activeChapterIndex() !== chapterIndex) { setStatus('검사한 장이 바뀌었습니다. 현재 장을 다시 검사하세요.', 'error'); return false; }
+  const applyGeminiSuggestions = (items, targetChapter, source) => {
+    if (bookProject.selectedChapter !== targetChapter || targetChapter.xhtml !== source || htmlEditor.value !== source) { setStatus('검사한 장이 바뀌었습니다. 현재 장을 다시 검사하세요.', 'error'); return false; }
     if (!items.length) { setStatus('수정할 항목이 없습니다.'); return true; }
     try {
       const before = htmlEditor.value;
       const edits = items.map(({ start, end, original, replacement }) => ({ start, end, original, replacement }));
       const after = applySourceEdits(before, edits);
       const monacoEditor = window.epubMonacoEditor;
+      monacoEditor?.getModel()?.pushStackElement();
       if (!visualEditor.hidden) {
         // 일반편집은 Tiptap 한 곳에만 반영한다. Monaco까지 동시에 갱신하면 재저장 때 본문이 중복될 수 있다.
         htmlEditor.value = after;
@@ -3429,6 +3506,8 @@ export async function initializeApp() {
       if (htmlEditor.value !== after) { htmlEditor.value = after; htmlEditor.dispatchEvent(new Event('input', { bubbles:true })); }
       snapshotCurrentChapter();
       refreshPreview();
+      monacoEditor?.getModel()?.pushStackElement();
+      updateToolbarState();
       setStatus(`${items.length}건의 교정을 적용했습니다.`); return true;
     } catch (error) { setStatus(error.message || '교정을 적용하지 못했습니다. 다시 검사하세요.', 'error'); return false; }
   };
@@ -3437,11 +3516,11 @@ export async function initializeApp() {
     const settings = readGeminiSettings();
     if (!settings.apiKey) {
       setStatus('Gemini API 설정이 필요합니다.', 'error');
-      if (!geminiApiRequiredDialog.open) geminiApiRequiredDialog.showModal();
+      openModal(geminiApiRequiredDialog, geminiApiRequiredDialog.querySelector('[data-open-settings]'));
       return;
     }
     saveCurrentChapter();
-    const chapterIndex = activeChapterIndex();
+    const targetChapter = bookProject.selectedChapter;
     const source = htmlEditor.value;
     const paragraphs = extractProofreadParagraphs(source);
     if (!paragraphs.length) { setStatus('현재 장에서 검사할 본문 텍스트가 없습니다.', 'error'); return; }
@@ -3466,7 +3545,7 @@ export async function initializeApp() {
           seen.add(key); accepted.push({ ...edit, type:'교정' });
         });
       });
-      applyGeminiSuggestions(accepted, chapterIndex);
+      applyGeminiSuggestions(accepted, targetChapter, source);
     } catch (error) { console.warn('Gemini 교정 실패', error); setStatus(error.message || '교정에 실패했습니다.', 'error'); }
     finally { geminiProofreadBusy = false; proofreadButton.disabled = false; setEditorActionIcon(proofreadButton,'SpellCheck','맞춤법 교정'); }
   });
@@ -3481,6 +3560,7 @@ export async function initializeApp() {
       if (after === before) continue;
       chapters++;
       changes += diffChars(before, after).filter(part => part.added).length;
+      window.recordChapterEdit?.(chapter, after, true);
       bookProject.update(chapter.id, { xhtml:after });
     }
     if (bookProject.selectedChapter) setCurrentChapter(bookProject.selectedChapter);
@@ -3546,13 +3626,11 @@ export async function initializeApp() {
   visualEditor.addEventListener('click', (event) => {
     activeBlock = editableBlock(event.target);
   });
+  const historyButtons = [...richToolbar.querySelectorAll('[data-editor-action]')];
   const updateToolbarState = () => {
-    const undoButton = richToolbar.querySelector('[data-editor-action="undo"]');
-    if (tiptapEditor) {
-      undoButton.disabled = !tiptapEditor.can().undo();
-      return;
-    }
-    undoButton.disabled = false;
+    const model = window.epubMonacoEditor?.getModel();
+    for (const button of historyButtons) button.disabled = !bookProject.selectedChapter || !(button.dataset.editorAction === 'undo' ? model?.canUndo() : model?.canRedo());
+    if (tiptapEditor) return;
     const selection = window.getSelection();
     const node = selection?.anchorNode?.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
     if (!node || !visualEditor.contains(node)) return;
@@ -3577,16 +3655,6 @@ export async function initializeApp() {
     const button = event.target.closest('button');
     if (!button) return;
     if (button === footnoteButton) return;
-    if (button.dataset.editorAction === 'undo') {
-      if (tiptapEditor) tiptapEditor.chain().focus().undo().run();
-      else {
-        restoreVisualRange() || visualEditor.focus();
-        document.execCommand('undo', false, null);
-      }
-      syncFromVisual({ normalise:false });
-      updateToolbarState();
-      return;
-    }
     if (tiptapEditor) {
       const chain = tiptapEditor.chain().focus();
       if (button.dataset.list) {
@@ -3807,22 +3875,23 @@ export async function initializeApp() {
     canEdit:() => Boolean(tiptapEditor && !visualEditor.hidden && !isCoverSelected() && visualLoadedChapterId === bookProject.selectedChapterId),
     onError:message => setStatus(message, 'error'),
   });
-  document.addEventListener('keydown', (event) => {
-    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z') return;
-    // 일반편집 본문에 포커스가 있을 때만 가로챈다. XHTML Monaco, 제목 입력칸
-    // 등은 각 컴포넌트가 제공하는 기본 Undo 동작을 그대로 사용한다.
-    if (visualEditor.hidden || !visualEditor.contains(document.activeElement)) return;
-    event.preventDefault();
-    if (tiptapEditor) {
-      const chain = tiptapEditor.chain().focus();
-      if (event.shiftKey) chain.redo().run();
-      else chain.undo().run();
-    } else {
-      document.execCommand(event.shiftKey ? 'redo' : 'undo', false, null);
-    }
-    syncFromVisual({ normalise:false });
+  const runHistory = (redo) => {
+    const model = window.epubMonacoEditor?.getModel();
+    if (!model || !bookProject.selectedChapter) return;
+    model.pushStackElement();
+    if (redo ? model.canRedo() : model.canUndo()) model[redo ? 'redo' : 'undo']();
     updateToolbarState();
-  });
+  };
+  for (const button of historyButtons) {
+    mode.append(button);
+    button.addEventListener('click', () => runHistory(button.dataset.editorAction === 'redo'));
+  }
+  document.addEventListener('keydown', (event) => {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey || !['z','y'].includes(event.key.toLowerCase())) return;
+    if (visualEditor.hidden || !visualEditor.contains(document.activeElement)) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    runHistory(event.shiftKey || event.key.toLowerCase() === 'y');
+  }, true);
   // textarea는 장 전환·미리보기·임시저장의 기존 데이터 브리지로 유지하고, HTML 모드의
   // 실제 편집 UI만 Monaco로 대체한다. Monaco를 못 받아도 textarea가 그대로 동작한다.
   const installMonacoEditor = () => {
@@ -3875,36 +3944,48 @@ export async function initializeApp() {
         tabCompletion:'on', autoClosingBrackets:'always', autoClosingQuotes:'always', formatOnPaste:false,
       });
       window.epubMonacoEditor = editor;
+      editor.addAction({id:'epub.history.redo',label:'다시 실행',keybindings:[monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyY, monaco.KeyMod.WinCtrl | monaco.KeyCode.KeyY],precondition:'editorTextFocus',run:() => runHistory(true)});
       editor.onDidChangeCursorPosition(event => {
         if (focusSyncing || event.reason !== monaco.editor.CursorChangeReason.Explicit) return;
         if (editor.getValue() !== htmlEditor.value) return;
         synchronizeFocus(elementAtOffset(htmlEditor.value, editor.getModel().getOffsetAt(event.position)), 'monaco');
       });
       let synchronising = false;
-      let displayFormatGeneration = 0;
-      window.loadXhtmlMonaco = value => {
-        displayFormatGeneration++;
+      const history = createChapterHistory(monaco, bookProject);
+      const initialModel = editor.getModel();
+      window.recordChapterEdit = (chapter, source, separate = false) => {
+        const previous = synchronising;
         synchronising = true;
-        try { if (editor.getValue() !== value) editor.setValue(value); }
-        finally { synchronising = false; }
+        try { return history.record(chapter, source, separate); }
+        finally { synchronising = previous; updateToolbarState(); }
       };
-      window.formatXhtmlMonacoForDisplay = async () => {
-        if (htmlField.hidden || isCoverSelected() || !bookProject.selectedChapterId) return;
-        const chapterId = bookProject.selectedChapterId;
-        const canonical = editor.getValue();
-        const model = editor.getModel();
-        const version = model.getVersionId();
-        const generation = ++displayFormatGeneration;
-        if (validateXhtml(canonical).length) return;
-        // Monaco's Microsoft HTML language service operates on a detached
-        // document. The live buffer is never locked while formatting.
+      window.loadXhtmlMonaco = value => {
+        synchronising = true;
         try {
-          const formatted = formatXhtml(canonical);
-          if (generation !== displayFormatGeneration || chapterId !== bookProject.selectedChapterId || version !== model.getVersionId()) return;
-          if (formatted === canonical || !equivalentXhtml(canonical, formatted)) return;
-          editor.executeEdits('xhtml-format', [{ range:model.getFullModelRange(), text:formatted }]);
-        } catch (error) { console.warn('XHTML formatting unavailable', error); }
+          editor.getModel()?.pushStackElement();
+          const model = history.record(bookProject.selectedChapter, value);
+          if (editor.getModel() !== model) editor.setModel(model);
+        } finally { synchronising = false; updateToolbarState(); }
       };
+      window.loadXhtmlMonaco(htmlEditor.value);
+      if (initialModel !== editor.getModel()) initialModel.dispose();
+      // Source is canonical; entering a mode must not format or create an undo step.
+      window.formatXhtmlMonacoForDisplay = async () => {};
+      editor.addAction({
+        id:'epub.xhtml.format', label:'XHTML 서식 정리',
+        keybindings:[monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF],
+        precondition:'editorTextFocus',
+        run:() => {
+          const model = editor.getModel(); if (!model) return;
+          const before = model.getValue(); if (validateXhtml(before).length) return;
+          const after = formatXhtml(before);
+          if (after === before || !equivalentXhtml(before, after)) return;
+          editor.pushUndoStop();
+          editor.executeEdits('xhtml-format', [{range:model.getFullModelRange(),text:after}]);
+          editor.pushUndoStop();
+        },
+      });
+
       const syncTextareaFromMonaco = () => {
         if (synchronising) return;
         synchronising = true;
@@ -3914,8 +3995,9 @@ export async function initializeApp() {
       };
       editor.onDidChangeModelContent((event) => {
         if (synchronising || hydratingChapter) return;
-        displayFormatGeneration++;
         syncTextareaFromMonaco();
+        if (!visualEditor.hidden) setVisualHtml(htmlEditor.value);
+        updateToolbarState();
       });
       htmlEditor.addEventListener('input', () => {
         if (synchronising || editor.getValue() === htmlEditor.value) return;
@@ -4134,7 +4216,7 @@ export async function initializeApp() {
       tiptapEditor = new Editor({
         element:visualEditor,
         extensions:[
-          StarterKit.configure({ link:false, underline:false }), InlineStyle,
+          StarterKit.configure({ link:false, underline:false, history:false }), InlineStyle,
           Extension.create({ name:'documentSearch', addProseMirrorPlugins:() => [editorSearchPlugin()] }),
           colorModule.default.configure({ types:['textStyle'] }), imageModule.default,
           tableModule.default.configure({ resizable:true, View:PreservedTableView }), tableRowModule.default, tableHeaderModule.default, tableCellModule.default,

@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { loadSemanticEpub } from '../../scripts/lib/epub-semantic.mjs';
+import { approvedUser, mockApprovedSession } from './approved-session.js';
 
 async function start(page) {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline fixture'}));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => Boolean(window.epubMonacoEditor));
   await expect(page.locator('.ProseMirror')).toBeAttached({timeout:30000});
@@ -13,12 +14,12 @@ async function save(page) {
   await page.locator('.draft-save').click();
   await expect(page.locator('#status')).toContainText('로컬');
   await expect(page.locator('.draft-save')).toBeEnabled();
-  return page.evaluate(async () => {
+  return page.evaluate(async ownerId => {
     const {default:Dexie} = await import('https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm');
     const db = new Dexie('epub-builder-projects'); await db.open();
-    try { return (await db.table('projects').get(['local',document.querySelector('#title').value])).payload; }
+    try { return (await db.table('projects').get([ownerId,document.querySelector('#title').value]))?.payload; }
     finally { db.close(); }
-  });
+  }, approvedUser.id);
 }
 const rows = page => page.locator('#list .chapter');
 const ids = page => rows(page).evaluateAll(nodes => nodes.map(node => node.dataset.chapterId));
@@ -106,6 +107,28 @@ test('empty project Add creates one selected cover and then one normal chapter',
   await expect(rows(page)).toHaveCount(2);
   await expect(rows(page).last()).toContainText('새 장');
   await expect(page.locator('.cover-read-only-view')).toHaveCount(0);
+});
+
+test('read-only cover stays within its 1920×1080 container', async ({page}) => {
+  await page.setViewportSize({width:1920,height:1080});
+  await start(page);
+  await page.locator('#list .cover-chapter').click({position:{x:55,y:15}});
+  if (await page.locator('[data-mode-toggle]').textContent() === '일반편집') await page.locator('[data-mode-toggle]').click();
+  await page.locator('#coverInput').setInputFiles({
+    name:'tall-cover.svg', mimeType:'image/svg+xml',
+    buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="2400"><rect width="1200" height="2400" fill="#663399"/></svg>'),
+  });
+  await expect(page.locator('.cover-read-only-view img')).toBeVisible();
+  const geometry = await page.locator('.cover-read-only-view').evaluate(view => {
+    const image = view.querySelector('img');
+    const box = view.getBoundingClientRect();
+    const imageBox = image.getBoundingClientRect();
+    return { marginTop:getComputedStyle(view).marginTop, height:box.height,
+      imageWithin:imageBox.top >= box.top && imageBox.bottom <= box.bottom && imageBox.left >= box.left && imageBox.right <= box.right };
+  });
+  expect(geometry.marginTop).toBe('12px');
+  expect(geometry.height).toBeLessThanOrEqual(560);
+  expect(geometry.imageWithin).toBe(true);
 });
 
 test('imported cover restore reconnects original path/resource/metadata without changing body chapters', async ({page}) => {

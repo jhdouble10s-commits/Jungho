@@ -171,18 +171,20 @@ html:root[data-theme="dark"], html:root.dark:not([data-theme]) {
 .app-tooltip[hidden] { display:none; }
 
 /* Workspace controls: scoped to moved UI nodes, never to book content. */
-.app.epub-sidebar-layout > main { padding-top:56px!important; }
-.app .epub-topbar { flex:none; flex-flow:row wrap; align-items:center!important; gap:12px; }
+.app.epub-sidebar-layout > main { padding-top:30px!important; padding-bottom:30px!important; }
+.app .epub-topbar { flex:none; flex-flow:row wrap; align-items:center!important; min-height:52px!important; gap:10px; padding:8px 16px!important; }
 .app .epub-topbar .book-inline { flex:1 1 620px; min-width:0; margin:0; overflow:visible; }
 .app .epub-topbar .book-inline section { flex-wrap:wrap; }
 .app .epub-topbar .book-inline .field { display:flex; }
+.app .epub-topbar :is(label,input,button) { font-size:14px!important; }
+.app .epub-topbar input { height:34px!important; padding:0 10px!important; }
 .app .epub-file-actions { display:flex; flex:0 1 auto; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:8px; margin:0 0 0 auto; }
-.app .epub-file-actions button { display:inline-flex; flex:none; align-self:center; align-items:center; gap:8px; width:auto; height:32px; margin:0; white-space:nowrap; }
-.app .epub-file-actions .new-book { position:static; width:auto; padding:0 12px; font-size:12px; line-height:1.2; }
+.app .epub-file-actions button { display:inline-flex; flex:none; align-self:center; align-items:center; gap:8px; width:auto; height:34px; margin:0; font-weight:600!important; white-space:nowrap; }
+.app .epub-file-actions .new-book { position:static; width:auto; padding:0 12px; line-height:1.2; }
 .app .epub-file-actions > svg { flex:none; }
 @media(max-width:700px) {
   /* The existing in-flow drawer trigger (28px + 8px margin) precedes the card. */
-  .app.epub-sidebar-layout > main { padding-top:20px!important; }
+  .app.epub-sidebar-layout > main { padding-top:30px!important; padding-bottom:30px!important; }
 }
 .app .chapter-footer { display:flex; flex:none; align-items:center; gap:8px; padding:8px; border-top:1px solid var(--border); background:var(--card); }
 .app .chapter-footer #add { flex:1; width:auto!important; margin:0!important; min-height:32px; }
@@ -195,13 +197,65 @@ html:root[data-theme="dark"], html:root.dark:not([data-theme]) {
 .app #css-monaco-editor .monaco-editor,
 .app #css-monaco-editor .monaco-editor-background,
 .app #css-monaco-editor .margin { background:var(--editor-background)!important; }
-.app-settings-dialog.app-settings-dialog { width:min(420px,calc(100vw - 32px)); }
-.app-settings-dialog .app-settings-content { display:grid; gap:16px; padding:16px; overflow:auto; }
-.app-settings-dialog .api-settings-button { min-height:36px; padding:8px 12px; border:1px solid var(--border); border-radius:6px; text-align:left; cursor:pointer; }
-.app-settings-dialog .theme-setting { display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:13px; }
+.app-settings-dialog.app-settings-dialog { width:min(640px,calc(100vw - 32px)); }
+.app-settings-dialog .app-settings-shell { display:grid; grid-template-columns:156px minmax(0,1fr); min-height:276px; }
+.app-settings-dialog .app-settings-nav { display:grid; align-content:start; gap:4px; padding:12px; border-right:1px solid var(--border); background:var(--ui-muted); }
+.app-settings-dialog .app-settings-nav button { display:flex; align-items:center; gap:9px; min-height:36px; border:0; border-radius:7px; padding:8px 10px; background:transparent; color:var(--muted-foreground); font:600 14px/1.4 'Noto Sans KR',system-ui,sans-serif; text-align:left; cursor:pointer; }
+.app-settings-dialog .app-settings-nav button:hover,
+.app-settings-dialog .app-settings-nav button[aria-selected="true"] { background:var(--card); color:var(--foreground); box-shadow:var(--shadow-2xs); }
+.app-settings-dialog .app-settings-nav button[hidden] { display:none; }
+.app-settings-dialog .app-settings-nav button:last-child { margin-top:auto; }
+.app-settings-dialog .app-settings-content { display:grid; align-content:start; gap:18px; padding:22px; overflow:auto; }
+.app-settings-dialog .app-settings-panel[hidden] { display:none; }
+.app-settings-dialog .app-settings-panel h3 { margin:0; font-size:14px; font-weight:600; }
+.app-settings-dialog .app-settings-panel > p { margin:-9px 0 0; color:var(--muted-foreground); font-size:12px; line-height:1.6; }
+.app-settings-dialog .api-settings-button,
+.app-settings-dialog .member-admin-settings-link { display:flex; align-items:center; justify-content:space-between; min-height:42px; border:1px solid var(--border); border-radius:8px; padding:10px 12px; background:var(--card); color:var(--foreground); font:600 14px/1.4 'Noto Sans KR',system-ui,sans-serif; text-align:left; text-decoration:none; cursor:pointer; }
+.app-settings-dialog .api-settings-button:hover,
+.app-settings-dialog .member-admin-settings-link:hover { border-color:var(--ring); color:var(--accent-foreground); }
+.app-settings-dialog .theme-setting { display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:14px; }
 .app-settings-dialog .theme-switch-label { display:flex; align-items:center; gap:8px; cursor:pointer; }
 .app-settings-dialog input.theme-switch { appearance:none; position:relative; flex:none; width:36px; height:20px; margin:0; padding:0!important; border:1px solid var(--border); border-radius:12px; background:var(--ui-muted)!important; cursor:pointer; }
 .app-settings-dialog input.theme-switch::before { content:''; position:absolute; width:14px; height:14px; left:2px; top:2px; border-radius:50%; background:var(--foreground); transition:transform 180ms; }
 .app-settings-dialog input.theme-switch:checked { background:var(--primary)!important; }
 .app-settings-dialog input.theme-switch:checked::before { transform:translateX(16px); background:var(--primary-foreground); }
 .app-settings-dialog input.theme-switch:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
+@media(max-width:560px) {
+  .app-settings-dialog.app-settings-dialog { width:min(100vw - 24px,420px); }
+  .app-settings-dialog .app-settings-shell { grid-template-columns:1fr; }
+  .app-settings-dialog .app-settings-nav { grid-template-columns:repeat(2,minmax(0,1fr)); border-right:0; border-bottom:1px solid var(--border); }
+  .app-settings-dialog .app-settings-nav button:last-child { margin-top:0; }
+}
+
+/* Application chrome only: EPUB preview and editor document styles are excluded. */
+.app .epub-topbar label, .app .editor .fields label, .app .chapter-card label,
+.gemini-settings-dialog label, .admin-card label { font-weight:400!important; }
+.app .editor > .toolbar .editor-action-labeled { display:inline-flex; align-items:center; justify-content:center; gap:8px; width:auto; height:36px; padding:0 12px; border:1px solid var(--primary); border-color:var(--primary)!important; border-radius:8px; background:transparent!important; color:var(--primary)!important; font-size:14px; font-weight:600; }
+.app .editor > .toolbar .editor-action-labeled.draft-save { background:var(--primary)!important; color:var(--primary-foreground)!important; }
+.app .editor > .toolbar .editor-action-labeled:hover { background:color-mix(in srgb,var(--primary) 12%,var(--card))!important; }
+.app .editor > .toolbar .draft-save:hover { background:color-mix(in srgb,var(--primary) 88%,black)!important; }
+.app .editor > .toolbar .editor-action-labeled:active { transform:translateY(1px); }
+.app .editor-action-labeled:disabled { opacity:.55; cursor:wait; }
+.app .editor-action-labeled[aria-busy=true] svg { animation:startup-spin 1s linear infinite; }
+.app .editor-mode [data-editor-action] { min-width:32px; padding:6px!important; display:inline-flex; justify-content:center; align-items:center; }
+.app .editor-mode [data-editor-action]:disabled { opacity:.35; cursor:default; }
+.app .editor .fields .field-resize-handle { min-width:14px; height:58px; z-index:8; }
+.app .editor .fields .field-resize-handle[hidden] { display:none!important; }
+.app .field-resize-handle:focus-visible { outline:2px solid var(--ring); }
+@media(prefers-reduced-motion:reduce) { .app .editor-action-labeled[aria-busy=true] svg { animation:none; } }
+
+.gemini-settings-dialog .gemini-dialog-head { padding:24px; align-items:flex-start; }
+.gemini-settings-dialog .gemini-dialog-head h2 { font-size:20px; font-weight:600; letter-spacing:-.03em; }
+.gemini-settings-dialog .settings-description { margin:6px 0 0; font-size:12px; color:var(--muted-foreground); line-height:1.6; }
+.app-settings-dialog .app-settings-shell { min-height:320px; min-width:0; min-height:0; overflow:auto; }
+.app-settings-dialog .app-settings-panel { display:grid; gap:22px; }
+.app-settings-dialog .app-settings-panel > p { margin:-12px 0 0; }
+.app-settings-dialog .theme-setting { padding-top:20px; border-top:1px solid var(--border); }
+.gemini-settings-dialog .gemini-settings-form { padding:24px; gap:22px; }
+.gemini-settings-dialog .gemini-settings-form label { gap:10px; font-size:14px; }
+.gemini-settings-dialog .gemini-settings-form input { min-height:40px; padding:8px 12px; }
+.gemini-settings-dialog .gemini-dialog-footer { padding:18px 0 0; align-items:center; font-size:12px; color:var(--muted-foreground); }
+.gemini-settings-dialog .gemini-dialog-footer button { flex:none; padding:8px 18px; }
+.gemini-settings-dialog .settings-feedback { margin:0; font-size:12px; color:var(--destructive); }
+
+.app :is(.book-inline,.fields,.css-preset-control,.rich-toolbar,.device-controls,.account-panel) label, .text-style-dialog label { font-weight:400!important; }

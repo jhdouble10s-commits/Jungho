@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { setTheme, openApiSettings } from './ui-helpers.js';
+import { mockApprovedSession } from './approved-session.js';
 
 async function start(page) {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503, body:'offline fixture'}));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await expect(page.locator('.sb-header')).toBeAttached({timeout:30000});
   await page.waitForFunction(() => Boolean(window.epubMonacoEditor));
@@ -45,10 +46,14 @@ test('sidebar 240/56px, icon labels, persisted layout, themes, and editor resize
   await page.locator('#tabletPreview').selectOption('ipad');
   await previewFits(page);
   await page.screenshot({path:test.info().outputPath('sidebar-expanded-dark.png')});
+  const brandMark = await side.locator('.sb-brand-mark').boundingBox();
   await page.getByRole('button', {name:'사이드바 접기', exact:true}).click();
   await expect.poll(async () => (await side.boundingBox()).width).toBe(56);
   expect((await page.locator('main').boundingBox()).width).toBe(initialWidth + 184);
   await expect(side.locator('.sb-label:visible')).toHaveCount(0);
+  await expect(side.locator('.sb-brand')).toBeHidden();
+  const collapsedToggle = await side.locator('.sidebar-toggle').boundingBox();
+  expect(Math.abs((collapsedToggle.x + collapsedToggle.width / 2) - (brandMark.x + brandMark.width / 2))).toBeLessThanOrEqual(3);
   await expect(side.locator('.sb-submenu')).not.toBeVisible();
   for (const button of await side.locator('button.sb-menu-button:visible').all()) {
     await expect(button).toHaveAttribute('title', /.+/);

@@ -1,29 +1,30 @@
 import { test, expect } from '@playwright/test';
 import { setTheme, openApiSettings } from './ui-helpers.js';
+import { approvedUser, mockApprovedSession } from './approved-session.js';
 
 async function start(page) {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline fixture'}));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => Boolean(window.epubCssMonacoEditor), null, {timeout:30000});
   await expect(page.locator('.ProseMirror')).toBeAttached({timeout:30000});
 }
 async function record(page, title) {
-  return page.evaluate(async title => {
+  return page.evaluate(async ({ ownerId, title }) => {
     const {default:Dexie} = await import('https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm');
     const db = new Dexie('epub-builder-projects'); await db.open();
-    try { return (await db.table('projects').get(['local',title]))?.payload; }
+    try { return (await db.table('projects').get([ownerId,title]))?.payload; }
     finally { db.close(); }
-  },title);
+  },{ownerId:approvedUser.id,title});
 }
 
-test('file actions share the book information card, align centrally and wrap without overlap at 56px from the viewport', async ({page}) => {
+test('file actions share the book information card, align centrally and wrap within the 30px main padding', async ({page}) => {
   await start(page);
   const card=page.locator('.epub-topbar');
   await expect(card.locator('.epub-file-actions button')).toHaveCount(3);
   await expect(page.locator('main > .epub-file-actions')).toHaveCount(0);
   for(const width of [1600,1280,768,700,390,320,2560]) {
     await page.setViewportSize({width,height:1000});
-    await expect.poll(async ()=>(await card.boundingBox()).y).toBe(56);
+    await expect.poll(async ()=>(await card.boundingBox()).y).toBe(width<=700?66:30);
     for(const id of ['title','author','language']) await expect(card.locator(`#${id}`)).toBeVisible();
     const geometry=await card.evaluate(node=>{
       const rect=el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,center:r.top+r.height/2};};
@@ -47,6 +48,16 @@ test('file actions share the book information card, align centrally and wrap wit
     expect(geometry.card.right-geometry.actions.right).toBeLessThanOrEqual(30);
     if([1600,390].includes(width)) await page.screenshot({path:test.info().outputPath(`book-actions-${width}.png`)});
   }
+  await page.setViewportSize({width:1920,height:1080});
+  for (const label of ['불러오기','내보내기']) {
+    const button = card.getByRole('button',{name:label,exact:true});
+    await expect(button).toHaveCSS('font-size','14px');
+    await expect(button).toHaveCSS('font-weight','600');
+    await expect(button).toHaveCSS('height','34px');
+  }
+  await expect(card.locator('#title')).toHaveCSS('font-size','14px');
+  await expect(card.locator('#title')).toHaveCSS('height','34px');
+  expect((await card.boundingBox()).height).toBeLessThanOrEqual(54);
 });
 
 test('compact workspace actions, fixed chapter footer, CSS backgrounds, settings and automatic preview', async ({page}) => {
@@ -59,7 +70,7 @@ test('compact workspace actions, fixed chapter footer, CSS backgrounds, settings
   await expect(page.locator('.epub-file-actions button')).toHaveCount(3);
   await expect(page.getByRole('button',{name:'미리보기 갱신',exact:true})).toHaveCount(0);
   await expect(page.locator('.clear-drafts')).toHaveCount(0);
-  await expect(page.locator('.rich-toolbar [data-editor-action="undo"] + .footnote-insert svg')).toHaveCount(1);
+  await expect(page.locator('.rich-toolbar .footnote-insert svg')).toHaveCount(1);
   await expect(page.locator('.editor > .toolbar .draft-save')).toHaveAttribute('aria-label','임시저장');
   const tools=page.locator('.editor > .toolbar > button');
   expect(await tools.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label')))).toEqual(['맞춤법 교정','XHTML 자동수정','임시저장']);

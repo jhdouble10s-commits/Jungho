@@ -51,6 +51,26 @@ Deno.serve(async (request) => {
       global: { headers: { Authorization: `Bearer ${token}` } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
+    if (action === 'list-members') {
+      // Admin Auth data is read only on the server, after the live role check.
+      // Return only fields needed by the dashboard; never identities or tokens.
+      const members = [];
+      const perPage = 100; // Keep the profile ID filter below proxy URL limits.
+      for (let page = 1; page <= 100; page++) {
+        const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
+        if (error) throw error;
+        const users = data.users;
+        if (!users.length) break;
+        const { data: profiles, error: profileError } = await callerClient.from('user_profiles')
+          .select('user_id,email,username,display_name,role,status,created_at').in('user_id', users.map(user => user.id));
+        if (profileError) throw profileError;
+        const byId = new Map(users.map(user => [user.id, user]));
+        for (const member of profiles || []) members.push({ ...member, last_sign_in_at:byId.get(member.user_id)?.last_sign_in_at || null });
+        if (users.length < perPage) break;
+        if (page === 100) throw new Error('회원 수가 조회 한도를 초과했습니다. 서버 페이지네이션 설정이 필요합니다.');
+      }
+      return json({ members, generatedAt:new Date().toISOString(), loginHistoryAvailable:false });
+    }
     if (action === 'list-pending') {
       const { data: members, error } = await callerClient.from('user_profiles')
         .select('user_id,email,username,display_name,created_at').eq('status', 'pending')

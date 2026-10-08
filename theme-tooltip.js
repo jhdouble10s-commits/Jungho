@@ -43,17 +43,18 @@ export function installThemeTooltips() {
     node.setAttribute('aria-describedby',[describedBy,tooltip.id].filter(Boolean).join(' '));
     tooltip.textContent = originalTitle;
     (node.closest('dialog[open]') || document.body).append(tooltip);
+    tooltip.style.visibility = 'hidden';
     tooltip.hidden = false;
     tooltip.showPopover?.();
     const current = generation;
     cleanup = autoUpdate(node, tooltip, () => {
       if (!node.isConnected || !node.getClientRects().length) return hide();
       computePosition(node, tooltip, {
-        strategy:'fixed', placement:node.closest('.side') ? 'right' : 'top',
+        strategy:'fixed', placement:'top',
         middleware:[offset(8),flip(),shift({padding:8})],
       }).then(({x,y}) => {
         if (owner !== node || current !== generation) return;
-        Object.assign(tooltip.style,{left:`${x}px`,top:`${y}px`});
+        Object.assign(tooltip.style,{left:`${x}px`,top:`${y}px`,visibility:'visible'});
       }).catch(() => { if (owner === node && current === generation) hide(); });
     });
   }

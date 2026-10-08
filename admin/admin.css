@@ -11,3 +11,51 @@
 .admin-card #refreshMembers{width:auto;padding:0 20px;margin-top:10px}
 .admin-card #createAccountForm{padding-bottom:24px;margin-bottom:24px;border-bottom:1px solid var(--line)}
 .admin-card h2{font-size:18px;margin:16px 0}
+.admin-page { display:block; padding:32px; background:var(--background); color:var(--foreground); }
+.admin-page .admin-card { width:min(1440px,100%); margin:auto; padding:32px; border:1px solid var(--border); background:var(--card); box-shadow:var(--shadow-sm); }
+.admin-card .admin-header { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.admin-card .workspace-link { font-size:14px; color:var(--primary); text-decoration:none; white-space:nowrap; }
+.admin-card .eyebrow { color:var(--muted-foreground); font-size:12px; letter-spacing:.1em; }
+.admin-card .member-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-top:28px; }
+.admin-card .member-kpis > div { padding:22px; border:1px solid var(--border); border-radius:12px; }
+.admin-card .member-kpis span { font-size:12px; color:var(--muted-foreground); }
+.admin-card .member-kpis strong { display:block; font-size:30px; font-weight:600; margin-top:12px; }
+.admin-card .metrics-note { color:var(--muted-foreground); font-size:12px; }
+.admin-card .issue-account { margin:28px 0; border-block:1px solid var(--border); padding:18px 0; }
+.admin-card .issue-account summary { font-size:14px; font-weight:600; cursor:pointer; }
+.admin-card #createAccountForm { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 20px; max-width:800px; margin:12px 0 0; padding:0; border:0; }
+.admin-card #createAccountForm :is(h2,p) { grid-column:1/-1; margin:8px 0; }
+.admin-card #createAccountForm label { margin:0; align-self:center; }
+.admin-card :is(input,select) { box-sizing:border-box; height:40px; border:1px solid var(--border); background:var(--input); color:var(--foreground); padding:0 12px; border-radius:8px; font:14px system-ui,sans-serif; }
+.admin-card .submit { font:600 14px system-ui,sans-serif; background:var(--primary); color:var(--primary-foreground); }
+.admin-card .members-heading { display:flex; gap:12px; align-items:center; }
+.admin-card #memberCount { font-size:12px; color:var(--muted-foreground); }
+.admin-card .member-filters { display:flex; flex-wrap:wrap; gap:16px; align-items:end; }
+.admin-card .member-filters label { display:grid; gap:8px; margin:0; font-size:12px; }
+.admin-card .member-filters label:first-child { flex:1; min-width:180px; }
+.admin-card .member-table { border:1px solid var(--border); border-radius:10px; }
+.admin-card table { min-width:850px; }
+.admin-card th { background:var(--ui-muted); font-size:12px; font-weight:500; }
+.admin-card td { font-size:13px; }
+.admin-card td[data-status=pending] { color:var(--primary); }
+.admin-card td[data-status=rejected] { color:var(--destructive); }
+.admin-card .member-actions { display:table-cell; white-space:nowrap; }
+.admin-card .member-actions button { margin:2px; background:var(--card); color:var(--foreground); font-size:12px; }
+.admin-card .member-pagination { display:flex; align-items:center; justify-content:flex-end; gap:16px; margin-top:20px; font-size:13px; }
+.admin-card .member-pagination button,.admin-card #memberDetail button { border:1px solid var(--border); background:var(--card); color:var(--foreground); padding:8px 16px; border-radius:8px; cursor:pointer; }
+.admin-card .member-pagination button:disabled { opacity:.4; cursor:default; }
+.admin-card #memberDetail { width:min(520px,calc(100vw - 40px)); box-sizing:border-box; max-height:80dvh; overflow:auto; border:1px solid var(--border); border-radius:16px; padding:24px; background:var(--popover); color:var(--foreground); }
+.admin-card #memberDetail::backdrop { background:var(--overlay); }
+.admin-card .detail-head { display:flex; align-items:center; justify-content:space-between; }
+.admin-card #memberDetail dl { display:grid; grid-template-columns:120px 1fr; gap:16px; font-size:14px; }
+.admin-card #memberDetail dd { margin:0; overflow-wrap:anywhere; }
+.admin-card #memberDetail dt,.admin-card #memberDetail p { color:var(--muted-foreground); font-size:12px; }
+@media(max-width:700px) {
+ .admin-page { padding:12px; }
+ .admin-page .admin-card { padding:20px; }
+ .admin-card .admin-header { display:block; }
+ .admin-card .member-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+ .admin-card .member-kpis > div { padding:14px; }
+ .admin-card #createAccountForm { grid-template-columns:1fr; }
+ .admin-card .member-filters label { flex:1; }
+}

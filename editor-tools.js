@@ -1,13 +1,16 @@
 import * as icons from 'https://cdn.jsdelivr.net/npm/lucide@1.52.0/+esm';
 import * as search from 'https://esm.sh/prosemirror-search@1.1.0?external=prosemirror-model,prosemirror-state,prosemirror-view';
-import { closeHistory } from 'https://esm.sh/@tiptap/pm@2.11.5/history';
+import { computePosition, autoUpdate, offset, flip, shift } from 'https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.8.0/+esm';
 import { parse, generate } from './vendor/csstree.esm.js';
 
 export const editorSearchPlugin = () => search.search();
 export function setEditorActionIcon(button,icon,label) {
   button.setAttribute('aria-label',label);
   button.title = label;
-  button.replaceChildren(icons.createElement(icons[icon],{width:16,height:16,'aria-hidden':'true'}));
+  const labels = { '맞춤법 교정':'맞춤법교정', 'XHTML 자동수정':'xhtml교정', '임시저장':'저장' };
+  button.classList.add('editor-action-labeled');
+  button.setAttribute('aria-busy', String(icon === 'LoaderCircle'));
+  button.replaceChildren(icons.createElement(icons[icon],{width:16,height:16,'aria-hidden':'true'}), document.createTextNode(labels[label] || label));
 }
 
 // Only append missing rules; never stringify or overwrite the user's stylesheet.
@@ -25,8 +28,7 @@ function indentCss(css, rules) {
 
 export function mountEditorTools({ toolbar, getEditor, canEdit, cssEditor, onError }) {
   const separateUndo = () => {
-    const editor = getEditor();
-    editor.view.dispatch(closeHistory(editor.state.tr));
+    window.epubMonacoEditor?.getModel()?.pushStackElement();
   };
   const iconButton = (label, icon, action) => {
     const button = document.createElement('button');
@@ -36,7 +38,7 @@ export function mountEditorTools({ toolbar, getEditor, canEdit, cssEditor, onErr
     return button;
   };
   for (const [selector, icon] of [
-    ['[data-editor-action="undo"]','Undo2'], ['[data-command="bold"]','Bold'],
+    ['[data-editor-action="undo"]','Undo2'], ['[data-editor-action="redo"]','Redo2'], ['[data-command="bold"]','Bold'],
     ['[data-command="italic"]','Italic'], ['[data-command="superscript"]','Superscript'],
     ['[data-command="subscript"]','Subscript'], ['[data-command="justifyLeft"]','AlignLeft'],
     ['[data-command="justifyCenter"]','AlignCenter'], ['[data-command="justifyRight"]','AlignRight'],
@@ -122,22 +124,50 @@ export function mountEditorTools({ toolbar, getEditor, canEdit, cssEditor, onErr
     ['위에 행 추가','BetweenHorizontalStart','addRowBefore'], ['아래에 행 추가','BetweenHorizontalEnd','addRowAfter'],
     ['행 삭제','TableRowsSplit','deleteRow'], ['왼쪽에 열 추가','BetweenVerticalStart','addColumnBefore'],
     ['오른쪽에 열 추가','BetweenVerticalEnd','addColumnAfter'], ['열 삭제','TableColumnsSplit','deleteColumn'],
+    ['셀 병합','Combine','mergeCells'], ['셀 분할','Split','splitCell'],
     ['표 삭제','Trash2','deleteTable'],
   ];
   const tableActions = tableCommands.map(([label,icon,command,options]) => {
     const button = iconButton(label,icon,() => {
       if (!canEdit()) return;
       separateUndo();
-      getEditor().chain().focus()[command](options).run(); tablePanel.hidePopover();
+      getEditor().chain().focus()[command](options).run(); updateTableActions();
     });
     tablePanel.append(button); return {button,command,options};
   });
+  const updateTableActions = () => {
+    for (const item of tableActions) item.button.disabled = !canEdit() || !getEditor().can()[item.command](item.options);
+  };
   const tableButton = iconButton('표 편집','Table2',() => {
     if (!canEdit()) return;
-    for (const item of tableActions) item.button.disabled = !getEditor().can()[item.command](item.options);
+    updateTableActions();
+    if (!tablePanel.matches(':popover-open')) tablePanel.style.visibility = 'hidden';
     tablePanel.togglePopover();
   });
   toolbar.append(tableButton);
+  tableButton.setAttribute('aria-expanded', 'false');
+  tableButton.setAttribute('aria-haspopup', 'true');
+  let stopTablePosition;
+  tablePanel.addEventListener('toggle', () => {
+    stopTablePosition?.(); stopTablePosition = null;
+    const open = tablePanel.matches(':popover-open');
+    tableButton.setAttribute('aria-expanded', String(open));
+    if (!open) return;
+    stopTablePosition = autoUpdate(tableButton, tablePanel, () => {
+      computePosition(tableButton, tablePanel, {strategy:'fixed', placement:'bottom-start', middleware:[offset(8), flip(), shift({padding:8})]})
+        .then(({x,y}) => {
+          if (!tablePanel.matches(':popover-open')) return;
+          const opening = tablePanel.style.visibility === 'hidden';
+          Object.assign(tablePanel.style, {left:`${x}px`,top:`${y}px`,visibility:'visible'});
+          if (opening) tablePanel.querySelector('button:not(:disabled)')?.focus({preventScroll:true});
+        });
+    });
+  });
+  // Keep the document selection when clicking an operation. Native popover
+  // supplies outside-click dismissal and ESC, independently from editor focus.
+  tablePanel.addEventListener('mousedown', event => { if (event.target.closest('button')) event.preventDefault(); });
+  tablePanel.append(iconButton('표 도구 닫기', 'X', () => { tablePanel.hidePopover(); tableButton.focus(); }));
+
   // Existing table color inputs now write through ProseMirror, never live DOM.
   toolbar.querySelectorAll('[data-table-color]').forEach(input => {
     const control = input.closest('.table-color-control');
@@ -180,6 +210,7 @@ export function mountEditorTools({ toolbar, getEditor, canEdit, cssEditor, onErr
   };
   const close = () => {
     panel.hidden = true;
+    if (tablePanel.matches(':popover-open')) tablePanel.hidePopover();
     const editor = getEditor();
     if (editor) editor.view.dispatch(search.setSearchState(editor.state.tr,new search.SearchQuery({search:''})));
   };
@@ -204,6 +235,7 @@ export function mountEditorTools({ toolbar, getEditor, canEdit, cssEditor, onErr
   });
   toolbar.append(iconButton('찾기 및 바꾸기 (Ctrl+F)','Search',open));
   document.addEventListener('keydown',event => {
+    if (event.key === 'Escape' && tablePanel.matches(':popover-open')) { event.preventDefault(); event.stopPropagation(); tablePanel.hidePopover(); tableButton.focus(); return; }
     if (event.key === 'Escape' && !panel.hidden) { close(); return; }
     if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== 'f') return;
     if (!canEdit() || event.target.closest('input,textarea,.monaco-editor') && !panel.contains(event.target)) return;

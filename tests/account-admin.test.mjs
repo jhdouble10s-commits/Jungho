@@ -15,6 +15,7 @@ function fixture({ role = 'admin', status = 'approved', duplicate = false, failA
       auth: {
         getUser: async token => ({ data: { user: token === 'valid' ? { id: 'actor', user_metadata: { role: 'admin' } } : null }, error: null }),
         admin: {
+          listUsers: async ({page,perPage}) => ({data:{users:[...profiles.keys()].slice((page-1)*perPage,page*perPage).map(id => ({id,last_sign_in_at:'2026-10-09T01:00:00Z',identities:['private']}))},error:null}),
           createUser: async args => {
             created.push(args);
             if (duplicate) return { data: {}, error: { code: 'email_exists' } };
@@ -29,12 +30,13 @@ function fixture({ role = 'admin', status = 'approved', duplicate = false, failA
         const filters = [];
         const result = (single = false) => {
           if (patch && key === 'anon' && failApproval) return { data: null, error: new Error('RLS denied') };
-          const rows = [...profiles.values()].filter(row => filters.every(([name, value]) => row[name] === value));
+          const rows = [...profiles.values()].filter(row => filters.every(([name, value]) => Array.isArray(value) ? value.includes(row[name]) : row[name] === value));
           if (patch) { writes.push({ key, patch }); rows.forEach(row => Object.assign(row, patch)); }
           return { data: single ? rows[0] || null : rows, error: null };
         };
         const query = {
           select: () => query, order: () => query, limit: () => query,
+          in: (name,value) => { filters.push([name,value]); return query; },
           eq: (name, value) => { filters.push([name, value]); return query; },
           update: value => { patch = value; return query; },
           single: async () => result(true), maybeSingle: async () => result(true),
@@ -114,3 +116,24 @@ test('legacy username-only issuer and pending member approval still work', async
   assert.equal((await f.request({ action: 'list-pending' })).body.members.length, 1);
   assert.equal((await f.request({ action: 'set-status', userId: id, status: 'rejected' })).body.member.status, 'rejected');
 });
+
+test('dashboard returns actual last login without exposing Auth internals', async () => {
+  const result = await fixture().request({action:'list-members'});
+  assert.equal(result.status,200);
+  assert.equal(result.body.members[0].last_sign_in_at,'2026-10-09T01:00:00Z');
+  assert.equal(result.body.members[0].identities,undefined);
+  assert.equal(result.body.loginHistoryAvailable,false);
+});
+test('dashboard follows Auth pages without dropping or duplicating members', async () => {
+  const f=fixture();
+  for(let i=0;i<205;i++) f.profiles.set(`member-${i}`,{user_id:`member-${i}`,role:'user',status:'approved'});
+  const result=await f.request({action:'list-members'});
+  assert.equal(result.status,200);
+  assert.equal(result.body.members.length,206);
+  assert.equal(new Set(result.body.members.map(member=>member.user_id)).size,206);
+});
+for (const [role,status] of [['user','approved'],['admin','pending'],['admin','rejected']]) {
+  test(`dashboard rejects ${role}/${status}`, async () => {
+    assert.equal((await fixture({role,status}).request({action:'list-members'})).status,403);
+  });
+}

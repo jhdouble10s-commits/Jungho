@@ -10,7 +10,7 @@ async function authFixture(page, { status = 'approved', role = 'user', signedIn 
   const token = `${Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify({ sub: userId, exp: expires, role: 'authenticated' })).toString('base64url')}.fixture`;
   const session = { access_token: token, refresh_token: 'fixture-refresh', token_type: 'bearer', expires_in: 3600, expires_at: expires, user };
   const state = { status, role, signup: null, decisions: [], issued: [], createError: null, members: [
-    { user_id: memberId, email: 'new@example.com', display_name: '<script>unsafe</script>', created_at: '2026-10-08T00:00:00Z' },
+    { role:'user', status:'pending', last_sign_in_at:null, user_id: memberId, email: 'new@example.com', display_name: '<script>unsafe</script>', created_at: '2026-10-08T00:00:00Z' },
   ] };
   if (signedIn) await page.addInitScript(session => {
     if (!sessionStorage.getItem('fixture-seeded')) {
@@ -33,8 +33,8 @@ async function authFixture(page, { status = 'approved', role = 'user', signedIn 
         if (state.createError) { code = 409; body = { error: state.createError }; }
         else { state.issued.push(request); body = { username: request.username, displayName: request.displayName, role: 'user', status: 'approved' }; }
       }
-      else if (request.action === 'list-pending') body = { members: state.members };
-      else { state.decisions.push(request); state.members = state.members.filter(member => member.user_id !== request.userId); body = { member: { user_id: request.userId, status: request.status } }; }
+      else if (['list-pending','list-members'].includes(request.action)) body = { members: state.members };
+      else { state.decisions.push(request); state.members = state.members.map(member => member.user_id === request.userId ? {...member,status:request.status} : member); body = { member: { user_id: request.userId, status: request.status } }; }
     } else { body = []; }
     await route.fulfill({ status: code, contentType: 'application/json', body: JSON.stringify(body) });
   });
@@ -75,17 +75,21 @@ for (const [status, message] of [['pending', '관리자 승인 대기 중입니�
 }
 test('admin approval/rejection and reload use DB role; names render as text', async ({ page }) => {
   const state = await authFixture(page, { role: 'admin', signedIn: true });
-  state.members.push({ user_id: '22222222-2222-4222-8222-222222222222', email: 'reject@example.com', display_name: '거절 대상', created_at: '2026-10-08T00:00:00Z' });
+  state.members.push({ role:'user', status:'pending', user_id: '22222222-2222-4222-8222-222222222222', email: 'reject@example.com', display_name: '거절 대상', created_at: '2026-10-08T00:00:00Z' });
   await page.goto('/admin/');
   await expect(page.locator('#pendingMembers tr')).toHaveCount(2);
   await expect(page.locator('#pendingMembers')).toContainText('<script>unsafe</script>');
   await expect(page.locator('#pendingMembers script')).toHaveCount(0);
   await page.locator('#pendingMembers tr').first().getByRole('button', { name: '승인', exact: true }).click();
-  await expect(page.locator('#pendingMembers tr')).toHaveCount(1);
+  await expect(page.locator('#pendingMembers tr').first()).toContainText('승인됨');
+  await page.locator('#pendingMembers tr').first().getByRole('button', { name: '상세', exact: true }).click();
+  await expect(page.locator('#memberDetail')).toBeVisible();
+  await page.keyboard.press('Escape');
   await page.reload();
-  await expect(page.locator('#pendingMembers tr')).toHaveCount(1);
+  await expect(page.locator('#pendingMembers tr')).toHaveCount(2);
+  await expect(page.locator('#pendingMembers tr').first()).toContainText('승인됨');
   await page.getByRole('button', { name: '거절', exact: true }).click();
-  await expect(page.locator('#emptyMembers')).toBeVisible();
+  await expect(page.locator('#pendingMembers')).toContainText('거절됨');
   expect(state.decisions.map(item => item.status)).toEqual(['approved', 'rejected']);
   state.role = 'user';
   await page.reload();
@@ -117,11 +121,30 @@ test('approved username login and reload pass the editor access gate', async ({ 
   expect(await page.locator('.app').evaluate(node => node.inert)).toBe(false);
 });
 
+test('approved admins see the member-management settings tab and non-admins do not', async ({ page }) => {
+  const state = await authFixture(page, { role:'admin', signedIn:true });
+  await page.goto('/');
+  await expect(page.locator('.app')).toBeVisible({timeout:30000});
+  await page.locator('.settings-button').click();
+  const dialog = page.locator('.app-settings-dialog');
+  const membersTab = dialog.getByRole('tab',{name:'회원 관리',exact:true});
+  await expect(membersTab).toBeVisible();
+  await membersTab.click();
+  await expect(dialog.locator('.member-admin-settings-link')).toHaveAttribute('href','admin/');
+  await page.keyboard.press('Escape');
+  state.role = 'user';
+  await page.reload();
+  await expect(page.locator('.app')).toBeVisible({timeout:30000});
+  await page.locator('.settings-button').click();
+  await expect(page.locator('.app-settings-dialog').getByRole('tab',{name:'회원 관리',exact:true})).toBeHidden();
+});
+
 
 test('admin issues an account without mail and clears the password; duplicates and revoked access are handled', async ({ page }) => {
   const state = await authFixture(page, { role: 'admin', signedIn: true });
   await page.goto('/admin/');
   const form = page.locator('#createAccountForm');
+  await page.locator('.issue-account summary').click();
   await expect(form).toBeVisible({ timeout: 15000 });
   await form.getByLabel('아이디', { exact: true }).fill('reader01');
   await form.getByLabel('이름 또는 닉네임').fill('독자');
@@ -145,4 +168,35 @@ test('admin issues an account without mail and clears the password; duplicates a
   await form.getByRole('button', { name: '계정 발급' }).click();
   await expect(form).toBeHidden();
   expect(state.issued).toHaveLength(1);
+});
+
+test('member dashboard filters, sorts, paginates and opens safe details on mobile', async ({page}) => {
+  const state=await authFixture(page,{role:'admin',signedIn:true});
+  state.members=Array.from({length:23},(_,i)=>({user_id:`fixture-${i}`,display_name:`Member ${String(i).padStart(2,'0')}`,email:`user${i}@example.com`,role:i===0?'admin':'user',status:'approved',created_at:new Date(Date.now()-i*86400000).toISOString(),last_sign_in_at:i%2?null:new Date(Date.now()-i*3600000).toISOString()}));
+  await page.goto('/admin/');
+  await expect(page.locator('[data-kpi=total]')).toHaveText('23',{timeout:30000});
+  await expect(page.locator('#pendingMembers tr')).toHaveCount(10);
+  await page.locator('#nextPage').click(); await expect(page.locator('#pageSummary')).toHaveText('2 / 3');
+  await page.locator('#memberSearch').fill('user22@'); await expect(page.locator('#pendingMembers tr')).toHaveCount(1);
+  await expect(page.locator('#pendingMembers')).toContainText('Member 22');
+  await page.locator('#memberSearch').fill(''); await page.locator('#roleFilter').selectOption('admin');
+  await expect(page.locator('#pendingMembers tr')).toHaveCount(1);
+  await page.locator('#roleFilter').selectOption(''); await page.locator('#memberSort').selectOption('created_at:asc');
+  await expect(page.locator('#pendingMembers tr').first()).toContainText('Member 22');
+  for(const width of [1920,390]) {
+    await page.setViewportSize({width,height:1080});
+    await page.locator('#pendingMembers tr').first().getByRole('button',{name:'상세',exact:true}).click();
+    await expect(page.locator('#memberDetail')).toBeVisible();
+    await expect(page.locator('#memberDetail')).toContainText('Member 22');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    const backgrounds=[];
+    for(const theme of ['light','dark']) {
+      await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+      backgrounds.push(await page.locator('#memberDetail').evaluate(node=>getComputedStyle(node).backgroundColor));
+      await page.screenshot({path:test.info().outputPath(`members-${width}-${theme}.png`)});
+    }
+    expect(backgrounds[0]).not.toBe(backgrounds[1]);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#memberDetail')).not.toBeVisible();
+  }
 });

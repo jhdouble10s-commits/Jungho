@@ -23,6 +23,7 @@
   "homepage": "https://github.com/jhdouble10s-commits/Jungho#readme",
   "dependencies": {
     "@floating-ui/dom": "1.8.0",
+    "@tanstack/table-core": "8.21.3",
     "css-tree": "3.2.1",
     "dexie": "^4.4.6",
     "diff": "^9.0.0",

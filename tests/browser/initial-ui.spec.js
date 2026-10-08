@@ -98,11 +98,43 @@ for (const [label, options] of [
 }
 
 
+test('startup screen follows real access and editor phases, fits mobile and respects reduced motion', async ({ page }, testInfo) => {
+  await arrangeBoot(page);
+  let releaseAccess, releaseEditor;
+  const accessGate = new Promise(resolve => { releaseAccess = resolve; });
+  const editorGate = new Promise(resolve => { releaseEditor = resolve; });
+  await page.route(`${supabaseUrl}/rest/v1/user_profiles*`, async route => { await accessGate; await route.fallback(); });
+  await page.route('**/ui.js?*', async route => { await editorGate; await route.continue(); });
+  try {
+    await page.goto('/', { waitUntil: 'commit' });
+    const screen = page.locator('#accessMessage');
+    await expect(screen).toHaveAttribute('data-phase', 'access');
+    await expect(page.getByRole('status').first()).toContainText('작업 공간을 준비');
+    await expect(page.locator('.app')).toBeHidden();
+    await page.screenshot({ path: testInfo.outputPath('startup-desktop.png') });
+    releaseAccess();
+    await expect(screen).toHaveAttribute('data-phase', 'editor', { timeout: 30000 });
+    await expect(screen).toContainText('작업 공간을 준비');
+    await expect(page.locator('.app')).toBeHidden();
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(page.locator('.startup-spinner')).toHaveCSS('animation-name', 'none');
+    const card = await page.locator('.startup-card').boundingBox();
+    expect(card.x).toBeGreaterThanOrEqual(0);
+    expect(card.x + card.width).toBeLessThanOrEqual(375);
+    await page.screenshot({ path: testInfo.outputPath('startup-mobile.png') });
+    releaseEditor();
+    await expect(page.locator('.app')).toBeVisible({ timeout: 30000 });
+    await expect(screen).toHaveCount(0);
+  } finally { releaseAccess(); releaseEditor(); }
+});
+
 test('module load failure shows a recoverable error without exposing legacy UI', async ({ page }) => {
   await arrangeBoot(page);
   await page.route('**/editor-tools.js', route => route.fulfill({ status: 404, body: 'missing' }));
   await page.goto('/');
   await expect(page.getByRole('alert')).toContainText('편집기를 불러오지 못했습니다.');
+  await expect(page.locator('.startup-progress')).toBeHidden();
   await expect(page.locator('.app')).toBeHidden();
   await page.unroute('**/editor-tools.js');
   await page.getByRole('link', { name: '다시 시도' }).click();
