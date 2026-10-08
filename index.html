@@ -440,24 +440,31 @@
             }
         }
     </style>
+    <style>
+        #accessMessage {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            display: grid;
+            place-items: center;
+            margin: 0;
+            background: #080809;
+            color: #f5f5f5;
+            font: 600 14px "Noto Sans KR", system-ui, sans-serif;
+        }
+    </style>
+    <script type="module" src="app-access.js"></script>
 </head>
 
 <body>
-    <div class="app">
+    <p id="accessMessage" role="status">접근 권한 확인 중…</p>
+    <div class="app" inert style="visibility:hidden">
         <aside class="side">
-            <div class="brand">나의 작업실<small>개인용 전자책 도구</small></div>
-            <nav class="tabs"><button class="tab active" data-view="editorView">✦ &nbsp;EPUB 만들기</button><button
-                    class="tab" data-view="bookView">▣ &nbsp;책 정보</button><button class="tab" data-view="styleView">✎
-                    &nbsp;공통 CSS</button></nav>
+            <nav class="tabs" aria-label="프로젝트"><button class="tab active" data-view="editorView">프로젝트</button></nav>
             <p class="tip">인터넷이나 서버 없이 작동합니다.<br>원고와 이미지는 이 브라우저 안에서만 처리됩니다.</p>
         </aside>
         <main>
-            <div class="top">
-                <div>
-                    <h1 id="pageTitle">EPUB 만들기</h1>
-                    <p id="pageDescription">본문, 이미지와 목차를 정리한 뒤 EPUB 3.0 파일로 내보냅니다.</p>
-                </div><button id="export" class="primary">EPUB 3.0 내보내기</button>
-            </div>
+            <div class="top"><button id="export" class="primary">EPUB 3.0 내보내기</button></div>
             <div id="status" class="status" role="status" aria-live="polite"></div>
             <div id="editorView" class="view active">
                 <div class="grid">
@@ -514,13 +521,7 @@
     <!-- Monaco와 Emmet은 HTML 편집 모드에서만 로드합니다. 기존 정적 앱 구조를 유지합니다. -->
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
     <script type="importmap">{"imports":{"srcset":"https://cdn.jsdelivr.net/npm/srcset@5.0.3/+esm","prosemirror-state":"https://esm.sh/@tiptap/pm@2.11.5/state","prosemirror-model":"https://esm.sh/@tiptap/pm@2.11.5/model","prosemirror-view":"https://esm.sh/@tiptap/pm@2.11.5/view","vscode-html-languageservice":"https://cdn.jsdelivr.net/npm/vscode-html-languageservice@5.6.2/+esm","vscode-languageserver-textdocument":"https://cdn.jsdelivr.net/npm/vscode-languageserver-textdocument@1.0.12/+esm"}}</script>
-    <script type="module" src="ui.js?v=20261008-styles"></script>
-    <script>
-        /* 메인 작업 영역의 탭: 책 정보와 CSS는 EPUB 만들기 화면 안에서 전환합니다. */
-        { const sideTabs = document.querySelector('.side .tabs'), top = document.querySelector('.top'), statusBox = document.getElementById('status'), tabStyle = document.createElement('style'); tabStyle.textContent = '.side .tabs .tab{background:#312d59;color:#fff;cursor:default}.side .tabs .tab:not(:first-child){display:none}.workspace-tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:18px}.workspace-tab{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);padding:11px 14px 10px;font:700 14px inherit;cursor:pointer}.workspace-tab:hover,.workspace-tab.active{border-bottom-color:var(--accent);color:#4135a4}'; document.head.append(tabStyle); const mainTabs = document.createElement('nav'); mainTabs.className = 'workspace-tabs'; mainTabs.innerHTML = '<button class="workspace-tab active" data-view="editorView" data-title="EPUB 만들기" data-description="본문, 이미지와 목차를 정리한 뒤 EPUB 3.0 파일로 내보냅니다.">EPUB 만들기</button><button class="workspace-tab" data-view="bookView" data-title="책 정보" data-description="전자책의 기본 정보와 표지 이미지를 설정합니다.">책 정보</button><button class="workspace-tab" data-view="styleView" data-title="공통 CSS" data-description="모든 장에 적용할 서식을 작성합니다.">공통 CSS</button>'; top.after(mainTabs); mainTabs.querySelectorAll('button').forEach(button => button.onclick = () => { mainTabs.querySelectorAll('button').forEach(tab => tab.classList.toggle('active', tab === button)); document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === button.dataset.view)); document.getElementById('pageTitle').textContent = button.dataset.title; document.getElementById('pageDescription').textContent = button.dataset.description; statusBox.scrollIntoView({ block: 'nearest' }) }); }
-        { const mainTabs = document.querySelector('.workspace-tabs'), editorView = document.getElementById('editorView'), bookView = document.getElementById('bookView'), styleView = document.getElementById('styleView'), statusBox = document.getElementById('status'), layoutStyle = document.createElement('style'); layoutStyle.textContent = 'body{background:radial-gradient(circle at 80% -10%,#e6e1ff 0,transparent 33%),#f5f7fb}.side{background:linear-gradient(165deg,#151b32,#25204b);padding:30px 18px}.brand{font-size:20px;letter-spacing:-.04em}.tab{box-shadow:inset 0 1px #ffffff14}.top{background:#fff;border:1px solid #e5e8f1;border-radius:18px;padding:22px 24px;margin-bottom:12px;box-shadow:0 12px 35px #1b29400b}.top h1{font-size:30px}.primary{box-shadow:0 8px 18px #6558d53d;transition:transform .15s,box-shadow .15s}.primary:hover{transform:translateY(-1px);box-shadow:0 11px 22px #6558d54b}.workspace-tabs{background:#fff;border:1px solid #e5e8f1;border-radius:14px;padding:4px 8px;margin-bottom:14px;box-shadow:0 6px 20px #1b294008}.workspace-tab{border-radius:9px;border-bottom:0;padding:10px 14px}.workspace-tab.active{background:var(--soft);color:#4135a4}.card{box-shadow:0 12px 28px #1b29400c;border-color:#e5e8f1}.head{font-size:13px;letter-spacing:.01em}.preview{background:#fcfcfe}.settings-panel{display:none;margin:0 0 16px}.settings-panel.active{display:block}.settings-panel .settings{max-width:none;padding:0}.settings-panel .head{padding:14px 18px}.settings-panel section{padding:16px 18px}.settings-panel#bookView section{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.settings-panel#bookView .field:last-child{grid-column:1/-1}.settings-panel#styleView .css{height:210px}@media(max-width:700px){.top{padding:18px}.settings-panel#bookView section{display:block}}'; document.head.append(layoutStyle); bookView.classList.add('settings-panel'); styleView.classList.add('settings-panel'); mainTabs.after(bookView, styleView, statusBox); mainTabs.querySelectorAll('button').forEach(button => button.onclick = () => { mainTabs.querySelectorAll('button').forEach(tab => tab.classList.toggle('active', tab === button)); editorView.classList.add('active'); bookView.classList.toggle('active', button.dataset.view === 'bookView'); styleView.classList.toggle('active', button.dataset.view === 'styleView'); document.getElementById('pageTitle').textContent = 'EPUB 만들기'; document.getElementById('pageDescription').textContent = '본문, 이미지와 목차를 정리한 뒤 EPUB 3.0 파일로 내보냅니다.' }); }
-        { const font = document.createElement('link'), mainTabs = document.querySelector('.workspace-tabs'), bookView = document.getElementById('bookView'), styleView = document.getElementById('styleView'), theme = document.createElement('style'); font.rel = 'stylesheet'; font.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap'; document.head.append(font); theme.textContent = ':root{--ink:#f5f5f5;--muted:#9b9ba3;--line:#29292d;--bg:#080809;--nav:#030303;--accent:#9b87ff;--soft:#211c36}body{background:#080809!important;color:var(--ink)!important;font-family:"Noto Sans KR",system-ui,sans-serif!important}.app{background:radial-gradient(circle at 75% 0,#1d1732 0,transparent 32%)}.side{background:#030303;border-right:1px solid #242426}.brand small,.tip{color:#9999a3}.top,.workspace-tabs,.card{background:#111113!important;border-color:#29292d!important;box-shadow:0 16px 36px #00000038}.top h1{color:#fff}.top p,label,h2,.hint,.images{color:#a6a6af!important}.tab{background:#1b1825!important;color:#fff!important}.primary{background:linear-gradient(135deg,#927dff,#7259e8)!important}.workspace-tab{color:#92929b!important}.workspace-tab.active{background:#27213d!important;color:#cfc6ff!important}.chapter{color:#d8d8df}.chapter:hover{background:#1a1a1e}.chapter.active{background:#28213f;color:#d4cdff}.num{color:#85858f}input,textarea{background:#0a0a0c!important;border-color:#303035!important;color:#f5f5f5!important;font-family:"Noto Sans KR",system-ui,sans-serif!important}.code,.css{font-family:"SFMono-Regular",Consolas,monospace!important}.secondary{background:#1a1a1d!important;border-color:#35353a!important;color:#dedee4}.preview{background:#0a0a0c!important;border-color:#303035!important;color:#ededf0}.workspace-tabs{position:relative;z-index:5}.settings-panel{position:absolute!important;top:calc(100% + 10px);left:0;right:0;z-index:20;margin:0!important;display:none!important}.settings-panel.active{display:block!important}.settings-panel .settings{background:#151518!important;border:1px solid #393940!important;border-radius:16px;box-shadow:0 24px 60px #00000080;max-width:none}.settings-panel#bookView section{background:#151518}.settings-panel#styleView .css{background:#09090b!important}.status{position:relative;z-index:1}@media(max-width:700px){.settings-panel{left:-1px;right:-1px}.settings-panel#bookView section{display:block}.top{box-shadow:none}}'; document.head.append(theme); mainTabs.append(bookView, styleView); }
-    </script>
+    <script type="module" src="app-startup.js"></script>
 </body>
 
 </html>

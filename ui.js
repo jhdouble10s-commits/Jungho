@@ -80,7 +80,9 @@ uiStyle.textContent = `
 import JSZip from 'https://cdn.jsdelivr.net/npm/jszip@3.10.2/+esm';
 import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify@3.4.16/+esm';
 import Dexie from 'https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm';
-import ky from 'https://cdn.jsdelivr.net/npm/ky@2.1.0/+esm';
+import { client as authClient } from './auth-client.js';
+import { appAccess, markAppUiReady } from './app-access.js';
+import { signInApproved } from './auth-access.js';
 import { diffChars } from 'https://cdn.jsdelivr.net/npm/diff@9.0.0/+esm';
 import { requestGeminiCorrections } from './gemini-interactions.js?v=20261007-63';
 import { applySourceEdits, chunkProofreadParagraphs, diffPartsToSourceEdits, extractProofreadParagraphs, isSuspiciousCorrection } from './gemini-proofread.js?v=20261007-63';
@@ -100,7 +102,11 @@ import { createElement as lucideElement, Quote, FilePlus, Upload, Download, List
 import { mountAppSidebar } from './sidebar.js?v=20261008-76';
 import { installMonacoTheme } from './theme.js?v=20261007-75';
 
-window.addEventListener('DOMContentLoaded', () => {
+export async function initializeApp() {
+  const initialAccess = await appAccess;
+  if (!initialAccess) return;
+  const accessMessage = document.querySelector('#accessMessage');
+  if (accessMessage) accessMessage.textContent = '편집기 준비 중…';
   document.head.append(uiStyle);
   // Existing markup is ID-heavy.  Accept both CSS selectors (`#body`) and
   // bare legacy IDs (`body`) so one selector typo cannot abort UI startup.
@@ -117,7 +123,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const exportButton = $('#export');
   const bookView = $('#bookView');
   const styleView = $('#styleView');
-  const workspaceTabs = $('.workspace-tabs');
   const chapterList = $('#list');
   const addChapter = $('#add');
   const chapterCard = chapterList.closest('.card');
@@ -237,7 +242,7 @@ window.addEventListener('DOMContentLoaded', () => {
     </div>
   `);
 
-  top.querySelector('div').remove();
+  top.querySelector('div')?.remove();
   top.classList.add('epub-topbar');
   side.querySelectorAll('[data-view]').forEach((tab) => tab.addEventListener('click', () => {
     // 이후 다른 앱 탭을 추가해도 EPUB 책 정보·내보내기 바는 EPUB 탭에서만 보인다.
@@ -245,7 +250,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }));
   const accountArea = document.createElement('div');
   accountArea.className = 'account-area';
-  accountArea.innerHTML = `<button type="button" class="account-button">로그인</button><div class="account-panel" hidden>
+  accountArea.innerHTML = `<a class="account-button account-admin-link" href="admin/" hidden>회원 관리</a><button type="button" class="account-button">로그인</button><div class="account-panel" hidden>
     <h3>Sitescout 로그인</h3>
     <form class="login-form"><label>아이디<input name="username" autocomplete="username" required pattern="[a-z0-9][a-z0-9_.-]{2,31}" /></label><label>비밀번호<input name="password" type="password" autocomplete="current-password" required minlength="6" /></label><div class="account-actions"><button type="submit" class="primary">로그인</button><button type="button" class="secondary account-close">닫기</button></div></form>
     <p class="account-message" aria-live="polite"></p><div class="admin-panel" hidden><h3>사용자 아이디 발급</h3><form class="admin-form"><label>새 아이디<input name="username" required pattern="[a-z0-9][a-z0-9_.-]{2,31}" /></label><label>임시 비밀번호<input name="password" type="password" required minlength="6" /></label><button type="submit" class="secondary" style="width:100%;margin-top:10px">아이디 발급</button></form></div>
@@ -290,7 +295,6 @@ window.addEventListener('DOMContentLoaded', () => {
   new MutationObserver(renderCoverChapter).observe(chapterList, { childList:true });
 
   styleView.remove();
-  workspaceTabs?.remove();
   const cssSettings = styleView.querySelector('.settings');
   cssSettings.id = 'cssPanel';
   cssSettings.className = 'left-panel';
@@ -1685,41 +1689,15 @@ window.addEventListener('DOMContentLoaded', () => {
   let initializingWorkspace = true;
   let restoreEpoch = 0;
   let workspaceWrite = Promise.resolve();
-  const supabaseUrl = 'https://htzojicodwueivybovhy.supabase.co';
-  const supabasePublishableKey = 'sb_publishable_tgU1Ue4yOSJxG2Z6CTunPw_gvKhXtpq';
-  // Supabase SDK의 실제 네트워크 transport에 ky를 주입한다. 저장은 upsert이고
-  // 업로드도 동일 경로를 upsert하므로 제한된 재시도가 안전하다.
-  const supabaseFetch = ky.create({
-    timeout:30_000,
-    totalTimeout:90_000,
-    throwHttpErrors:false,
-    retry:{ limit:2, methods:['get', 'post', 'put', 'patch', 'delete'], retryOnTimeout:true, statusCodes:[408, 413, 429, 500, 502, 503, 504] },
-  });
-  let supabaseClient = null;
-  let supabaseUser = null;
-  const cloudReady = (async () => {
-    try {
-      const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.95.0/+esm');
-      supabaseClient = createClient(supabaseUrl, supabasePublishableKey, { global:{ fetch:supabaseFetch } });
-      let { data: { session } } = await supabaseClient.auth.getSession();
-      if (session?.user?.is_anonymous) {
-        await supabaseClient.auth.signOut();
-        session = null;
-      }
-      supabaseUser = session?.user || null;
-      return supabaseClient;
-    } catch (error) {
-      console.warn('Supabase 연결을 사용할 수 없습니다.', error);
-      return null;
-    }
-  })();
-  const accountButton = accountArea.querySelector('.account-button');
+  let supabaseUser = initialAccess.user;
+  const cloudReady = Promise.resolve(authClient);
+  const accountButton = accountArea.querySelector('button.account-button');
+  const adminLink = accountArea.querySelector('.account-admin-link');
   const accountPanel = accountArea.querySelector('.account-panel');
   const loginForm = accountArea.querySelector('.login-form');
   const adminForm = accountArea.querySelector('.admin-form');
   const accountMessage = accountArea.querySelector('.account-message');
   const adminPanel = accountArea.querySelector('.admin-panel');
-  const usernameEmail = (username) => `${String(username).trim().toLowerCase()}@users.sitescout.local`;
   const setAccountMessage = (message, error = false) => {
     accountMessage.textContent = message;
     accountMessage.classList.toggle('error', error);
@@ -1730,15 +1708,18 @@ window.addEventListener('DOMContentLoaded', () => {
       loadAccountCssPresets(null);
       accountButton.textContent = '로그인';
       adminPanel.hidden = true;
+      adminLink.hidden = true;
       await hydrateDrafts();
       renderDrafts();
       return;
     }
     loadAccountCssPresets(supabaseUser.id);
-    const username = supabaseUser.user_metadata?.username || supabaseUser.email?.split('@')[0] || '사용자';
+    const username = initialAccess.profile.display_name || initialAccess.profile.username || supabaseUser.email?.split('@')[0] || '사용자';
     accountButton.textContent = `${username} · 로그아웃`;
-    const { data } = await client.from('user_profiles').select('role').eq('user_id', supabaseUser.id).maybeSingle();
-    adminPanel.hidden = data?.role !== 'admin';
+    const targetId = supabaseUser.id;
+    const { data, error } = await client.from('user_profiles').select('role,status').eq('user_id', targetId).maybeSingle();
+    if (supabaseUser?.id !== targetId) return;
+    adminPanel.hidden = adminLink.hidden = !!error || data?.role !== 'admin' || data?.status !== 'approved';
     await hydrateDrafts();
   };
   accountButton.addEventListener('click', async () => {
@@ -1760,9 +1741,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const form = new FormData(loginForm);
     const client = await cloudReady;
     if (!client) return setAccountMessage('Supabase에 연결할 수 없습니다.', true);
-    const { data, error } = await client.auth.signInWithPassword({ email:usernameEmail(form.get('username')), password:String(form.get('password')) });
-    if (error) return setAccountMessage(error.message || '로그인에 실패했습니다.', true);
-    supabaseUser = data.user;
+    try {
+      const access = await signInApproved(client, form.get('username'), String(form.get('password')));
+      supabaseUser = access.user;
+    } catch (error) { return setAccountMessage(error.message || '로그인에 실패했습니다.', true); }
     await refreshAccountUi();
     accountPanel.hidden = true;
     setAccountMessage('로그인했습니다.');
@@ -4192,7 +4174,8 @@ window.addEventListener('DOMContentLoaded', () => {
     app, side, main:app.querySelector('main'),
     nodes:{ projects:editorTab, drafts:draftsPanel, account:accountArea },
   });
+  markAppUiReady();
   // Tooltips are optional presentation: a CDN failure must not block editing.
   void import('./theme-tooltip.js?v=20261007-75').then(({installThemeTooltips}) => installThemeTooltips())
     .catch(error => console.warn('테마 툴팁을 불러오지 못했습니다. 기본 툴팁을 유지합니다.', error));
-});
+}

@@ -4,7 +4,7 @@ import { resolve, extname } from 'node:path';
 const root = resolve('.');
 createServer(async (request, response) => {
   const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-  const path = resolve(root, `.${pathname === '/' ? '/index.html' : pathname}`);
+  const path = resolve(root, `.${pathname.endsWith('/') ? `${pathname}index.html` : pathname}`);
   if (!path.startsWith(root + '/')) { response.writeHead(403).end(); return; }
   try {
     const data = await readFile(path);
