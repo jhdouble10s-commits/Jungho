@@ -87,7 +87,7 @@ import { applySourceEdits, chunkProofreadParagraphs, diffPartsToSourceEdits, ext
 import { fixXhtmlVoidElements } from './xhtml-tools.js?v=20261007-64';
 import { nearestPreviousTopLevelId } from './chapter-hierarchy.js?v=20261007-66';
 import { BookProject } from './book-project.js?v=20261008-styles';
-import { stylesFromCss, applyCustomStyle } from './text-styles.js';
+import { stylesFromCss, applyCustomStyle, applyTagStyle } from './text-styles.js';
 import { mountTextStyles } from './text-styles-ui.js';
 import { styleShortcutBindings } from './style-shortcuts.js';
 import { validateXhtml, equivalentXhtml } from './xhtml-validation.js?v=20261007-70';
@@ -828,7 +828,6 @@ window.addEventListener('DOMContentLoaded', () => {
       const index = Number(chapter.dataset.i);
       if (index !== activeIndex && !tocExcluded.has(index) && !isDescendantOf(index, activeIndex)) parentToc.add(new Option(chapterLabel(chapter), String(index)));
       const visible = !tocExcluded.has(index);
-      chapter.title = visible ? '오른쪽 눈 아이콘을 눌러 목차에서 숨길 수 있습니다.' : '오른쪽 눈 아이콘을 눌러 목차에 다시 표시할 수 있습니다.';
       chapter.classList.toggle('is-toc-hidden', !visible);
     });
     parentToc.value = parentTocMap.get(activeIndex) ?? '';
@@ -1377,7 +1376,6 @@ window.addEventListener('DOMContentLoaded', () => {
   `;
   const textStylesUi = mountTextStyles({
     project:bookProject, toolbar:richToolbar, cssEditor,
-    onCssChange:() => cssEditor.dispatchEvent(new Event('input', { bubbles:true })),
     onError:message => setStatus(message, 'error'),
   });
   const mode = document.createElement('div');
@@ -2005,7 +2003,6 @@ window.addEventListener('DOMContentLoaded', () => {
     chapterList.replaceChildren();
     bookProject.selectedChapterId = null;
     bookProject.replace([], null);
-    textStylesUi.render();
     chapterFileNames.clear();
     $('#ctitle').value = '';
     $('#clevel').value = '1';
@@ -2016,6 +2013,7 @@ window.addEventListener('DOMContentLoaded', () => {
     $('#author').value = '';
     $('#language').value = 'ko';
     $('#css').value = '';
+    textStylesUi.render();
     window.epubCssMonacoEditor?.setValue('');
     cssPreset.value = 'custom';
     tocExcluded.clear();
@@ -2571,6 +2569,7 @@ window.addEventListener('DOMContentLoaded', () => {
     $('#author').value = draft.author || '';
     $('#language').value = draft.language || 'ko';
     $('#css').value = draft.css || '';
+    textStylesUi.render();
     window.epubCssMonacoEditor?.setValue($('#css').value);
     cssPreset.value = matchingCssPreset();
     tocExcluded.clear();
@@ -3483,7 +3482,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (event.target.value.startsWith('custom:')) {
       const style = bookProject.customStyles.find(item => `custom:${item.id}` === event.target.value);
       if (!tiptapEditor || !style) return;
-      if (!applyCustomStyle(tiptapEditor, style)) setStatus('스타일을 적용할 텍스트 또는 블록을 선택하세요.', 'error');
+      if (!(style.kind === 'tag' ? applyTagStyle(tiptapEditor, style.tag) : applyCustomStyle(tiptapEditor, style))) setStatus('스타일을 적용할 텍스트 또는 블록을 선택하세요.', 'error');
       syncFromVisual();
       return;
     }
@@ -3966,9 +3965,7 @@ window.addEventListener('DOMContentLoaded', () => {
           return styleShortcutBindings(bookProject, style => {
             if (visualEditor.hidden || isCoverSelected() || !this.editor.isEditable || this.editor.view.composing
               || visualLoadedChapterId !== bookProject.selectedChapterId) return false;
-            if (style.tag === 'p') return this.editor.commands.setParagraph();
-            if (style.tag) return this.editor.commands.setHeading({ level:Number(style.tag.slice(1)) });
-            return applyCustomStyle(this.editor, style);
+            return style.kind === 'tag' ? applyTagStyle(this.editor, style.tag) : applyCustomStyle(this.editor, style);
           });
         },
       });

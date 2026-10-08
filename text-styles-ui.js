@@ -1,7 +1,7 @@
-import { validateStyle, syncStyleCss, editorStyleCss } from './text-styles.js';
+import { validateStyle, styleTags } from './text-styles.js';
 import { shortcutFromEvent, validateStyleShortcut, displayStyleShortcut, readStyleShortcut } from './style-shortcuts.js';
 
-export function mountTextStyles({ project, toolbar, cssEditor, onCssChange, onError }) {
+export function mountTextStyles({ project, toolbar, cssEditor, onError }) {
   const select = toolbar.querySelector('[data-heading]');
   const sheet = document.createElement('style');
   sheet.dataset.editorTypography = '';
@@ -17,14 +17,12 @@ export function mountTextStyles({ project, toolbar, cssEditor, onCssChange, onEr
       <div class="style-dialog-picker"><label class="style-field"><span>스타일</span><select name="style" autofocus></select></label></div>
       <div class="style-field-group">
         <label class="style-field"><span>라벨</span><input name="label" required maxlength="100" placeholder="예: 강조문"></label>
-        <label class="style-field"><span>CSS 클래스</span><input name="className" pattern="[a-zA-Z_][a-zA-Z0-9_-]*" placeholder="예: highlight-text"></label>
-      </div>
-      <div class="style-field-group">
-        <label class="style-field"><span>글자 크기</span><input name="fontSize" placeholder="예: 18px / 1.2em"></label>
-        <label class="style-field"><span>줄 간격</span><input name="lineHeight" placeholder="예: 1.8"></label>
-        <label class="style-field"><span>글자색</span><input name="color" placeholder="예: #222222"></label>
-        <label class="style-field"><span>글자 굵기</span><input name="fontWeight" placeholder="예: 700 / bold"></label>
-        <p class="style-dialog-hint">비워 둔 항목은 기존 CSS를 따릅니다.</p>
+        <div class="style-field"><span>대상 종류</span><div class="style-target-kind">
+          <label><input type="radio" name="kind" value="class" checked> CSS 클래스</label>
+          <label><input type="radio" name="kind" value="tag"> 태그</label>
+        </div></div>
+        <label class="style-field"><span data-target-label>CSS 클래스명</span><input name="target" required placeholder="예: highlight-text"></label>
+        <p class="style-dialog-hint" data-target-hint>외형은 공통 CSS에서 설정합니다.</p>
       </div>
       <div class="style-field-group">
         <div class="style-field"><label for="style-shortcut-input">단축키</label><div class="style-shortcut-control">
@@ -33,7 +31,7 @@ export function mountTextStyles({ project, toolbar, cssEditor, onCssChange, onEr
         </div></div>
         <p class="style-dialog-hint" id="style-shortcut-help">Ctrl/Cmd + Alt + 숫자를 권장합니다.<br>일반편집 본문에서 사용할 수 있습니다.</p>
       </div>
-      <p class="style-dialog-note">텍스트를 선택하면 문장에, 선택하지 않으면 현재 블록에 스타일이 적용됩니다.</p>
+      <p class="style-dialog-note">CSS 클래스는 선택한 텍스트 또는 현재 블록에 적용됩니다. 태그는 현재 블록의 태그를 바꿉니다. 외형은 공통 CSS에서 설정하세요.</p>
       <p role="alert" data-style-error></p>
     </div>
     <footer class="style-dialog-footer">
@@ -56,9 +54,12 @@ export function mountTextStyles({ project, toolbar, cssEditor, onCssChange, onEr
     .text-style-dialog .style-field-group{display:grid;gap:12px;border-top:1px solid var(--line);padding:18px 0}
     .text-style-dialog .style-field{display:grid;grid-template-columns:var(--style-label-width) minmax(0,1fr);align-items:center;column-gap:18px;min-width:0;margin:0;font-size:13px;font-weight:500;line-height:1.5}
     .text-style-dialog .style-field > label{margin:0;font-size:inherit;font-weight:inherit}
-    .text-style-dialog :is(input,select){box-sizing:border-box;width:100%;min-width:0;height:40px;margin:0;padding:0 12px!important;border:1px solid var(--line)!important;border-radius:9px;background:var(--bg)!important;color:var(--text)!important;font-family:inherit;font-size:13px;font-weight:400;box-shadow:none;transition:border-color .16s,box-shadow .16s}
+    .text-style-dialog :is(input:not([type="radio"]),select){box-sizing:border-box;width:100%;min-width:0;height:40px;margin:0;padding:0 12px!important;border:1px solid var(--line)!important;border-radius:9px;background:var(--bg)!important;color:var(--text)!important;font-family:inherit;font-size:13px;font-weight:400;box-shadow:none;transition:border-color .16s,box-shadow .16s}
+    .text-style-dialog .style-target-kind{display:flex;align-items:center;gap:20px;min-height:40px}
+    .text-style-dialog .style-target-kind label{display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer;font-weight:400}
+    .text-style-dialog .style-target-kind input{width:16px;height:16px;margin:0;accent-color:var(--accent)}
     .text-style-dialog select{cursor:pointer;font-weight:600}
-    .text-style-dialog :is(input,select):focus{outline:none;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--focus-fill)!important}
+    .text-style-dialog :is(input:not([type="radio"]),select):focus{outline:none;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--focus-fill)!important}
     .text-style-dialog input::placeholder{color:var(--sub);opacity:.72}
     .text-style-dialog input:disabled{opacity:.5;cursor:not-allowed;background:var(--surface-2)!important}
     .text-style-dialog .style-dialog-hint{margin:0 0 0 calc(var(--style-label-width) + 18px);color:var(--sub);font-size:11px;line-height:1.7}
@@ -88,6 +89,8 @@ export function mountTextStyles({ project, toolbar, cssEditor, onCssChange, onEr
   const fields = form.elements;
   let openedStyles = null;
   const all = () => [...project.typographyStyles, ...project.customStyles];
+  const renderCss = () => { sheet.textContent = cssEditor.value ? `@scope (.rich-editor .ProseMirror) { ${cssEditor.value} }` : ''; };
+  cssEditor.addEventListener('input', renderCss);
   function render() {
     const value = select.value;
     select.replaceChildren();
@@ -99,16 +102,26 @@ export function mountTextStyles({ project, toolbar, cssEditor, onCssChange, onEr
     }
     select.add(new Option('+ 스타일 추가', 'add-style'));
     select.value = Array.from(select.options).some(option => option.value === value) ? value : '';
-    sheet.textContent = editorStyleCss(project);
+    renderCss();
     if (dialog.open && openedStyles !== project.typographyStyles) dialog.close();
   }
   function fill() {
     const style = all().find(item => item.id === fields.style.value);
-    for (const key of ['label','className','fontSize','lineHeight','color','fontWeight','shortcut']) fields[key].value = style?.[key] || '';
+    fields.label.value = style?.label || '';
     fields.shortcut.value = displayStyleShortcut(style?.shortcut);
-    fields.className.disabled = Boolean(style); fields.className.required = !style;
-    dialog.querySelector('[data-style-delete]').hidden = !style?.className;
+    form.querySelector(`input[name="kind"][value="${style?.kind === 'tag' ? 'tag' : 'class'}"]`).checked = true;
+    fields.target.value = style?.tag || style?.className || '';
+    fields.target.disabled = Boolean(style);
+    form.querySelectorAll('input[name="kind"]').forEach(input => { input.disabled = Boolean(style); });
+    updateTarget();
+    dialog.querySelector('[data-style-delete]').hidden = !style || project.typographyStyles.includes(style);
     dialog.querySelector('[data-style-error]').textContent = '';
+  }
+  function updateTarget() {
+    const tag = form.querySelector('input[name="kind"]:checked').value === 'tag';
+    dialog.querySelector('[data-target-label]').textContent = tag ? '태그명' : 'CSS 클래스명';
+    dialog.querySelector('[data-target-hint]').textContent = tag ? `사용 가능한 태그: ${styleTags.join(', ')}. 외형은 공통 CSS에서 설정합니다.` : '외형은 공통 CSS에서 설정합니다.';
+    fields.target.placeholder = tag ? '예: blockquote' : '예: highlight-text';
   }
   function open(add = false) {
     openedStyles = project.typographyStyles;
@@ -118,16 +131,13 @@ export function mountTextStyles({ project, toolbar, cssEditor, onCssChange, onEr
   }
   function commit(typographyStyles, customStyles) {
     if (openedStyles !== project.typographyStyles) { dialog.close(); return; }
-    const withoutShortcuts = styles => styles.map(({ shortcut, ...style }) => style);
-    const shortcutOnly = JSON.stringify(withoutShortcuts([...typographyStyles, ...customStyles])) === JSON.stringify(withoutShortcuts(all()));
-    const css = shortcutOnly ? cssEditor.value : syncStyleCss(cssEditor.value, { typographyStyles, customStyles }, project);
     project.typographyStyles = typographyStyles; project.customStyles = customStyles;
     openedStyles = typographyStyles;
     project.dirty = true; project.revision++;
-    cssEditor.value = css;
-    render(); if (!shortcutOnly) onCssChange(); dialog.close();
+    render(); dialog.close();
   }
   fields.style.addEventListener('change', fill);
+  form.querySelectorAll('input[name="kind"]').forEach(input => input.addEventListener('change', () => { fields.target.value = ''; updateTarget(); }));
   fields.shortcut.addEventListener('keydown', event => {
     if (['Tab','Escape'].includes(event.key)) return;
     event.preventDefault(); event.stopPropagation();
@@ -150,17 +160,18 @@ export function mountTextStyles({ project, toolbar, cssEditor, onCssChange, onEr
     event.preventDefault();
     try {
       const existing = all().find(style => style.id === fields.style.value);
-      const style = { ...(existing || { id:crypto.randomUUID(), className:fields.className.value.trim() }) };
-      for (const key of ['label','fontSize','lineHeight','color','fontWeight']) style[key] = fields[key].value.trim();
+      const kind = form.querySelector('input[name="kind"]:checked').value;
+      const target = fields.target.value.trim();
+      const style = { ...(existing || { id:crypto.randomUUID(), kind, ...(kind === 'tag' ? { tag:target.toLowerCase() } : { className:target }) }), label:fields.label.value.trim() };
       style.shortcut = validateStyleShortcut(readStyleShortcut(fields.shortcut.value), all(), style.id);
-      validateStyle(style, !style.tag);
-      if (!existing && project.customStyles.some(item => item.className === style.className)) throw new Error('이미 사용 중인 className입니다.');
-      commit(style.tag ? project.typographyStyles.map(item => item.id === style.id ? style : item) : project.typographyStyles,
-        style.tag ? project.customStyles : existing ? project.customStyles.map(item => item.id === style.id ? style : item) : [...project.customStyles, style]);
+      validateStyle(style, !project.typographyStyles.some(item => item.id === style.id));
+      if (!existing && all().some(item => item.kind === style.kind && (style.kind === 'tag' ? item.tag === style.tag : item.className === style.className))) throw new Error('이미 등록된 적용 대상입니다.');
+      commit(project.typographyStyles.some(item => item.id === style.id) ? project.typographyStyles.map(item => item.id === style.id ? style : item) : project.typographyStyles,
+        project.typographyStyles.some(item => item.id === style.id) ? project.customStyles : existing ? project.customStyles.map(item => item.id === style.id ? style : item) : [...project.customStyles, style]);
     } catch (error) { dialog.querySelector('[data-style-error]').textContent = error.message; }
   });
   dialog.querySelector('[data-style-delete]').addEventListener('click', () => {
-    if (!window.confirm('이 스타일이 본문에 사용 중일 수 있습니다. 정의만 삭제하고 본문의 class는 유지합니다.')) return;
+    if (!window.confirm('이 스타일이 본문에 사용 중일 수 있습니다. 설정만 삭제하고 본문과 공통 CSS는 유지합니다.')) return;
     try { commit(project.typographyStyles, project.customStyles.filter(style => style.id !== fields.style.value)); }
     catch (error) { onError(error.message); }
   });

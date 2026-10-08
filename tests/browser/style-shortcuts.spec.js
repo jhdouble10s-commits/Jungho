@@ -42,8 +42,7 @@ test('style shortcut settings apply tags/classes, persist, clear, and isolate pr
 
   await openStyle('new');
   await dialog.locator('[name=label]').fill('강조문');
-  await dialog.locator('[name=className]').fill('highlight-text');
-  await dialog.locator('[name=color]').fill('#d97706');
+  await dialog.locator('[name=target]').fill('highlight-text');
   await record('Control+Alt+9');
   await save();
   const customCss = await page.locator('#css').inputValue();

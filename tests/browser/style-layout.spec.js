@@ -21,21 +21,24 @@ test('style dialog aligns fields and stays usable in light/dark and narrow scree
       await expect(dialog.locator('[name=label]')).toHaveValue('제목 1');
       const boxes = await dialog.evaluate(node => {
         const rect = element => {const r=element.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,height:r.height};};
-        return {dialog:rect(node),inputs:[...node.querySelectorAll('input,select')].map(rect),
-          labels:[...node.querySelectorAll('.style-field > span,.style-field > label')].map(rect),
+        const rows = [...node.querySelectorAll('.style-field')].map(row => ({
+          label:rect(row.querySelector(':scope > span,:scope > label')),
+          input:rect(row.querySelector(':scope > input,:scope > select,:scope > .style-target-kind,:scope > .style-shortcut-control input')),
+        }));
+        return {dialog:rect(node),rows,
           overflow:node.scrollWidth-node.clientWidth};
       });
       expect(boxes.overflow).toBe(0);
       expect(boxes.dialog.x).toBeGreaterThanOrEqual(15);
       expect(boxes.dialog.right).toBeLessThanOrEqual(width-15);
-      for (const box of boxes.inputs) {
-        expect(Math.abs(box.x-boxes.inputs[0].x)).toBeLessThanOrEqual(1);
-        expect(Math.abs(box.right-boxes.inputs[0].right)).toBeLessThanOrEqual(1);
+      for (const {input:box} of boxes.rows) {
+        expect(Math.abs(box.x-boxes.rows[0].input.x)).toBeLessThanOrEqual(1);
+        expect(Math.abs(box.right-boxes.rows[0].input.right)).toBeLessThanOrEqual(1);
         expect(box.height).toBe(40);
       }
-      for (const [index, box] of boxes.labels.entries()) {
-        expect(Math.abs(box.x-boxes.labels[0].x)).toBeLessThanOrEqual(1);
-        expect(Math.abs(box.y+box.height/2-boxes.inputs[index].y-boxes.inputs[index].height/2)).toBeLessThanOrEqual(1);
+      for (const {label,input} of boxes.rows) {
+        expect(Math.abs(label.x-boxes.rows[0].label.x)).toBeLessThanOrEqual(1);
+        expect(Math.abs(label.y+label.height/2-input.y-input.height/2)).toBeLessThanOrEqual(1);
       }
       await page.screenshot({path:test.info().outputPath(`style-dialog-${theme}-${width}.png`)});
       await page.keyboard.press('Escape');
