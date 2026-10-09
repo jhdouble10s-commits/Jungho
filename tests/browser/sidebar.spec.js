@@ -87,7 +87,7 @@ test('sidebar 240/56px, icon labels, persisted layout, themes, and editor resize
   await side.locator('.tab[data-view="editorView"]').click();
   await side.locator('.draft-item').filter({hasText:'사이드바 저장 회귀 테스트'}).click();
   await expect(page.locator('#title')).toHaveValue('사이드바 저장 회귀 테스트');
-  await expect(page.locator('#preview')).toContainText('사이드바 전환에도 원문 유지');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('사이드바 전환에도 원문 유지');
   expect(errors).toEqual([]);
 });
 
@@ -139,7 +139,7 @@ test('sidebar menus delegate to original controls, native submenu keyboard, impo
   // Inspect the existing account route without sending credentials or signing out.
   await page.route('**/login/', route => route.fulfill({body:'login route fixture'}));
   await side.locator('.account-button').click();
-  await expect(page).toHaveURL(/\/login\/$/);
+  await expect(page).toHaveURL(/\/login\/\?reason=login$/);
 });
 
 test('mobile native drawer traps focus, closes by Escape/backdrop/action and returns to desktop without duplicates', async ({page}) => {

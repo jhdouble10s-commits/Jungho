@@ -81,7 +81,7 @@ import JSZip from 'https://cdn.jsdelivr.net/npm/jszip@3.10.2/+esm';
 import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify@3.4.16/+esm';
 import Dexie from 'https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm';
 import { client as authClient } from './auth-client.js';
-import { appAccess, markAppUiReady } from './app-access.js';
+import { appAccess, markAppUiReady, isAccessVerified, registerAccessRecovery } from './app-access.js';
 import { signInApproved } from './auth-access.js';
 import { diffChars } from 'https://cdn.jsdelivr.net/npm/diff@9.0.0/+esm';
 import { requestGeminiCorrections } from './gemini-interactions.js?v=20261007-63';
@@ -101,6 +101,7 @@ import { xhtmlCompletionContext, monacoAttributeSuggestions, registerXhtmlEmmet 
 import { mountEditorTools, editorSearchPlugin, setEditorActionIcon } from './editor-tools.js';
 import { createElement as lucideElement, Quote, FilePlus, Upload, Download, ListEnd, ChevronLeft, ChevronRight, Pencil, Plus } from 'https://cdn.jsdelivr.net/npm/lucide@1.52.0/+esm';
 import { createFocusTrap } from 'https://cdn.jsdelivr.net/npm/focus-trap@8.2.3/+esm';
+import { computePosition, autoUpdate, offset, flip, shift } from 'https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.8.0/+esm';
 import { mountAppSidebar } from './sidebar.js?v=20261008-76';
 import { installMonacoTheme } from './theme.js?v=20261007-75';
 
@@ -129,6 +130,8 @@ export async function initializeApp() {
   const chapterHeader = chapterCard.querySelector('.head');
   let chapterControls = chapterList.parentElement;
   const preview = $('#preview');
+  let previewIframe = null;
+  const previewContentRoot = () => previewIframe?.isConnected ? previewIframe.contentDocument?.body || preview : preview;
   const previewCard = preview.closest('.preview-card');
   const previewHeader = previewCard.querySelector('.head');
   const previewStage = document.createElement('div');
@@ -300,38 +303,42 @@ export async function initializeApp() {
   cssSettings.className = 'left-panel';
   cssSettings.querySelector('.head')?.remove();
   const cssPresetStoragePrefix = 'epub-builder-css-presets-v2';
+  const bookProject = new BookProject();
   let cssPresetOwnerId = null;
-  let activeCssPresetId = null;
   // 프리셋은 사용자가 저장한 항목만 제공한다. 가져온 CSS는 항상 그대로 유지한다.
   const CSS_PRESETS = [];
   const cssEditor = cssSettings.querySelector('#css');
   const cssPresetControl = document.createElement('div');
   cssPresetControl.className = 'css-preset-control';
-  cssPresetControl.innerHTML = '<div class="css-preset-row"><label for="cssPreset">프리셋 선택</label><select id="cssPreset"><option value="custom">사용자 정의 / 가져온 CSS</option></select><button type="button" class="css-preset-delete" hidden>삭제</button></div><div class="css-preset-row"><label for="cssPresetName">CSS 이름</label><input id="cssPresetName" placeholder="프리셋 제목"><button type="button" class="css-preset-save">CSS저장</button></div>';
+  cssPresetControl.innerHTML = '<div class="css-preset-row"><label for="cssPreset">프리셋 선택</label><select id="cssPreset" aria-describedby="cssPresetStatus"></select><button type="button" class="css-preset-delete" hidden>삭제</button></div><span id="cssPresetStatus" class="css-preset-status" role="status"></span><div class="css-preset-row"><label for="cssPresetName">CSS 이름</label><input id="cssPresetName" placeholder="프리셋 제목"><button type="button" class="css-preset-save">CSS저장</button></div>';
   const cssPreset = cssPresetControl.querySelector('select');
+  const cssPresetStatus = cssPresetControl.querySelector('#cssPresetStatus');
   const cssPresetName = cssPresetControl.querySelector('#cssPresetName');
   const cssPresetSave = cssPresetControl.querySelector('.css-preset-save');
   const cssPresetDelete = cssPresetControl.querySelector('.css-preset-delete');
   const rebuildCssPresetOptions = () => {
-    cssPreset.replaceChildren(new Option('사용자 정의 / 가져온 CSS', 'custom'));
+    cssPreset.replaceChildren();
     CSS_PRESETS.forEach((preset) => cssPreset.add(new Option(preset.name, preset.id)));
   };
   rebuildCssPresetOptions();
   cssSettings.querySelector('section')?.prepend(cssPresetControl);
-  const matchingCssPreset = () => CSS_PRESETS.find((preset) => preset.css.trim() === cssEditor.value.trim())?.id || 'custom';
-  const activeCssPreset = () => CSS_PRESETS.find((preset) => preset.id === activeCssPresetId) || null;
+  const activeCssPreset = () => CSS_PRESETS.find((preset) => preset.id === bookProject.cssPresetId) || null;
   const updatePresetDeleteButton = () => {
-    cssPresetDelete.hidden = !CSS_PRESETS.some((preset) => preset.id === cssPreset.value);
+    cssPresetDelete.hidden = !activeCssPreset();
   };
   const updatePresetSaveButton = () => {
     const isUpdating = !cssPresetName.value.trim() && activeCssPreset();
     cssPresetSave.textContent = isUpdating ? '현재 프리셋 저장' : 'CSS저장';
     cssPresetSave.disabled = !cssPresetName.value.trim() && !activeCssPreset();
   };
-  const selectMatchingCssPreset = () => {
-    const presetId = matchingCssPreset();
-    cssPreset.value = presetId;
-    if (presetId !== 'custom') activeCssPresetId = presetId;
+  const renderCssPresetSelection = () => {
+    const preset = activeCssPreset();
+    cssPreset.value = preset?.id || '';
+    if (!preset) cssPreset.selectedIndex = -1;
+    cssPreset.disabled = CSS_PRESETS.length === 0;
+    cssPresetStatus.textContent = preset
+      ? (cssEditor.value === preset.css ? `${preset.name} 적용 중` : `${preset.name} · 수정됨`)
+      : (cssEditor.value ? '직접 편집한 CSS' : '프리셋 미선택');
     updatePresetDeleteButton();
     updatePresetSaveButton();
   };
@@ -350,28 +357,35 @@ export async function initializeApp() {
     }
     CSS_PRESETS.splice(0, CSS_PRESETS.length, ...saved.filter((preset) => preset?.id && preset?.name && typeof preset.css === 'string'));
     rebuildCssPresetOptions();
-    activeCssPresetId = null;
-    selectMatchingCssPreset();
+    if (!CSS_PRESETS.some(preset => preset.id === bookProject.cssPresetId)) bookProject.cssPresetId = null;
+    renderCssPresetSelection();
   };
-  selectMatchingCssPreset();
+  renderCssPresetSelection();
   cssPreset.addEventListener('change', () => {
     const preset = CSS_PRESETS.find((item) => item.id === cssPreset.value);
-    if (!preset) {
-      activeCssPresetId = null;
-      updatePresetDeleteButton();
-      updatePresetSaveButton();
-      return;
-    }
-    activeCssPresetId = preset.id;
+    if (!preset) { renderCssPresetSelection(); return; }
+    bookProject.cssPresetId = preset.id;
     cssEditor.value = preset.css;
     cssEditor.dispatchEvent(new Event('input', { bubbles:true }));
     // 프리셋 선택은 곧 현재 책의 공통 CSS 변경이다. 별도 적용 단계 없이
     // 편집기·미리보기·내보내기가 같은 값을 사용하도록 즉시 다시 렌더링한다.
     refreshPreview();
-    updatePresetDeleteButton();
+    renderCssPresetSelection();
   });
   cssPresetName.addEventListener('input', updatePresetSaveButton);
-  cssEditor.addEventListener('input', selectMatchingCssPreset);
+  let hydratingCss = false;
+  cssEditor.addEventListener('input', () => {
+    if (!hydratingCss) { bookProject.dirty = true; bookProject.revision++; }
+    renderCssPresetSelection();
+  });
+  const hydrateCssValue = (value) => {
+    hydratingCss = true;
+    try {
+      cssEditor.value = value;
+      window.epubCssMonacoEditor?.setValue(value);
+      renderCssPresetSelection();
+    } finally { hydratingCss = false; }
+  };
   cssPresetSave.addEventListener('click', () => {
     if (!cssPresetOwnerId) { setStatus('CSS 프리셋은 로그인한 계정에서만 저장할 수 있습니다.', 'error'); return; }
     const name = cssPresetName.value.trim();
@@ -390,26 +404,22 @@ export async function initializeApp() {
       cssPreset.add(new Option(preset.name, preset.id));
     }
     saveAccountCssPresets();
-    activeCssPresetId = preset.id;
-    cssPreset.value = preset.id;
+    bookProject.cssPresetId = preset.id;
     cssPresetName.value = '';
-    updatePresetDeleteButton();
-    updatePresetSaveButton();
+    renderCssPresetSelection();
     setStatus(`“${preset.name}” 프리셋을 저장했습니다.`);
   });
   cssPresetDelete.addEventListener('click', () => {
     if (!cssPresetOwnerId) { setStatus('CSS 프리셋은 로그인한 계정에서만 관리할 수 있습니다.', 'error'); return; }
-    const presetIndex = CSS_PRESETS.findIndex((preset) => preset.id === cssPreset.value);
+    const presetIndex = CSS_PRESETS.findIndex((preset) => preset.id === bookProject.cssPresetId);
     if (presetIndex < 0) return;
     const preset = CSS_PRESETS[presetIndex];
     if (!window.confirm(`“${preset.name}” 프리셋을 삭제할까요?`)) return;
     CSS_PRESETS.splice(presetIndex, 1);
     Array.from(cssPreset.options).find((option) => option.value === preset.id)?.remove();
     saveAccountCssPresets();
-    if (activeCssPresetId === preset.id) activeCssPresetId = null;
-    cssPreset.value = 'custom';
-    updatePresetDeleteButton();
-    updatePresetSaveButton();
+    bookProject.cssPresetId = null;
+    renderCssPresetSelection();
     setStatus(`“${preset.name}” 프리셋을 삭제했습니다.`);
   });
   chapterHeader.textContent = '';
@@ -485,10 +495,11 @@ export async function initializeApp() {
   parentTocButton.setAttribute('aria-haspopup', 'listbox');
   parentTocButton.setAttribute('aria-expanded', 'false');
   const parentTocMenu = document.createElement('div');
-  parentTocMenu.className = 'parent-toc-menu';
+  parentTocMenu.className = 'parent-toc-menu editor-popover-motion';
   parentTocMenu.setAttribute('role', 'listbox');
   parentTocMenu.hidden = true;
-  parentTocPicker.append(parentTocButton, parentTocMenu);
+  parentTocPicker.append(parentTocButton);
+  document.body.append(parentTocMenu);
   tocField.append(parentToc, parentTocPicker);
   const fieldResizeHandle = document.createElement('div');
   fieldResizeHandle.className = 'field-resize-handle';
@@ -561,7 +572,6 @@ export async function initializeApp() {
   const collapsedTocRoots = new Set();
   // 선택은 화면 행 순서나 spine index가 아니라 안정적인 chapter.id만 기준으로 한다.
   // index는 TOC/spine의 순서를 표현할 때에만 파생값으로 사용한다.
-  const bookProject = new BookProject();
   const createChapterId = () => `chapter-${crypto.randomUUID()}`;
   const ensureChapterId = (chapter) => {
     if (!chapter.dataset.chapterId) chapter.dataset.chapterId = createChapterId();
@@ -600,6 +610,9 @@ export async function initializeApp() {
       body: htmlEditor.value,
       fileName: currentChapterFileName(index),
     };
+    const currentChapter = bookProject.selectedChapter;
+    if (currentChapter.title === snapshot.title && currentChapter.level === snapshot.level
+      && currentChapter.xhtml === snapshot.body && currentChapter.fileName === snapshot.fileName) return;
     window.recordChapterEdit?.(bookProject.selectedChapter, snapshot.body);
     bookProject.update(bookProject.selectedChapterId, snapshot);
     const chapterButton = chapterList.querySelector(`.chapter[data-i="${index}"]`);
@@ -845,7 +858,9 @@ export async function initializeApp() {
       }
     });
   };
+  let stopParentTocPosition = null;
   const closeParentTocMenu = () => {
+    stopParentTocPosition?.(); stopParentTocPosition = null;
     parentTocMenu.hidden = true;
     parentTocButton.setAttribute('aria-expanded', 'false');
   };
@@ -860,12 +875,17 @@ export async function initializeApp() {
       item.setAttribute('role', 'option');
       item.setAttribute('aria-selected', String(option.selected));
       item.textContent = option.textContent;
-      item.addEventListener('pointerdown', (event) => {
+      const choose = (event) => {
         event.preventDefault();
         event.stopPropagation();
         parentToc.value = option.value;
         closeParentTocMenu();
         parentToc.dispatchEvent(new Event('change', { bubbles:true }));
+        parentTocButton.focus({preventScroll:true});
+      };
+      item.addEventListener('pointerdown', choose);
+      item.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') choose(event);
       });
       parentTocMenu.append(item);
     });
@@ -955,14 +975,30 @@ export async function initializeApp() {
     closeParentTocMenu();
     if (opening) {
       parentTocMenu.hidden = false;
+      parentTocMenu.style.width = `${parentTocButton.getBoundingClientRect().width}px`;
+      parentTocMenu.style.visibility = 'hidden';
+      stopParentTocPosition = autoUpdate(parentTocButton, parentTocMenu, () => {
+        computePosition(parentTocButton, parentTocMenu, {
+          strategy:'fixed', placement:'bottom-start', middleware:[offset(5), flip(), shift({padding:8})],
+        }).then(({x,y}) => {
+          if (parentTocMenu.hidden) return;
+          const opening = parentTocMenu.style.visibility === 'hidden';
+          Object.assign(parentTocMenu.style, {left:`${x}px`, top:`${y}px`, width:`${parentTocButton.getBoundingClientRect().width}px`, visibility:'visible'});
+          if (opening) parentTocMenu.querySelector('[aria-selected="true"]')?.focus({preventScroll:true});
+        });
+      });
       parentTocButton.setAttribute('aria-expanded', 'true');
     }
   });
   document.addEventListener('pointerdown', (event) => {
-    if (!parentTocPicker.contains(event.target)) closeParentTocMenu();
+    if (!parentTocPicker.contains(event.target) && !parentTocMenu.contains(event.target)) closeParentTocMenu();
   }, true);
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeParentTocMenu();
+    if (event.key === 'Escape' && !parentTocMenu.hidden) { closeParentTocMenu(); parentTocButton.focus(); }
+    if (parentTocMenu.hidden || !['ArrowDown','ArrowUp'].includes(event.key) || !parentTocMenu.contains(event.target)) return;
+    event.preventDefault();
+    const options = [...parentTocMenu.querySelectorAll('button')];
+    options[(options.indexOf(document.activeElement) + options.length + (event.key === 'ArrowDown' ? 1 : -1)) % options.length]?.focus();
   });
   chapterList.addEventListener('click', scheduleChapterControlsRefresh);
   chapterList.addEventListener('click', (event) => {
@@ -1066,12 +1102,16 @@ export async function initializeApp() {
   htmlEditor.before(codeEditor);
   codeEditor.append(lineNumbers, htmlEditor);
   const previewAssets = new Map();
+  const unresolvedAssets = new Map();
+  const assetHash = async (blob) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer())))
+    .map(byte => byte.toString(16).padStart(2, '0')).join('');
   const revokePreviewAssetUrl = (asset) => {
     if (asset?.url?.startsWith('blob:')) URL.revokeObjectURL(asset.url);
   };
   const clearPreviewAssets = () => {
     previewAssets.forEach(revokePreviewAssetUrl);
     previewAssets.clear();
+    unresolvedAssets.clear();
   };
   window.addEventListener('pagehide', clearPreviewAssets, { once:true });
   // 본문 XHTML에는 noteref 링크만 두고, 각주 본문은 이 저장 가능한 목록으로
@@ -1079,8 +1119,6 @@ export async function initializeApp() {
   const footnotes = new Map();
   // 가져온 EPUB은 원본 경로·spine·TOC 정보를 유지해 재내보낼 때 사용한다.
   let importedEpub = null;
-  let importedCoverReplaced = false;
-  coverInput.addEventListener('change', () => { if (importedEpub) importedCoverReplaced = true; });
   const cleanAssetName = (value) => value.trim().replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ');
   const uniqueAssetName = (value, exclude = '') => {
     const cleaned = cleanAssetName(value) || 'image.png';
@@ -1089,7 +1127,7 @@ export async function initializeApp() {
     const extension = dot > 0 ? cleaned.slice(dot) : '';
     let candidate = `${base}${extension}`;
     let number = 2;
-    while (previewAssets.has(candidate) && candidate !== exclude) {
+    while ((previewAssets.has(candidate) || unresolvedAssets.has(candidate)) && candidate !== exclude) {
       candidate = `${base}-${number}${extension}`;
       number += 1;
     }
@@ -1110,11 +1148,10 @@ export async function initializeApp() {
   };
   const previewAssetForPath = (path) => previewAssets.get(path)
     || Array.from(previewAssets.values()).find((asset) => asset.originalPath === path);
-  const savedCoverAsset = () => Array.from(previewAssets.values()).find((asset) =>
-    asset.isCover || /(?:^|[\\/_-])cover(?:[._-]|$)/i.test(asset.originalPath || '')
-  );
+  const savedCoverAsset = () => Array.from(previewAssets.values()).find(asset => asset.isCover)
+    || Array.from(previewAssets.values()).find(asset => /(?:^|[\\/_-])cover(?:[._-]|$)/i.test(asset.originalPath || ''));
   const hydratePreviewAssets = () => {
-    hydrateResourceImages(preview, activeChapterIndex());
+    hydrateResourceImages(previewContentRoot(), activeChapterIndex());
   };
   const resolveResourceUrl = (source, chapterIndex = activeChapterIndex()) => {
       if (!source || /^(?:data:|blob:|https?:|#)/i.test(source)) return source;
@@ -1145,6 +1182,19 @@ export async function initializeApp() {
   };
   new MutationObserver(hydratePreviewAssets).observe(preview, { childList:true, subtree:true });
   const imageInput = $('#image');
+  const assetRecovery = document.createElement('p');
+  assetRecovery.className = 'asset-recovery';
+  assetRecovery.hidden = true;
+  const assetRecoveryText = document.createElement('span');
+  const assetRetryButton = document.createElement('button');
+  assetRetryButton.type = 'button';
+  assetRetryButton.textContent = '이미지 다시 불러오기';
+  assetRecovery.append(assetRecoveryText, assetRetryButton);
+  $('#assetList').after(assetRecovery);
+  const renderAssetRecovery = () => {
+    assetRecovery.hidden = unresolvedAssets.size === 0;
+    assetRecoveryText.textContent = unresolvedAssets.size ? `이미지 ${unresolvedAssets.size}개를 불러오지 못했습니다. 자산 정보는 보존됩니다. ` : '';
+  };
   const renderAssetShelf = () => {
     const list = $('#assetList');
     Array.from(list.children).forEach(row => { if (!previewAssets.has(row.dataset.assetName) || previewAssets.get(row.dataset.assetName) !== row.asset) row.remove(); });
@@ -1249,7 +1299,7 @@ export async function initializeApp() {
     previewAssets.set(name, { ...asset, originalPath:'', isCover:true });
     coverPreview.src = asset.url;
     coverPreview.hidden = false;
-    if (importedEpub) importedCoverReplaced = true;
+    if (importedEpub) importedEpub.coverReplaced = true;
     if (cover) {
       bookProject.update(cover.id, { xhtml:cover.originalPath && importedEpub?.coverImagePath ? cover.xhtml : `<p><img src="../Image/${name}" alt="표지" /></p>` });
       if (isCoverSelected()) { setCurrentChapter(cover); openCoverReadOnly(); showCoverPreview(); }
@@ -1262,6 +1312,11 @@ export async function initializeApp() {
   visualEditor.contentEditable = 'false';
   visualEditor.setAttribute('aria-label', '일반 편집기');
   visualEditor.hidden = true;
+  const visualReadOnlyNotice = document.createElement('p');
+  visualReadOnlyNotice.className = 'visual-read-only-notice';
+  visualReadOnlyNotice.textContent = '이 장에는 일반편집이 보존할 수 없는 XHTML 요소나 속성이 있어 읽기 전용입니다. XHTML편집에서 안전하게 수정할 수 있습니다.';
+  visualReadOnlyNotice.setAttribute('role', 'status');
+  visualReadOnlyNotice.hidden = true;
   // 일반편집은 Tiptap이 준비되면 그 문서 모델을 사용한다. textarea는 XHTML
   // 모드·저장·EPUB 내보내기와 호환되는 HTML 브리지로 계속 유지한다.
   let tiptapEditor = null;
@@ -1274,7 +1329,12 @@ export async function initializeApp() {
     editorTools?.close();
     suppressTiptapUpdate = true;
     try {
-      if (tiptapEditor) tiptapEditor.commands.setContent(html || '', false);
+      if (tiptapEditor) {
+        tiptapEditor.commands.setContent(html || '', false);
+        const safe = !html || equivalentXhtml(html, fixXhtmlVoidElements(tiptapEditor.getHTML()));
+        tiptapEditor.setEditable(safe);
+        visualReadOnlyNotice.hidden = safe || visualEditor.hidden;
+      }
       // Tiptap mounts its document inside this element. Never seed sibling
       // markup here while its asynchronous modules load: that markup would
       // survive every subsequent setContent() and look like fixed body text.
@@ -1568,7 +1628,7 @@ export async function initializeApp() {
   chapterErrorAlert.hidden = true;
   chapterErrorAlert.setAttribute('aria-expanded', 'false');
   const chapterErrorPopover = document.createElement('section');
-  chapterErrorPopover.className = 'chapter-error-popover';
+  chapterErrorPopover.className = 'chapter-error-popover editor-popover-motion';
   chapterErrorPopover.hidden = true;
   chapterErrorPopover.setAttribute('role', 'dialog');
   chapterErrorPopover.setAttribute('aria-label', '현재 장 XHTML 오류');
@@ -1597,6 +1657,7 @@ export async function initializeApp() {
   editorControls.append(mode, chapterErrorAlert, toolbarViewport);
   editorFields.before(editorControls);
   editorFields.after(visualEditor);
+  visualEditor.after(visualReadOnlyNotice);
   let coverReadOnly = null;
   const removeCoverReadOnly = () => {
     coverReadOnly?.remove();
@@ -1638,6 +1699,7 @@ export async function initializeApp() {
     editorActions.hidden = false;
     visualEditor.hidden = true;
     richToolbar.hidden = true;
+    visualReadOnlyNotice.hidden = true;
     window.epubMonacoEditor?.updateOptions({ readOnly:!bookProject.selectedChapter?.xhtml });
     renderCoverReadOnly();
   };
@@ -1651,6 +1713,7 @@ export async function initializeApp() {
     htmlField.hidden = visual;
     richToolbar.hidden = !visual;
     visualEditor.hidden = !visual;
+    visualReadOnlyNotice.hidden = !visual || !tiptapEditor || tiptapEditor.isEditable;
     const toggle = mode.querySelector('[data-mode-toggle]');
     toggle.textContent = visual ? 'XHTML편집' : '일반편집';
     toggle.setAttribute('aria-pressed', String(!visual));
@@ -1658,7 +1721,7 @@ export async function initializeApp() {
     updateChapterCharacterCount();
   };
   const chapterSearchPanel = document.createElement('section');
-  chapterSearchPanel.className = 'chapter-search-panel';
+  chapterSearchPanel.className = 'chapter-search-panel editor-popover-motion';
   chapterSearchPanel.hidden = true;
   chapterSearchPanel.setAttribute('role', 'dialog');
   chapterSearchPanel.setAttribute('aria-label', '전체 장 검색 및 바꾸기');
@@ -1668,6 +1731,7 @@ export async function initializeApp() {
   const chapterReplaceInput = chapterSearchPanel.querySelector('[data-chapter-replace]');
   const chapterSearchSummary = chapterSearchPanel.querySelector('.chapter-search-summary');
   const chapterSearchResults = chapterSearchPanel.querySelector('.chapter-search-results');
+  let chapterSearchReturnFocus = null;
   const updateToolbarNavigation = () => {
     const maxScroll = Math.max(0, richToolbar.scrollWidth - richToolbar.clientWidth);
     const canGoPrevious = richToolbar.scrollLeft > 2;
@@ -1701,6 +1765,10 @@ export async function initializeApp() {
     assets:'[ownerId+title+name], [ownerId+title], ownerId',
   });
   projectDatabase.version(2).stores({ workspace:'ownerId' });
+  projectDatabase.version(3).stores({
+    recoveries:'[ownerId+projectKey],ownerId,updatedAt',
+    recoveryAssets:'[ownerId+projectKey+name],[ownerId+projectKey]',
+  });
   let initializingWorkspace = true;
   let restoreEpoch = 0;
   let workspaceWrite = Promise.resolve();
@@ -1727,6 +1795,7 @@ export async function initializeApp() {
       if (memberAdminSettingsTab) memberAdminSettingsTab.hidden = true;
       if (memberAdminSettingsPanel) memberAdminSettingsPanel.hidden = true;
       await hydrateDrafts();
+      await showAvailableRecovery();
       renderDrafts();
       return;
     }
@@ -1741,6 +1810,7 @@ export async function initializeApp() {
     if (memberAdminSettingsTab) memberAdminSettingsTab.hidden = !isApprovedAdmin;
     if (memberAdminSettingsPanel) memberAdminSettingsPanel.hidden = !isApprovedAdmin;
     await hydrateDrafts();
+    await showAvailableRecovery();
   };
   accountButton.addEventListener('click', async () => {
     if (supabaseUser) {
@@ -1790,23 +1860,31 @@ export async function initializeApp() {
   };
   const saveDraftAssets = async (title, assets, ownerId) => {
     await projectDatabase.transaction('rw', projectDatabase.assets, async () => {
-      await projectDatabase.assets.where('[ownerId+title]').equals([ownerId, title]).delete();
+      const existing = await projectDatabase.assets.where('[ownerId+title]').equals([ownerId, title]).toArray();
+      const retained = new Set([...assets.map(([name]) => name), ...unresolvedAssets.keys()]);
+      await Promise.all(existing.filter(row => !retained.has(row.name)).map(row => projectDatabase.assets.delete([ownerId, title, row.name])));
       await projectDatabase.assets.bulkPut(assets.map(([name, asset]) => ({
         ownerId, title, name, blob:asset.blob, mediaType:asset.type,
-        originalPath:asset.originalPath || '', isCover:Boolean(asset.isCover),
+        originalPath:asset.originalPath || '', isCover:Boolean(asset.isCover), hash:asset.hash,
       })));
     });
   };
-  const loadDraftAssets = async (draft, isCurrent = () => true) => {
+  const loadDraftAssets = async (draft, isCurrent = () => true, recoveryAssets = new Map()) => {
     const loaded = new Map();
+    const missing = new Map();
     const ownerId = persistenceOwnerId();
     for (const asset of draft.assets || []) {
-      let blob = (await projectDatabase.assets.get([ownerId, draft.title, asset.name]))?.blob || null;
+      const cached = await projectDatabase.assets.get([ownerId, draft.title, asset.name]);
+      let blob = recoveryAssets.get(asset.name)?.blob || cached?.blob || null;
+      if (blob && (!asset.hash && supabaseUser || asset.hash && await assetHash(blob) !== asset.hash)) blob = null;
       if (!blob) {
         const client = await cloudReady;
         if (client && supabaseUser) {
-          const { data } = await client.storage.from('epub-assets').download(await cloudAssetPath(ownerId, draft.title, asset.name));
-          blob = data || null;
+          try {
+            const { data, error } = await client.storage.from('epub-assets').download(
+              await cloudAssetPath(ownerId, draft.title, asset.name), { cacheNonce:asset.hash || String(Date.now()) });
+            if (!error && data && (!asset.hash || await assetHash(data) === asset.hash)) blob = data;
+          } catch { /* Keep the manifest entry for a later retry. */ }
         }
       }
       if (blob) loaded.set(asset.name, {
@@ -1814,19 +1892,48 @@ export async function initializeApp() {
         blob,
         url:URL.createObjectURL(blob),
         originalPath:asset.originalPath || '',
-        isCover:Boolean(asset.isCover),
+        isCover:Boolean(asset.isCover), hash:asset.hash || await assetHash(blob),
       });
+      else missing.set(asset.name, { ...asset });
     }
     if (!isCurrent()) { loaded.forEach(revokePreviewAssetUrl); return false; }
     clearPreviewAssets();
     loaded.forEach((asset, name) => previewAssets.set(name, asset));
+    missing.forEach((asset, name) => unresolvedAssets.set(name, asset));
     renderAssetShelf();
+    renderAssetRecovery();
     return true;
   };
+  assetRetryButton.addEventListener('click', async () => {
+    const ownerId = persistenceOwnerId();
+    const title = openedDraftTitle;
+    const epoch = restoreEpoch;
+    assetRetryButton.disabled = true;
+    try {
+      for (const [name, metadata] of [...unresolvedAssets]) {
+        if (epoch !== restoreEpoch || ownerId !== persistenceOwnerId() || title !== openedDraftTitle) return;
+        let blob = (await projectDatabase.assets.get([ownerId, title, name]))?.blob || null;
+        if (blob && (!metadata.hash && supabaseUser || metadata.hash && await assetHash(blob) !== metadata.hash)) blob = null;
+        if (!blob && supabaseUser) {
+          const client = await cloudReady;
+          const { data, error } = await client.storage.from('epub-assets').download(
+            await cloudAssetPath(ownerId, title, name), { cacheNonce:metadata.hash || String(Date.now()) });
+          if (!error && data && (!metadata.hash || await assetHash(data) === metadata.hash)) blob = data;
+        }
+        if (!blob || epoch !== restoreEpoch || ownerId !== persistenceOwnerId()) continue;
+        previewAssets.set(name, { ...metadata, blob, hash:metadata.hash || await assetHash(blob), url:URL.createObjectURL(blob) });
+        unresolvedAssets.delete(name);
+      }
+      renderAssetShelf(); renderAssetRecovery(); refreshPreview();
+      setStatus(unresolvedAssets.size ? `이미지 ${unresolvedAssets.size}개를 아직 불러오지 못했습니다.` : '이미지를 다시 불러왔습니다.', unresolvedAssets.size ? 'error' : 'ok');
+    } catch (error) { setStatus(`이미지 재시도 실패: ${error.message}`, 'error'); }
+    finally { assetRetryButton.disabled = false; }
+  });
   const deleteDraftAssets = async (draft) => {
     await projectDatabase.assets.where('[ownerId+title]').equals([persistenceOwnerId(), draft.title]).delete();
   };
   const saveCloudDraft = async (draft, assets, ownerId) => {
+    if (!isAccessVerified()) throw new Error('접근 권한을 다시 확인한 뒤 서버 동기화를 시도하세요.');
     const client = await cloudReady;
     if (!client || !supabaseUser || supabaseUser.id !== ownerId) return false;
     for (const asset of draft.assets) {
@@ -1859,6 +1966,7 @@ export async function initializeApp() {
     return true;
   };
   const deleteCloudDraft = async (draft) => {
+    if (!isAccessVerified()) throw new Error('접근 권한을 다시 확인한 뒤 삭제하세요.');
     const client = await cloudReady;
     if (!client || !supabaseUser) return;
     const ownerId = supabaseUser.id;
@@ -1923,6 +2031,18 @@ export async function initializeApp() {
   newBookButton.setAttribute('aria-label', '새 전자책 만들기');
   editorTab?.parentElement.append(newBookButton);
   editorTab?.parentElement.insertAdjacentElement('afterend', draftsPanel);
+  const recoveryBanner = document.createElement('div');
+  recoveryBanner.className = 'draft-recovery';
+  recoveryBanner.hidden = true;
+  const recoveryText = document.createElement('span');
+  const recoveryOpen = document.createElement('button');
+  recoveryOpen.type = 'button';
+  recoveryOpen.textContent = '미저장 원고 복구';
+  const recoveryDismiss = document.createElement('button');
+  recoveryDismiss.type = 'button';
+  recoveryDismiss.textContent = '나중에';
+  recoveryBanner.append(recoveryText, recoveryOpen, recoveryDismiss);
+  top.after(recoveryBanner);
   const fileActions = document.createElement('nav');
   fileActions.className = 'epub-file-actions';
   fileActions.setAttribute('aria-label', 'EPUB 파일');
@@ -1935,6 +2055,34 @@ export async function initializeApp() {
   top.append(fileActions);
   let draftsExpanded = false;
   let openedDraftTitle = null;
+  let pendingRecovery = null;
+  let activeRecoveryKey = null;
+  const recoveryProjectKey = (draft) => draft.title || draft.chapters?.find(chapter => !chapter.generated)?.id || draft.chapters?.[0]?.id || 'untitled';
+  const showAvailableRecovery = async () => {
+    const ownerId = persistenceOwnerId();
+    const epoch = restoreEpoch;
+    const rows = await projectDatabase.recoveries.where('ownerId').equals(ownerId).toArray();
+    if (epoch !== restoreEpoch || ownerId !== persistenceOwnerId()) return;
+    pendingRecovery = rows.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0] || null;
+    recoveryBanner.hidden = !pendingRecovery;
+    recoveryText.textContent = pendingRecovery ? `미저장 원고 “${pendingRecovery.payload.title || '제목 없음'}”이(가) 보관되어 있습니다. 현재 원고를 덮어쓰기 전에 내용을 확인하세요.` : '';
+  };
+  recoveryDismiss.addEventListener('click', () => { recoveryBanner.hidden = true; });
+  recoveryOpen.addEventListener('click', async () => {
+    const record = pendingRecovery;
+    if (!record || record.ownerId !== persistenceOwnerId()) return;
+    const epoch = restoreEpoch;
+    try {
+      const rows = await projectDatabase.recoveryAssets.where('[ownerId+projectKey]').equals([record.ownerId, record.projectKey]).toArray();
+      if (epoch !== restoreEpoch || record.ownerId !== persistenceOwnerId()) return;
+      if (!await loadDraft(record.payload, new Map(rows.map(row => [row.name, row])))) return;
+      if (epoch !== restoreEpoch || record.ownerId !== persistenceOwnerId()) return;
+      activeRecoveryKey = record.projectKey;
+      bookProject.dirty = true;
+      recoveryBanner.hidden = true;
+      setStatus('미저장 원고를 복구했습니다. 내용을 확인한 뒤 저장하세요.');
+    } catch (error) { setStatus(`미저장 원고 복구 실패: ${error.message}`, 'error'); }
+  });
   editorTab?.setAttribute('aria-expanded', 'false');
   editorTab?.addEventListener('click', (event) => {
     event.preventDefault();
@@ -2231,7 +2379,6 @@ export async function initializeApp() {
       void rememberWorkspace(null).catch(() => setStatus('새 책 시작 상태를 저장하지 못했습니다.', 'error'));
     }
     importedEpub = null;
-    importedCoverReplaced = false;
     footnotes.clear();
     chapterList.replaceChildren();
     bookProject.selectedChapterId = null;
@@ -2245,18 +2392,15 @@ export async function initializeApp() {
     $('#title').value = '';
     $('#author').value = '';
     $('#language').value = 'ko';
-    $('#css').value = '';
+    hydrateCssValue('');
     textStylesUi.render();
-    window.epubCssMonacoEditor?.setValue('');
-    cssPreset.value = 'custom';
-    activeCssPresetId = null;
-    updatePresetDeleteButton();
-    updatePresetSaveButton();
     tocExcluded.clear();
     parentTocMap.clear();
     collapsedTocRoots.clear();
     clearPreviewAssets();
+    renderAssetRecovery();
     openedDraftTitle = null;
+    activeRecoveryKey = null;
     setEditorActionIcon(draftButton,'Save','임시저장');
     coverPreview.removeAttribute('src');
     coverPreview.hidden = true;
@@ -2302,7 +2446,8 @@ export async function initializeApp() {
           const aside = doc.getElementById(id) || Array.from(doc.getElementsByTagName('aside')).find(el => el.getAttribute('id') === id);
           const content = aside && Array.from(aside.getElementsByTagName('span')).find(el => el.getAttribute('data-footnote-content') === id);
           if (content) note.content = Array.from(content.childNodes, node => new XMLSerializer().serializeToString(node)).join('');
-          else if (page.xhtml && !aside) footnotes.delete(id);
+          // A noteref may be temporarily absent while its chapter is undone.
+          // Keep its content until the redo branch can no longer use it.
         }
       }
       let number = 0; const referenced = new Set();
@@ -2326,9 +2471,8 @@ export async function initializeApp() {
         edits.sort((a,b) => b.start - a.start).forEach(edit => { next = next.slice(0, edit.start) + edit.replacement + next.slice(edit.end); });
         if (next !== chapter.xhtml) bookProject.update(chapter.id, { xhtml:next });
       }
-      for (const id of footnotes.keys()) if (!referenced.has(id)) footnotes.delete(id);
       if (page) {
-        const body = Array.from(footnotes.values()).sort((a,b) => a.number - b.number).map(note => {
+        const body = Array.from(footnotes.values()).filter(note => referenced.has(note.id)).sort((a,b) => a.number - b.number).map(note => {
           const source = bookProject.chapters.find(chapter => chapter.id === note.sourceChapterId);
           if (!source) return '';
           const href = relativeEpubPath(chapterPath(page), chapterPath(source));
@@ -2344,10 +2488,12 @@ export async function initializeApp() {
     for (const chapter of draft.chapters) for (const ref of footnoteReferencesIn(chapter.body)) {
       if (ref.generated && !footnotes.has(ref.target)) errors.push({ chapter:chapter.id, message:`각주 대상 ${ref.target} 없음` });
     }
-    return { errors, notes:Array.from(footnotes.values()).sort((a,b) => a.number - b.number) };
+    const referenced = new Set(draft.chapters.flatMap(chapter => footnoteReferencesIn(chapter.body).filter(ref => ref.generated).map(ref => ref.target)));
+    return { errors, notes:Array.from(footnotes.values()).filter(note => referenced.has(note.id)).sort((a,b) => a.number - b.number) };
   };
   footnoteButton.addEventListener('click', () => {
     if (!bookProject.selectedChapter || isCoverSelected() || bookProject.selectedChapter.type === 'footnotes') return;
+    if (!visualEditor.hidden && !tiptapEditor?.isEditable) { setStatus('이 장은 XHTML 편집에서 각주를 삽입하세요.', 'error'); return; }
     const content = window.prompt('각주 내용을 입력하세요.');
     if (content === null) return;
     if (!content.trim()) { setStatus('각주 내용을 입력하세요.', 'error'); return; }
@@ -2411,6 +2557,7 @@ export async function initializeApp() {
       author: $('#author').value,
       language: $('#language').value,
       css: $('#css').value,
+      cssPresetId:bookProject.cssPresetId,
       typographyStyles:structuredClone(bookProject.typographyStyles),
       customStyles:structuredClone(bookProject.customStyles),
       removedAssetNames:[...bookProject.removedAssetNames],
@@ -2425,16 +2572,21 @@ export async function initializeApp() {
       }),
       coverSource: coverPreview.getAttribute('src') || '',
       importedSource:importedEpub ? { ...importedEpub, files:Array.from(importedEpub.files, ([path, bytes]) => [path, Array.from(bytes)]) } : null,
-      footnotes: Array.from(footnotes.values()).map((note) => ({ ...note })),
-      assets: Array.from(previewAssets.entries()).map(([name, asset]) => ({
+      footnotes: Array.from(footnotes.values()).filter(note => chapters.some(chapter => footnoteReferencesIn(chapter.body).some(ref => ref.generated && ref.target === note.id))).map((note) => ({ ...note })),
+      assets: [...Array.from(previewAssets.entries()).map(([name, asset]) => ({
         name,
         type:asset.type,
         originalPath:asset.originalPath || '',
         isCover:Boolean(asset.isCover),
-      })),
+        hash:asset.hash,
+      })), ...Array.from(unresolvedAssets, ([name, asset]) => ({ ...asset, name })).filter(asset => !previewAssets.has(asset.name))],
     };
   };
-  const closeChapterSearch = () => { chapterSearchPanel.hidden = true; };
+  const closeChapterSearch = () => {
+    chapterSearchPanel.hidden = true;
+    if (chapterSearchReturnFocus?.isConnected) chapterSearchReturnFocus.focus({preventScroll:true});
+    chapterSearchReturnFocus = null;
+  };
   const occurrencesInChapter = (body, query) => {
     if (!query) return [];
     const matches = [];
@@ -2527,11 +2679,12 @@ export async function initializeApp() {
   document.addEventListener('keydown', (event) => {
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'f') {
       event.preventDefault();
+      if (chapterSearchPanel.hidden) chapterSearchReturnFocus = document.activeElement;
       chapterSearchPanel.hidden = false;
       chapterSearchInput.focus();
       chapterSearchInput.select();
     }
-    if (event.key === 'Escape' && !chapterSearchPanel.hidden) closeChapterSearch();
+    if (event.key === 'Escape' && !chapterSearchPanel.hidden) { event.preventDefault(); closeChapterSearch(); }
   }, true);
   const epubText = (value) => new TextEncoder().encode(value);
   const epubEscape = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&apos;' }[character]));
@@ -2579,8 +2732,8 @@ export async function initializeApp() {
     }).join('');
     return `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>목차</title></head><body><nav epub:type="toc"><h1>목차</h1><ol>${render(null)}</ol></nav></body></html>`;
   };
-  const replaceXhtmlBody = (source, body) => /<body\b[^>]*>[\s\S]*?<\/body\s*>/i.test(source) ? source.replace(/(<body\b[^>]*>)[\s\S]*?(<\/body\s*>)/i, `$1${body}$2`) : source;
-  const replaceXhtmlTitle = (source, title) => /<title\b[^>]*>[\s\S]*?<\/title\s*>/i.test(source) ? source.replace(/(<title\b[^>]*>)[\s\S]*?(<\/title\s*>)/i, `$1${epubEscape(title)}$2`) : source;
+  const replaceXhtmlBody = (source, body) => /<body\b[^>]*>[\s\S]*?<\/body\s*>/i.test(source) ? source.replace(/(<body\b[^>]*>)[\s\S]*?(<\/body\s*>)/i, (_, opening, closing) => opening + body + closing) : source;
+  const replaceXhtmlTitle = (source, title) => /<title\b[^>]*>[\s\S]*?<\/title\s*>/i.test(source) ? source.replace(/(<title\b[^>]*>)[\s\S]*?(<\/title\s*>)/i, (_, opening, closing) => opening + epubEscape(title) + closing) : source;
   const relativeEpubPath = (fromFile, toFile) => {
     const from = fromFile.split('/').slice(0, -1);
     const to = toFile.split('/');
@@ -2603,7 +2756,7 @@ export async function initializeApp() {
       return [chapter.id, meta];
     }));
     let replacementCoverType = '';
-    if (importedCoverReplaced && imported.coverImagePath && draft.coverSource) {
+    if (imported.coverReplaced && imported.coverImagePath && draft.coverSource) {
       const blob = await fetch(draft.coverSource).then((response) => response.blob());
       output.set(imported.coverImagePath, new Uint8Array(await blob.arrayBuffer()));
       replacementCoverType = blob.type || '';
@@ -2646,7 +2799,27 @@ export async function initializeApp() {
       const href = relativeEpubPath(imported.navPath, meta.path);
       return `<li><a href="${epubEscape(href)}">${epubEscape(chapter.title || meta.tocTitle || '제목 없는 장')}</a>${children ? `<ol>${children}</ol>` : ''}</li>`;
     }).join('');
-    output.set(imported.navPath, epubText(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>목차</title></head><body><nav epub:type="toc"><h1>목차</h1><ol>${renderNav(null)}</ol></nav></body></html>`));
+    let navMarkup = renderNav(null);
+    if (imported.tocTree?.length) {
+      const originalChapterPaths = new Set(imported.chapterMeta.map(meta => meta.path));
+      const currentPaths = new Set(draft.chapters.map(chapter => chapter.originalPath));
+      const includedPaths = new Set(navItems.map(item => item.chapter.originalPath));
+      const coveredPaths = new Set();
+      const renderTree = (nodes) => nodes.map((node) => {
+        if (originalChapterPaths.has(node.path) && !currentPaths.has(node.path) && !imported.coverPagePaths.includes(node.path)) return '';
+        if (imported.coverDeleted && imported.coverPagePaths.includes(node.path)) return '';
+        if (currentPaths.has(node.path) && !includedPaths.has(node.path)) return '';
+        const chapter = navItems.find(item => item.chapter.originalPath === node.path);
+        const path = chapter?.meta.path || node.path;
+        if (chapter) coveredPaths.add(node.path);
+        const href = `${relativeEpubPath(imported.navPath, path)}${node.fragment || ''}`;
+        const children = renderTree(node.children || []);
+        return `<li>${path ? `<a href="${epubEscape(href)}">${epubEscape(node.title || chapter?.chapter.title || '제목 없는 장')}</a>` : `<span>${epubEscape(node.title)}</span>`}${children ? `<ol>${children}</ol>` : ''}</li>`;
+      }).join('');
+      navMarkup = renderTree(imported.tocTree) + navItems.filter(item => !coveredPaths.has(item.chapter.originalPath)).map(item =>
+        `<li><a href="${epubEscape(relativeEpubPath(imported.navPath, item.meta.path))}">${epubEscape(item.chapter.title || '제목 없는 장')}</a></li>`).join('');
+    }
+    output.set(imported.navPath, epubText(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>목차</title></head><body><nav epub:type="toc"><h1>목차</h1><ol>${navMarkup}</ol></nav></body></html>`));
     const retainedPaths = new Set(draft.chapters.map(chapter => metaForChapter(chapter).path));
     const deletedPaths = new Set(imported.chapterMeta.filter(meta => !retainedPaths.has(meta.path)).map(meta => meta.path));
     if (imported.coverDeleted) imported.coverPagePaths.forEach(path => deletedPaths.add(path));
@@ -2686,11 +2859,34 @@ export async function initializeApp() {
   };
   const exportAssetAwareEpub = async () => {
     const draft = collectDraft();
+    const missing = draft.assets.filter(asset => !previewAssets.get(asset.name)?.blob);
+    if (missing.length) {
+      setStatus(`이미지 ${missing.length}개를 불러오지 못해 EPUB을 내보낼 수 없습니다. 이미지 다시 불러오기를 사용하세요.`, 'error');
+      return false;
+    }
     // This is the single export gateway: imported and newly-created EPUBs
     // both stop here before a ZIP Blob or download link can be made.
     const xhtmlErrors = validateAllChapters(draft);
     if (xhtmlErrors.length) {
       setStatus(`XHTML 오류 ${xhtmlErrors.length}건이 있어 EPUB을 내보낼 수 없습니다. 오류를 수정한 뒤 다시 시도하세요.`, 'error');
+      return false;
+    }
+    const availableImages = new Set(draft.assets.map(asset => imageAssetPath(asset.name, asset)));
+    const missingReferences = [];
+    for (const chapter of draft.chapters) {
+      const base = chapter.originalPath || `EPUB/text/${chapter.fileName}`;
+      const bodyDocument = new DOMParser().parseFromString(`<root xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">${chapter.body}</root>`, 'application/xml');
+      for (const image of [...bodyDocument.getElementsByTagName('img'), ...bodyDocument.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'image')]) {
+        const source = image.getAttribute('src') || image.getAttribute('href') || image.getAttribute('xlink:href');
+        const path = source?.startsWith('images/') ? `EPUB/Image/${source.slice(7).split(/[?#]/)[0]}` : resolveImagePath(source, base);
+        if (path && !availableImages.has(path)) missingReferences.push(path);
+      }
+    }
+    for (const item of importedEpub?.manifest || []) {
+      if (item.type.startsWith('image/') && !importedEpub.files.has(item.href) && !availableImages.has(item.href)) missingReferences.push(item.href);
+    }
+    if (missingReferences.length) {
+      setStatus(`참조된 이미지 ${[...new Set(missingReferences)].join(', ')}을(를) 찾지 못해 EPUB을 내보낼 수 없습니다.`, 'error');
       return false;
     }
     const footnoteResult = prepareFootnotes(draft);
@@ -2788,11 +2984,12 @@ export async function initializeApp() {
     event.stopImmediatePropagation();
     exportAssetAwareEpub().catch((error) => setStatus(error.message || 'EPUB 파일을 만들지 못했습니다.', 'error'));
   }, true);
-  const loadDraft = async (draft) => {
-    if (!Array.isArray(draft?.chapters)) return;
+  const loadDraft = async (draft, recoveryAssets = new Map()) => {
+    if (!Array.isArray(draft?.chapters)) return false;
     const epoch = restoreEpoch;
     const revision = bookProject.revision;
-    if (!await loadDraftAssets(draft, () => epoch === restoreEpoch && revision === bookProject.revision)) return;
+    if (!await loadDraftAssets(draft, () => epoch === restoreEpoch && revision === bookProject.revision, recoveryAssets)) return false;
+    activeRecoveryKey = null;
     importedEpub = null;
     if (draft.importedSource) importedEpub = { ...draft.importedSource, files:new Map(draft.importedSource.files.map(([path, bytes]) => [path, new Uint8Array(bytes)])) };
     footnotes.clear();
@@ -2806,11 +3003,8 @@ export async function initializeApp() {
     setEditorActionIcon(draftButton,'Save','임시저장');
     $('#author').value = draft.author || '';
     $('#language').value = draft.language || 'ko';
-    activeCssPresetId = null;
-    $('#css').value = draft.css || '';
+    hydrateCssValue(draft.css || '');
     textStylesUi.render();
-    window.epubCssMonacoEditor?.setValue($('#css').value);
-    selectMatchingCssPreset();
     tocExcluded.clear();
     (draft.tocExcluded || []).forEach((index) => tocExcluded.add(index));
     parentTocMap.clear();
@@ -2835,8 +3029,13 @@ export async function initializeApp() {
     if (!visualEditor.hidden) setVisualHtml(htmlEditor.value);
     refreshPreview();
     hydratePreviewAssets();
+    const hydratedRevision = bookProject.revision;
     await rememberWorkspace(draft.title);
-    setStatus(`“${draft.title}” 임시저장본을 불러왔습니다.`);
+    if (epoch === restoreEpoch && hydratedRevision === bookProject.revision) bookProject.dirty = false;
+    setStatus(unresolvedAssets.size
+      ? `“${draft.title}”을(를) 열었지만 이미지 ${unresolvedAssets.size}개를 불러오지 못했습니다. 이미지 다시 불러오기를 사용하세요.`
+      : `“${draft.title}” 임시저장본을 불러왔습니다.`, unresolvedAssets.size ? 'error' : 'ok');
+    return true;
   };
   const zipText = (bytes) => new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/, '');
   const zipPath = (basePath, href) => {
@@ -2864,27 +3063,31 @@ export async function initializeApp() {
   const tocEntriesFromNcx = (source, basePath) => {
     const documentNode = xmlDocument(source, 'toc.ncx');
     const entries = new Map();
-    const visit = (node, level, parentPath = null) => Array.from(node.children).filter((child) => child.localName === 'navPoint').forEach((point) => {
+    const visit = (node, level, parentPath = null) => Array.from(node.children).filter((child) => child.localName === 'navPoint').map((point) => {
       const href = point.getElementsByTagNameNS('*', 'content')[0]?.getAttribute('src') || '';
       const path = zipPath(basePath, href.split('#')[0]);
       const title = point.getElementsByTagNameNS('*', 'text')[0]?.textContent?.trim() || '';
-      if (path) entries.set(path, { title, level, parentPath });
-      visit(point, level + 1, path || parentPath);
+      if (path && !entries.has(path)) entries.set(path, { title, level, parentPath });
+      return { path, fragment:href.includes('#') ? `#${href.split('#').slice(1).join('#')}` : '', title,
+        children:visit(point, level + 1, path || parentPath) };
     });
-    visit(documentNode.getElementsByTagNameNS('*', 'navMap')[0] || documentNode, 1);
+    entries.tree = visit(documentNode.getElementsByTagNameNS('*', 'navMap')[0] || documentNode, 1);
     return entries;
   };
   const tocEntriesFromNav = (source, basePath) => {
     const documentNode = new DOMParser().parseFromString(source, 'text/html');
     const toc = Array.from(documentNode.querySelectorAll('nav')).find((node) => /(^|\s)toc(\s|$)/i.test(node.getAttribute('epub:type') || node.getAttribute('type') || '')) || documentNode.querySelector('nav');
     const entries = new Map();
-    const visit = (list, level, parentPath = null) => Array.from(list?.children || []).filter((node) => node.tagName === 'LI').forEach((item) => {
+    const visit = (list, level, parentPath = null) => Array.from(list?.children || []).filter((node) => node.tagName === 'LI').map((item) => {
       const link = item.querySelector(':scope > a');
-      const path = link ? zipPath(basePath, (link.getAttribute('href') || '').split('#')[0]) : '';
-      if (path) entries.set(path, { title:link.textContent.trim(), level, parentPath });
-      visit(Array.from(item.children).find((node) => node.tagName === 'OL'), level + 1, path || parentPath);
+      const href = link?.getAttribute('href') || '';
+      const path = href ? zipPath(basePath, href.split('#')[0]) : '';
+      const title = link?.textContent.trim() || '';
+      if (path && !entries.has(path)) entries.set(path, { title, level, parentPath });
+      return { path, fragment:href.includes('#') ? `#${href.split('#').slice(1).join('#')}` : '', title,
+        children:visit(Array.from(item.children).find((node) => node.tagName === 'OL'), level + 1, path || parentPath) };
     });
-    visit(toc?.querySelector('ol'), 1);
+    entries.tree = visit(toc?.querySelector('ol'), 1);
     return entries;
   };
   const importEpub = async (file) => {
@@ -2952,21 +3155,17 @@ export async function initializeApp() {
     const title = elementText(packageDocument, 'title') || file.name.replace(/\.epub$/i, '');
     if (!window.confirm(`“${title}” EPUB의 ${chapters.length}개 장을 현재 편집기에 불러옵니다. 현재 작업 내용은 교체됩니다.`)) return;
     importedEpub = null;
-    importedCoverReplaced = false;
     footnotes.clear();
     replaceProjectChapters(chapters, chapters[0]?.id);
     $('#title').value = title;
     $('#author').value = elementText(packageDocument, 'creator');
     $('#language').value = elementText(packageDocument, 'language') || 'ko';
     const stylesheet = Array.from(manifest.values()).find((item) => item.type === 'text/css' && files.has(item.href));
-    $('#css').value = stylesheet ? zipText(files.get(stylesheet.href)) : '';
+    hydrateCssValue(stylesheet ? zipText(files.get(stylesheet.href)) : '');
     Object.assign(bookProject, stylesFromCss($('#css').value));
     textStylesUi.render();
-    window.epubCssMonacoEditor?.setValue($('#css').value);
-    cssPreset.value = 'custom';
-    activeCssPresetId = null;
-    updatePresetDeleteButton();
-    updatePresetSaveButton();
+    bookProject.cssPresetId = null;
+    renderCssPresetSelection();
     tocExcluded.clear();
     chapterMeta.forEach((meta) => { if (!meta.includeInToc) tocExcluded.add(meta.index); });
     parentTocMap.clear();
@@ -2976,6 +3175,7 @@ export async function initializeApp() {
       if (parentIndex >= 0) parentTocMap.set(meta.index, parentIndex);
     });
     clearPreviewAssets();
+    renderAssetRecovery();
     // Keep every image declared by the OPF manifest, including unused images.
     // Its full ZIP path is the map key so case and directory names remain exact
     // for both preview resolution and a later source-preserving export.
@@ -3000,6 +3200,7 @@ export async function initializeApp() {
     ));
     importedEpub = {
       files, packagePath, packageBase, manifest:Array.from(manifest.values()), spineRefs, chapterMeta,
+      tocTree:tocEntries.tree || [],
       navPath:navItem?.href || `${packageBase}nav.xhtml`, coverImagePath:coverImage?.href || '',
       coverPagePaths:Array.from(coverPagePaths), footnotePath:footnoteItem?.href || '', footnoteManifestId:footnoteItem?.id || '',
       stylesheetPath:stylesheet?.href || '', identifier:originalIdentifier, metadataExtras,
@@ -3025,6 +3226,7 @@ export async function initializeApp() {
     htmlField.hidden = false;
     richToolbar.hidden = true;
     visualEditor.hidden = true;
+    visualReadOnlyNotice.hidden = true;
     const modeToggle = mode.querySelector('[data-mode-toggle]');
     modeToggle.textContent = '일반편집';
     modeToggle.setAttribute('aria-pressed', 'true');
@@ -3110,6 +3312,7 @@ export async function initializeApp() {
     });
   };
   const restoreCloudDrafts = async () => {
+    if (!isAccessVerified()) return;
     const client = await cloudReady;
     if (!client || !supabaseUser) return;
     const epoch = restoreEpoch;
@@ -3122,18 +3325,34 @@ export async function initializeApp() {
       .order('updated_at', { ascending:false });
     if (error || !data?.length || epoch !== restoreEpoch || ownerId !== persistenceOwnerId()) return;
     const merged = getDrafts();
+    let updatedOpenDraft = null;
+    let deferredOpenDraft = false;
     data.map((row) => row.payload).filter((draft) => draft?.title).forEach((draft) => {
       const index = merged.findIndex((item) => item.title === draft.title);
-      if (index >= 0 && String(draft.updatedAt || '') > String(merged[index].updatedAt || '')) merged[index] = draft;
-      else if (index < 0) merged.push(draft);
+      if (index >= 0 && String(draft.updatedAt || '') > String(merged[index].updatedAt || '')) {
+        if (openedDraftTitle === draft.title && bookProject.dirty) { deferredOpenDraft = true; return; }
+        merged[index] = draft;
+        if (openedDraftTitle === draft.title) updatedOpenDraft = draft;
+      } else if (index < 0) merged.push(draft);
     });
     await setDrafts(merged);
+    if (updatedOpenDraft && epoch === restoreEpoch && ownerId === persistenceOwnerId()) {
+      if (!bookProject.dirty) await loadDraft(updatedOpenDraft);
+      else deferredOpenDraft = true;
+    }
+    if (deferredOpenDraft) setStatus('서버에 더 최신 저장본이 있습니다. 현재 편집 내용을 보존하려고 자동 교체하지 않았습니다.', 'error');
     renderDrafts();
   };
   const performSaveCurrentDraft = async ({ shortcut = false } = {}) => {
     const epoch = restoreEpoch;
     const draft = collectDraft();
     const assets = Array.from(previewAssets, ([name, asset]) => [name, { ...asset }]);
+    for (const [name, asset] of assets) {
+      asset.hash = await assetHash(asset.blob);
+      const entry = draft.assets.find(item => item.name === name);
+      if (entry) entry.hash = asset.hash;
+      if (previewAssets.has(name)) previewAssets.get(name).hash = asset.hash;
+    }
     draft.updatedAt = new Date().toISOString();
     const savedRevision = bookProject.revision;
     const footnoteResult = prepareFootnotes(draft);
@@ -3177,6 +3396,16 @@ export async function initializeApp() {
         await projectDatabase.projects.put({ownerId, title:draft.title, payload:draft, updatedAt:draft.updatedAt});
       });
       if (ownerId !== persistenceOwnerId()) return false;
+      if (activeRecoveryKey && epoch === restoreEpoch) {
+        const projectKey = activeRecoveryKey;
+        await projectDatabase.transaction('rw', projectDatabase.recoveries, projectDatabase.recoveryAssets, async () => {
+          await projectDatabase.recoveries.delete([ownerId, projectKey]);
+          await projectDatabase.recoveryAssets.where('[ownerId+projectKey]').equals([ownerId, projectKey]).delete();
+        });
+        activeRecoveryKey = null;
+        pendingRecovery = null;
+        recoveryBanner.hidden = true;
+      }
       const currentIndex = draftIndex.findIndex(item => item.title === draft.title);
       if (currentIndex >= 0) draftIndex[currentIndex] = draft;
       else draftIndex.push(draft);
@@ -3189,6 +3418,10 @@ export async function initializeApp() {
       if (epoch === restoreEpoch && savedRevision === bookProject.revision) bookProject.dirty = false;
       if (htmlErrors.length) setStatus(`임시저장은 완료했지만 HTML 오류 ${htmlErrors.length}건이 있습니다.`, 'error');
       try {
+        if (unresolvedAssets.size) {
+          setStatus(`로컬 저장됨 · 이미지 ${unresolvedAssets.size}개를 복구한 뒤 서버 동기화를 다시 시도하세요.`, 'error');
+          return false;
+        }
         const synced = await saveCloudDraft(draft, new Map(assets), ownerId);
         if (!htmlErrors.length) setStatus(synced ? '로컬 저장됨 · 서버 동기화됨' : '로컬에 저장되었습니다.');
       } catch (error) {
@@ -3236,18 +3469,34 @@ export async function initializeApp() {
     // Preview-only sanitisation: the editor and EPUB exporter retain the
     // original XHTML verbatim, while imported content cannot execute in this
     // app's document.
-    const style = document.createElement('style');
-    style.textContent = $('#css').value;
-    style.dataset.previewCss = '';
     const content = document.createElement('template');
     content.innerHTML = DOMPurify.sanitize(htmlEditor.value, {
       USE_PROFILES:{ html:true, svg:true, svgFilters:true },
       ADD_ATTR:['epub:type', 'xml:lang', 'data-sitescout-footnote'],
     });
-    const scrollTop = preview.scrollTop;
-    preview.replaceChildren(style, content.content);
-    hydratePreviewAssets();
-    preview.scrollTop = scrollTop;
+    const scrollTop = previewContentRoot().scrollTop;
+    const chapterId = bookProject.selectedChapterId;
+    const frame = document.createElement('iframe');
+    frame.className = 'preview-isolated-frame';
+    frame.title = '격리된 EPUB 미리보기';
+    frame.setAttribute('sandbox', 'allow-same-origin');
+    frame.addEventListener('load', () => {
+      if (!frame.isConnected || chapterId !== bookProject.selectedChapterId) return;
+      const doc = frame.contentDocument;
+      if (!doc) return;
+      const colors = getComputedStyle(preview);
+      doc.documentElement.style.color = colors.color;
+      doc.documentElement.style.backgroundColor = colors.backgroundColor;
+      const style = doc.createElement('style');
+      style.textContent = $('#css').value;
+      doc.head.append(style);
+      hydrateResourceImages(doc.body, activeChapterIndex());
+      doc.body.scrollTop = scrollTop;
+      doc.addEventListener('click', handlePreviewClick);
+    }, { once:true });
+    frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;min-height:100%;font:14px/1.6 sans-serif;color:inherit}body{padding:18px;box-sizing:border-box;overflow:auto}img{max-width:100%;height:auto}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:5px}.preview-focus{background:rgba(240,142,49,.16);outline:2px solid #e88a31}</style></head><body>${content.innerHTML}</body></html>`;
+    previewIframe = frame;
+    preview.replaceChildren(frame);
   };
   let previewFrame = 0;
   const schedulePreview = () => {
@@ -3259,7 +3508,7 @@ export async function initializeApp() {
   };
   cssEditor.addEventListener('input', schedulePreview);
   const syncFromVisual = () => {
-    if (!tiptapEditor || suppressTiptapUpdate || visualEditor.hidden || visualLoadedChapterId !== bookProject.selectedChapterId) return;
+    if (!tiptapEditor || !tiptapEditor.isEditable || suppressTiptapUpdate || visualEditor.hidden || visualLoadedChapterId !== bookProject.selectedChapterId) return;
     if (getVisualHtml() === visualBaseline) return;
     // Only Tiptap transactions may write general-editor content back to XHTML.
     htmlEditor.value = fixXhtmlVoidElements(getVisualHtml());
@@ -3319,11 +3568,12 @@ export async function initializeApp() {
     const chapterId = bookProject.selectedChapterId;
     focusSyncing = true;
     try {
-      const previewElement = renderedElementForSource(node, preview);
+      const previewRoot = previewContentRoot();
+      const previewElement = renderedElementForSource(node, previewRoot);
       if (previewElement) {
-        preview.querySelectorAll('.preview-focus').forEach(element => element.classList.remove('preview-focus'));
+        previewRoot.querySelectorAll('.preview-focus').forEach(element => element.classList.remove('preview-focus'));
         previewElement.classList.add('preview-focus');
-        if (origin !== 'preview') scrollWithin(preview, previewElement);
+        if (origin !== 'preview') scrollWithin(previewRoot, previewElement);
       }
       const visualRoot = visualEditor.querySelector('.ProseMirror') || visualEditor;
       const visualElement = renderedElementForSource(node, visualRoot);
@@ -3358,11 +3608,13 @@ export async function initializeApp() {
     if (node) synchronizeFocus(node, 'link');
     return true;
   };
-  preview.addEventListener('click', event => {
+  const handlePreviewClick = event => {
     const anchor = event.target.closest('a[href]');
     if (anchor && followBookLink(anchor)) { event.preventDefault(); return; }
-    synchronizeFocus(sourceNodeForElement(event.target.closest(previewBlockSelector + ',a,span,strong,em'), preview), 'preview');
-  });
+    const rootNode = previewContentRoot();
+    synchronizeFocus(sourceNodeForElement(event.target.closest(previewBlockSelector + ',a,span,strong,em'), rootNode), 'preview');
+  };
+  preview.addEventListener('click', handlePreviewClick);
   visualEditor.addEventListener('click', event => {
     const anchor = event.target.closest('a[href]');
     if (anchor && followBookLink(anchor)) { event.preventDefault(); return; }
@@ -3459,7 +3711,7 @@ export async function initializeApp() {
     if (!chapterErrorPopover.hidden && !chapterErrorPopover.contains(event.target) && event.target !== chapterErrorAlert) closeChapterErrorPopover();
   });
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeChapterErrorPopover();
+    if (event.key === 'Escape' && !chapterErrorPopover.hidden) { closeChapterErrorPopover(); chapterErrorAlert.focus({preventScroll:true}); }
   });
   const validateHtml = () => {
     const errors = findHtmlErrors(htmlEditor.value);
@@ -3582,6 +3834,7 @@ export async function initializeApp() {
     htmlField.hidden = visual;
     richToolbar.hidden = !visual;
     visualEditor.hidden = !visual;
+    visualReadOnlyNotice.hidden = !visual || !tiptapEditor || tiptapEditor.isEditable;
     const toggle = mode.querySelector('[data-mode-toggle]');
     toggle.textContent = visual ? 'XHTML편집' : '일반편집';
     toggle.setAttribute('aria-pressed', String(!visual));
@@ -3620,7 +3873,10 @@ export async function initializeApp() {
     scheduleStatusDismissal();
   };
   new MutationObserver(decorateStatus).observe(statusBox, { childList:true, characterData:true, attributes:true });
-  mode.addEventListener('click', () => { editorTools?.close(); setMode(htmlField.hidden ? 'html' : 'visual'); });
+  mode.addEventListener('click', (event) => {
+    if (!event.target.closest('[data-mode-toggle]')) return;
+    editorTools?.close(); setMode(htmlField.hidden ? 'html' : 'visual');
+  });
   let activeBlock = null;
   const editableBlock = (node) => node?.closest?.('p,h1,h2,h3,h4,h5,li,blockquote,td,th');
   visualEditor.addEventListener('click', (event) => {
@@ -3872,7 +4128,7 @@ export async function initializeApp() {
   });
   editorTools = mountEditorTools({
     toolbar:richToolbar, getEditor:() => tiptapEditor, cssEditor,
-    canEdit:() => Boolean(tiptapEditor && !visualEditor.hidden && !isCoverSelected() && visualLoadedChapterId === bookProject.selectedChapterId),
+    canEdit:() => Boolean(tiptapEditor?.isEditable && !visualEditor.hidden && !isCoverSelected() && visualLoadedChapterId === bookProject.selectedChapterId),
     onError:message => setStatus(message, 'error'),
   });
   const runHistory = (redo) => {
@@ -4221,7 +4477,7 @@ export async function initializeApp() {
           colorModule.default.configure({ types:['textStyle'] }), imageModule.default,
           tableModule.default.configure({ resizable:true, View:PreservedTableView }), tableRowModule.default, tableHeaderModule.default, tableCellModule.default,
           alignModule.default.configure({ types:['heading','paragraph'] }), superModule.default, subModule.default,
-          linkModule.default.configure({ openOnClick:false }), underlineModule.default, Div, Span, Aside, Section, PreserveAttributes, StyleShortcuts,
+          linkModule.default.configure({ openOnClick:false, HTMLAttributes:{ target:null, rel:null } }), underlineModule.default, Div, Span, Aside, Section, PreserveAttributes, StyleShortcuts,
         ],
         content:htmlEditor.value,
         parseOptions:{ preserveWhitespace:'full' },
@@ -4246,6 +4502,19 @@ export async function initializeApp() {
   if (!bookProject.chapters.length) newBookButton.click();
   initializingWorkspace = false;
   bookProject.dirty = false;
+  registerAccessRecovery(async (ownerId) => {
+    const epoch = restoreEpoch;
+    if (ownerId !== persistenceOwnerId()) return;
+    const payload = collectDraft();
+    const projectKey = recoveryProjectKey(payload);
+    const assets = Array.from(previewAssets, ([name, asset]) => ({ownerId, projectKey, name, blob:asset.blob}));
+    await projectDatabase.transaction('rw', projectDatabase.recoveries, projectDatabase.recoveryAssets, async () => {
+      if (epoch !== restoreEpoch || ownerId !== persistenceOwnerId()) return;
+      await projectDatabase.recoveryAssets.where('[ownerId+projectKey]').equals([ownerId, projectKey]).delete();
+      await projectDatabase.recoveryAssets.bulkPut(assets);
+      await projectDatabase.recoveries.put({ownerId, projectKey, payload, updatedAt:new Date().toISOString()});
+    });
+  });
   void hydrateDrafts();
   void refreshAccountUi();
   void restoreCloudDrafts();

@@ -2,11 +2,12 @@ import { test, expect } from '@playwright/test';
 import JSZip from 'jszip';
 import { readFile } from 'node:fs/promises';
 import { cloudAssetPath } from '../../cloud-asset-path.js';
+import { mockApprovedSession } from './approved-session.js';
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jz1sAAAAASUVORK5CYII=','base64');
 const row = (page,name) => page.locator('.asset-row').filter({has:page.getByRole('button',{name:`${name} 관리`,exact:true})});
 const source = page => page.evaluate(() => window.epubMonacoEditor.getValue());
 async function start(page) {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline fixture'}));
+  await mockApprovedSession(page);
   await page.goto('/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => window.epubMonacoEditor && document.querySelector('.ProseMirror'));
   await page.locator('.new-book').click(); await page.locator('#title').fill('이미지 회귀');
@@ -51,7 +52,7 @@ test('inline rename supports Escape, updates both chapters and CSS, preserves se
   expect(dialogs).toBe(0);
   await expect(page.locator('#list .active')).toHaveAttribute('data-chapter-id',selected);
   expect(await source(page)).toContain(encodeURIComponent('새 이름.png'));
-  await expect(page.locator('#preview img')).toHaveAttribute('src',/^blob:/);
+  await expect(page.frameLocator('.preview-isolated-frame').locator('img')).toHaveAttribute('src',/^blob:/);
   expect(await page.locator('#css').inputValue()).toContain(encodeURIComponent('새 이름.png'));
   item = await actions(page,'unused.png'); await item.getByRole('button',{name:'삭제',exact:true}).click();
   await expect(row(page,'unused.png')).toHaveCount(0); expect(dialogs).toBe(0);
@@ -62,7 +63,7 @@ test('inline rename supports Escape, updates both chapters and CSS, preserves se
   await page.locator('.left-tab[data-panel="chaptersPanel"]').click();
   await page.locator('#list .chapter').filter({hasText:'첫 장'}).click();
   expect(await source(page)).toContain(encodeURIComponent('새 이름.png'));
-  await expect(page.locator('#preview img')).toHaveAttribute('src',/^blob:/);
+  await expect(page.frameLocator('.preview-isolated-frame').locator('img')).toHaveAttribute('src',/^blob:/);
 });
 
 test('used-image warning contains chapter and line; cancel preserves asset, deletion preserves XHTML',async ({page}) => {
@@ -78,10 +79,11 @@ test('used-image warning contains chapter and line; cancel preserves asset, dele
   item = await actions(page,'unused.png'); await item.getByRole('button',{name:'삭제',exact:true}).click();
   await expect(row(page,'unused.png')).toHaveCount(0); expect(warned).toBe(false);
   await save(page);
-  const downloadPromise = page.waitForEvent('download'); await page.locator('#export').click();
-  const zip = await JSZip.loadAsync(await readFile(await (await downloadPromise).path()));
-  expect(Object.keys(zip.files).filter(path => path.endsWith('.png'))).toHaveLength(0);
-  expect(await zip.file('EPUB/text/chapter-3.xhtml')?.async('string') || (await Promise.all(Object.values(zip.files).filter(f=>f.name.endsWith('.xhtml')).map(f=>f.async('string')))).join('')).toContain('used.png');
+  let downloads = 0; page.on('download', () => { downloads++; });
+  await page.locator('#export').click();
+  await expect(page.locator('#status')).toContainText('찾지 못해 EPUB을 내보낼 수 없습니다');
+  expect(downloads).toBe(0);
+  expect(await source(page)).toBe(before);
 });
 
 test('imported EPUB rename/delete updates image entries and manifest while retaining original chapter paths',async ({page}) => {
@@ -115,23 +117,21 @@ test('imported EPUB rename/delete updates image entries and manifest while retai
 });
 
 test('server cleanup follows payload save, is scoped to this project, and retries after failure',async ({page}) => {
-  await start(page);
   const user = {id:'asset-user',email:'asset@users.sitescout.local',user_metadata:{username:'asset'}};
+  await mockApprovedSession(page, {user});
   let failRemove = true; const removed = [], events = [];
   await page.route('**/htzojicodwueivybovhy.supabase.co/**',async route => {
     const request = route.request(), url = request.url();
-    if (url.includes('/auth/v1/token')) return route.fulfill({json:{access_token:'fixture',refresh_token:'fixture',token_type:'bearer',expires_in:3600,user}});
     if (request.method() === 'DELETE' && url.includes('/storage/')) {
       events.push('remove'); removed.push(request.postDataJSON());
       return route.fulfill(failRemove ? {status:403,json:{message:'fixture denied'}} : {json:[]});
     }
-    if (url.includes('/epub_drafts') && request.method() === 'POST') events.push('payload');
-    return route.fulfill({json:url.includes('/storage/') ? {Key:'fixture'} : []});
+    if (url.includes('/epub_drafts') && request.method() === 'POST') { events.push('payload'); return route.fulfill({json:[]}); }
+    if (url.includes('/storage/') && request.method() === 'POST') return route.fulfill({json:{Key:'fixture'}});
+    return route.fallback();
   });
-  await page.locator('.account-button').click();
-  await page.goto('/login/index.html',{waitUntil:'domcontentloaded'});
-  await page.locator('#loginForm [name=username]').fill('asset'); await page.locator('#loginForm [name=password]').fill('password');
-  await page.locator('#loginForm button[type=submit]').click(); await expect(page.locator('.account-button')).toContainText('asset');
+  await page.goto('/',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.account-button')).toContainText('asset');
   await page.waitForFunction(() => window.epubMonacoEditor && document.querySelector('.ProseMirror'));
   await page.locator('.new-book').click(); await page.locator('#title').fill('이미지 회귀');
   await upload(page,'unused.png'); await save(page); await expect(page.locator('#status')).toContainText('서버 동기화됨');
@@ -182,5 +182,5 @@ test('renaming an image in a generated footnote survives note synchronization an
   await page.locator('.left-tab[data-panel="chaptersPanel"]').click();
   await page.locator('#list .chapter').filter({hasText:'각주 페이지'}).click();
   expect(await source(page)).toContain('../Image/renamed-note.png');
-  await expect(page.locator('#preview img')).toHaveAttribute('src',/^blob:/);
+  await expect(page.frameLocator('.preview-isolated-frame').locator('img')).toHaveAttribute('src',/^blob:/);
 });

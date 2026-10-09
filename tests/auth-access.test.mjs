@@ -50,6 +50,21 @@ test('profile network errors fail closed', async () => {
   const { client } = fixture({ profileError: { message: 'offline' } });
   await assert.rejects(readAccess(client), { code: 'unavailable' });
 });
+test('temporary profile 503 keeps the authenticated session for retry', async () => {
+  const { client, calls } = fixture({ profileError:{ status:503, message:'temporarily unavailable' } });
+  await assert.rejects(signInApproved(client, 'jungho', 'test-password'), { code:'unavailable' });
+  assert.equal(calls.some(([name]) => name === 'logout'), false);
+  assert.equal((await client.auth.getSession()).data.session.user.id, 'original-user');
+});
+test('thrown network errors also remain retryable', async () => {
+  const { client } = fixture();
+  client.auth.getUser = async () => { throw new TypeError('Failed to fetch'); };
+  await assert.rejects(readAccess(client), { code:'unavailable' });
+});
+test('profile access denial is distinct from a temporary outage', async () => {
+  const { client } = fixture({ profileError:{ status:403, message:'forbidden' } });
+  await assert.rejects(readAccess(client), { code:'missing' });
+});
 test('unconfirmed email keeps the existing Supabase confirmation requirement', async () => {
   const { client } = fixture();
   client.auth.signInWithPassword = async () => ({ data: {}, error: { code: 'email_not_confirmed' } });

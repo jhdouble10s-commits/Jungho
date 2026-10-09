@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import JSZip from 'jszip';
+import { mockApprovedSession } from './approved-session.js';
 
 test('스타일 대상·라벨과 공통 CSS 분리, XHTML·저장·프로젝트 격리', async ({ page }) => {
   test.setTimeout(180000);
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({ status:503, body:'offline test' }));
+  await mockApprovedSession(page);
   await page.goto('/', { waitUntil:'domcontentloaded' });
   await page.locator('.new-book').click();
   await page.locator('#title').fill('스타일 회귀');
@@ -25,12 +26,12 @@ test('스타일 대상·라벨과 공통 CSS 분리, XHTML·저장·프로젝트
   await expect(dialog.locator('[name=target]')).toBeDisabled();
   await dialog.getByRole('button', { name:'저장', exact:true }).click();
   await expect(page.locator('[data-heading] option[value=h1]')).toHaveText('대제목');
-  await expect(page.locator('.preview h1').or(page.locator('#preview h1')).first()).toHaveCSS('font-size', '32px');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('h1').first()).toHaveCSS('font-size', '32px');
   await expect(editor.locator('h1')).toHaveCSS('font-size', '32px');
   expect(await page.locator('#css').inputValue()).toBe(cssBefore);
   await page.evaluate(() => { const css = document.querySelector('#css'); css.value = css.value.replace('32px', '36px'); css.dispatchEvent(new Event('input', { bubbles:true })); });
   await expect(editor.locator('h1')).toHaveCSS('font-size', '36px');
-  await expect(page.locator('#preview h1')).toHaveCSS('font-size', '36px');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('h1')).toHaveCSS('font-size', '36px');
   await page.evaluate(() => { const css = document.querySelector('#css'); css.value = css.value.replace('36px', '32px'); css.dispatchEvent(new Event('input', { bubbles:true })); });
   const source = () => page.evaluate(() => window.epubMonacoEditor.getValue());
   const original = await source();
@@ -44,19 +45,29 @@ test('스타일 대상·라벨과 공통 CSS 분리, XHTML·저장·프로젝트
   }
   await addStyle('강조문', 'highlight-text');
   expect(await source()).toEqual(original);
-  await editor.locator('#target').click();
-  await page.evaluate(() => {
+  const selectionPoints = await page.evaluate(() => {
     const text = document.querySelector('.ProseMirror #target').firstChild;
-    const range = document.createRange(); range.setStart(text, 6); range.setEnd(text, 10);
-    const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
-    document.querySelector('.ProseMirror').dispatchEvent(new MouseEvent('mouseup', {bubbles:true}));
+    const point = offset => {
+      const range = document.createRange(); range.setStart(text, offset); range.collapse(true);
+      const rect = range.getBoundingClientRect(); return {x:rect.x,y:rect.y + rect.height / 2};
+    };
+    return [point(6),point(10)];
   });
+  await page.mouse.move(selectionPoints[0].x,selectionPoints[0].y);
+  await page.mouse.down();
+  await page.mouse.move(selectionPoints[1].x,selectionPoints[1].y,{steps:4});
+  await page.mouse.up();
+  await expect.poll(() => page.evaluate(() => getSelection()?.toString())).toBe('Beta');
   await page.locator('[data-heading]').selectOption({label:'강조문'});
   await expect(editor.locator('span.highlight-text')).toHaveText('Beta');
   await expect(editor.locator('span.highlight-text')).toHaveCSS('color', 'rgb(217, 119, 6)');
   await expect.poll(source).toContain('class="highlight-text"');
   await addStyle('인용 박스', 'quote-box');
-  await editor.locator('#target').click();
+  await page.locator('[data-mode-toggle]').click();
+  await page.locator('[data-mode-toggle]').click();
+  await editor.locator('#target').click({position:{x:20,y:10}});
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(() => page.evaluate(() => getSelection()?.toString())).toBe('');
   await page.locator('[data-heading]').selectOption({label:'인용 박스'});
   await expect(editor.locator('p#target')).toHaveClass('original quote-box');
   await expect(editor.locator('a')).toHaveAttribute('href', '#chapter-title');
@@ -119,7 +130,7 @@ test('스타일 대상·라벨과 공통 CSS 분리, XHTML·저장·프로젝트
 });
 
 test('새 태그 스타일은 현재 블록에 적용되고 XHTML과 공통 CSS를 보존한다', async ({ page }) => {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline test'}));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.locator('.new-book').click();
   await page.locator('#add').click();
@@ -144,7 +155,7 @@ test('새 태그 스타일은 현재 블록에 적용되고 XHTML과 공통 CSS�
 
 test('가져온 EPUB에서 스타일 설정만 바꾸면 XHTML·이미지·목차와 기존 CSS를 보존한다', async ({ page }) => {
   test.setTimeout(180000);
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline test'}));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => window.epubMonacoEditor && document.querySelector('.ProseMirror'));
   page.once('dialog', dialog => dialog.accept());

@@ -26,7 +26,8 @@ export function equivalentXhtml(before, after, Parser = globalThis.DOMParser) {
     }
     if (node.nodeType === 8) return ['comment', node.data];
     if (node.nodeType !== 1) return null;
-    return [node.nodeName, Array.from(node.attributes, attribute => [attribute.name, attribute.value]), Array.from(node.childNodes, signature).filter(Boolean)];
+    return [node.nodeName, Array.from(node.attributes, attribute => [attribute.name, attribute.value])
+      .sort(([left], [right]) => left.localeCompare(right)), Array.from(node.childNodes, signature).filter(Boolean)];
   };
   return JSON.stringify(signature(parseXhtml(before, Parser).documentElement)) === JSON.stringify(signature(parseXhtml(after, Parser).documentElement));
 }

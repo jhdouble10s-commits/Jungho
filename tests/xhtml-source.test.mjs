@@ -19,6 +19,10 @@ test('formatter 검증은 inline 사이 공백·pre 공백·본문 변경을 허
     ['<p>A B</p>','<p>AB</p>'],
   ]) assert.equal(equivalentXhtml(a,b,DOMParser), false);
 });
+test('XHTML attribute order does not falsely mark an editor round trip as destructive', () => {
+  assert.equal(equivalentXhtml('<p id="a" class="keep">A</p>', '<p class="keep" id="a">A</p>', DOMParser), true);
+  assert.equal(equivalentXhtml('<p id="a" class="keep">A</p>', '<p id="a">A</p>', DOMParser), false);
+});
 test('OSS source parser는 동일 문장과 이미지의 위치를 서로 구분한다', () => {
   const source = '<p>동일</p><p>동일<img src="a.jpg" /></p>';
   const paragraphs = sourceElements(source).filter(node => node.tag === 'p');

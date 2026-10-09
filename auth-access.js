@@ -16,21 +16,29 @@ export const loginEmail = (value) => {
   const normalized = String(value).trim().toLowerCase();
   return normalized.includes('@') ? normalized : `${normalized}@users.sitescout.local`;
 };
+const checkedRequest = async (request) => {
+  try { return await request(); }
+  catch { throw new AccessError('unavailable'); }
+};
 
 // Auth verifies identity; the database is the only authority for role and approval.
 export async function readAccess(client) {
-  const { data: { session }, error: sessionError } = await client.auth.getSession();
+  const { data: sessionData, error: sessionError } = await checkedRequest(() => client.auth.getSession());
   if (sessionError) throw new AccessError('unavailable');
+  const session = sessionData?.session;
   if (!session) throw new AccessError('login');
   const targetId = session.user.id;
-  const { data: { user }, error } = await client.auth.getUser();
-  if (error || !user || user.is_anonymous) throw new AccessError('login');
+  const { data: userData, error } = await checkedRequest(() => client.auth.getUser());
+  if (error) throw new AccessError([401, 403].includes(error.status) ? 'login' : 'unavailable');
+  const user = userData?.user;
+  if (!user || user.is_anonymous) throw new AccessError('login');
   if (user.id !== targetId) throw new AccessError('stale');
-  const { data: profile, error: profileError } = await client.from('user_profiles')
-    .select('user_id,username,display_name,role,status').eq('user_id', targetId).maybeSingle();
-  const { data: current, error: currentError } = await client.auth.getSession();
-  if (currentError || current.session?.user.id !== targetId) throw new AccessError('stale');
-  if (profileError) throw new AccessError('unavailable');
+  const { data: profile, error: profileError } = await checkedRequest(() => client.from('user_profiles')
+    .select('user_id,username,display_name,role,status').eq('user_id', targetId).maybeSingle());
+  const { data: current, error: currentError } = await checkedRequest(() => client.auth.getSession());
+  if (currentError) throw new AccessError('unavailable');
+  if (current?.session?.user.id !== targetId) throw new AccessError('stale');
+  if (profileError) throw new AccessError([401, 403].includes(profileError.status) ? 'missing' : 'unavailable');
   if (!profile || profile.user_id !== targetId) throw new AccessError('missing');
   if (profile.status !== 'approved') throw new AccessError(
     ['pending', 'rejected'].includes(profile.status) ? profile.status : 'missing');
@@ -49,6 +57,7 @@ export async function signInApproved(client, identifier, password) {
     return access;
   }
   catch (error) {
+    if (error.code === 'unavailable') throw error;
     const { data: current } = await client.auth.getSession();
     if (error.code !== 'stale' && current.session?.user.id === data.user?.id) {
       await client.auth.signOut({ scope: 'local' });

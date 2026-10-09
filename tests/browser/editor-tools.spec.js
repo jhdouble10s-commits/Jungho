@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import JSZip from 'jszip';
+import { mockApprovedSession } from './approved-session.js';
 
 async function start(page,source) {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline fixture'}));
+  await mockApprovedSession(page);
   await page.goto('/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => window.epubMonacoEditor && document.querySelector('.ProseMirror'));
   await page.locator('.new-book').click(); await page.locator('#add').click();
@@ -14,19 +15,24 @@ async function start(page,source) {
 }
 const source = page => page.evaluate(() => window.epubMonacoEditor.getValue());
 async function tool(page,name) { await page.getByRole('button',{name,exact:true}).click(); }
-async function table(page,name) { await tool(page,'표 편집'); await tool(page,name); }
+async function table(page,name) {
+  if (!await page.locator('.editor-tools-table:popover-open').count()) await tool(page,'표 편집');
+  await tool(page,name);
+}
 
-test('clear formatting preserves links, class, IDs, structure and supports undo',async ({page}) => {
+test('unsupported XHTML stays read-only; clear formatting still supports safe content and undo',async ({page}) => {
   await start(page,'<h2 id="keep" class="chapter"><strong>Alpha</strong> <a href="#keep" epub:type="noteref">1</a> <span id="anchor" style="color:red;font-size:24px">Beta</span></h2>');
+  const original = await source(page);
+  await expect(page.locator('.visual-read-only-notice')).toBeVisible();
+  await page.locator('.ProseMirror').click(); await page.keyboard.type('cannot change source');
+  expect(await source(page)).toBe(original);
+  await page.locator('[data-mode-toggle]').click();
+  await page.evaluate(() => window.epubMonacoEditor.setValue('<p><strong>Alpha</strong> <em>Beta</em></p>'));
+  await page.locator('[data-mode-toggle]').click();
+  await expect(page.locator('.visual-read-only-notice')).toBeHidden();
   await page.locator('.ProseMirror').click(); await page.keyboard.press('ControlOrMeta+a');
   await tool(page,'서식 지우기 (글자 서식)');
   await expect(page.locator('.ProseMirror strong')).toHaveCount(0);
-  await expect(page.locator('.ProseMirror h2#keep')).toHaveClass('chapter');
-  await expect(page.locator('.ProseMirror a')).toHaveAttribute('href','#keep');
-  expect(await source(page)).toContain('epub:type="noteref"');
-  expect(await source(page)).not.toContain('font-size');
-  expect(await source(page)).not.toContain('color:');
-  await expect(page.locator('.ProseMirror #anchor')).toHaveText('Beta');
   await tool(page,'되돌리기 (Ctrl/Cmd+Z)');
   await expect(page.locator('.ProseMirror strong')).toHaveText('Alpha');
 });
@@ -43,7 +49,7 @@ test('table controls use selection, support row/column deletion and undo',async 
   await page.locator('.ProseMirror th').first().click();
   await tool(page,'표 편집');
   await page.locator('[data-table-color="head"]').evaluate(input => { input.value='#123456'; input.dispatchEvent(new Event('input',{bubbles:true})); });
-  await expect(page.locator('#preview th').first()).toHaveCSS('background-color','rgb(18, 52, 86)');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('th').first()).toHaveCSS('background-color','rgb(18, 52, 86)');
   expect(await source(page)).toContain('background-color: rgb(18, 52, 86)');
   await page.keyboard.press('Escape');
   await table(page,'열 삭제');
@@ -90,22 +96,16 @@ test('Ctrl+F searches text across marks, replaces safely, undo, chapter/mode iso
   await expect(page.locator('#xhtml-monaco-editor .find-widget')).toBeVisible();
 });
 
-test('imported table attributes survive commands, and clear formatting only changes selected text',async ({page}) => {
+test('imported table attributes remain intact in visual read-only mode',async ({page}) => {
   await start(page,'<p><strong>Alpha Beta</strong></p><table id="data" class="original"><tbody><tr id="row"><td id="cell"><p>A</p></td><td><p>B</p></td></tr></tbody></table>');
-  await page.locator('.ProseMirror strong').click();
-  await page.evaluate(() => {
-    const node = document.querySelector('.ProseMirror strong').firstChild;
-    const range = document.createRange(); range.setStart(node,0); range.setEnd(node,5);
-    const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range);
-    document.querySelector('.ProseMirror').dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));
-  });
-  await tool(page,'서식 지우기 (글자 서식)');
-  await expect(page.locator('.ProseMirror strong')).toHaveText(' Beta');
-  await page.locator('.ProseMirror td#cell').click();
-  await table(page,'아래에 행 추가');
-  await expect(page.locator('.ProseMirror table#data')).toHaveClass('original');
-  await expect(page.locator('.ProseMirror tr#row')).toHaveCount(1);
-  await expect(page.locator('.ProseMirror td#cell')).toHaveCount(1);
+  const before = await source(page);
+  await expect(page.locator('.visual-read-only-notice')).toBeVisible();
+  await page.locator('.ProseMirror strong').click(); await page.keyboard.type('blocked');
+  expect(await source(page)).toBe(before);
+  expect(before).toContain('table id="data" class="original"');
+  expect(before).toContain('tr id="row"');
+  await page.locator('[data-mode-toggle]').click();
+  expect(await source(page)).toBe(before);
 });
 
 test('first-line and paragraph indentation preserve tags/classes/CSS and EPUB round-trip',async ({page}) => {
@@ -117,7 +117,7 @@ test('first-line and paragraph indentation preserve tags/classes/CSS and EPUB ro
   await tool(page,'단락 전체 들여쓰기'); await tool(page,'단락 전체 들여쓰기');
   await expect(page.locator('.ProseMirror h2#first')).toHaveClass('original jh-first-line-indent jh-paragraph-indent-2');
   await expect(page.locator('.ProseMirror #second')).not.toHaveAttribute('class');
-  expect(await page.locator('#preview #first').evaluate(node => parseFloat(getComputedStyle(node).textIndent))).toBeGreaterThan(0);
+  expect(await page.frameLocator('.preview-isolated-frame').locator('#first').evaluate(node => parseFloat(getComputedStyle(node).textIndent))).toBeGreaterThan(0);
   await tool(page,'단락 전체 내어쓰기');
   await expect(page.locator('.ProseMirror h2#first')).toHaveClass('original jh-first-line-indent jh-paragraph-indent-1');
   const savedCss = await page.locator('#css').inputValue();

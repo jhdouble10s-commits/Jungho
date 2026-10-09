@@ -1,0 +1,52 @@
+import { test, expect } from '@playwright/test';
+import { mockApprovedSession } from './approved-session.js';
+
+test('CSS selection omits the legacy custom option and keeps edited CSS tied to the chosen preset', async ({page}) => {
+  await mockApprovedSession(page);
+  await page.goto('/', {waitUntil:'domcontentloaded'});
+  await page.waitForFunction(() => Boolean(window.epubCssMonacoEditor && window.epubMonacoEditor));
+  await page.locator('#title').fill('CSS 선택 보존');
+  await page.locator('#add').click();
+  await page.locator('.left-tab[data-panel="cssPanel"]').click();
+  await expect(page.locator('#cssPreset')).not.toContainText('사용자 정의 / 가져온 CSS');
+  await page.evaluate(() => window.epubCssMonacoEditor.setValue('p { color: red; }'));
+  await page.locator('#cssPresetName').fill('원본 스타일');
+  await page.locator('.css-preset-save').click();
+  const selected = await page.locator('#cssPreset').inputValue();
+  expect(selected).toMatch(/^user-/);
+  await page.locator('.left-tab[data-panel="chaptersPanel"]').click();
+  await page.locator('[data-mode-toggle]').click();
+  await page.evaluate(() => window.epubMonacoEditor.setValue('<p>본문 변경</p>'));
+  await expect(page.locator('#cssPreset')).toHaveValue(selected);
+  await page.locator('[data-mode-toggle]').click();
+  await page.locator('#add').click();
+  await expect(page.locator('#cssPreset')).toHaveValue(selected);
+  await page.locator('.left-tab[data-panel="cssPanel"]').click();
+  await page.evaluate(() => window.epubCssMonacoEditor.setValue('p { color: blue; }'));
+  await expect(page.locator('#cssPreset')).toHaveValue(selected);
+  await expect(page.locator('#cssPresetStatus')).toContainText('수정됨');
+  await page.locator('.draft-save').click();
+  await expect(page.locator('#status')).toContainText('로컬');
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect(page.locator('#cssPreset')).toHaveValue(selected);
+  await expect(page.locator('#css')).toHaveValue('p { color: blue; }');
+  await expect(page.locator('#cssPresetStatus')).toContainText('수정됨');
+  await page.locator('.left-tab[data-panel="cssPanel"]').click();
+  await page.locator('#cssPreset').selectOption(selected);
+  await expect(page.locator('#css')).toHaveValue('p { color: red; }');
+});
+
+test('legacy custom CSS survives reload without pretending to be another preset', async ({page}) => {
+  await mockApprovedSession(page);
+  await page.goto('/', {waitUntil:'domcontentloaded'});
+  await page.waitForFunction(() => Boolean(window.epubCssMonacoEditor));
+  await page.locator('#title').fill('기존 수동 CSS');
+  await page.locator('.left-tab[data-panel="cssPanel"]').click();
+  await page.evaluate(() => window.epubCssMonacoEditor.setValue('section { letter-spacing: 2px; }'));
+  await page.locator('.draft-save').click();
+  await expect(page.locator('#status')).toContainText('로컬');
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect(page.locator('#css')).toHaveValue('section { letter-spacing: 2px; }');
+  await expect(page.locator('#cssPreset')).toHaveValue('');
+  await expect(page.locator('#cssPresetStatus')).toContainText('직접 편집');
+});

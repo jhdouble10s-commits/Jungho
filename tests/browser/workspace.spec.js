@@ -90,10 +90,10 @@ test('compact workspace actions, fixed chapter footer, CSS backgrounds, settings
   await expect(page.locator('#list .chapter')).toHaveCount(31);
   await page.locator('[data-mode-toggle]').click();
   await page.evaluate(()=>window.epubMonacoEditor.setValue('<p id="live">자동 미리보기</p>'));
-  await expect(page.locator('#preview #live')).toHaveText('자동 미리보기');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('#live')).toHaveText('자동 미리보기');
   await page.locator('.left-tab[data-panel="cssPanel"]').click();
   await page.evaluate(()=>window.epubCssMonacoEditor.setValue('#live { color: rgb(12, 34, 56); }'));
-  await expect(page.locator('#preview #live')).toHaveCSS('color','rgb(12, 34, 56)');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('#live')).toHaveCSS('color','rgb(12, 34, 56)');
   for(const theme of ['light','dark']) {
     await setTheme(page,theme);
     const backgrounds=await page.locator('#css-monaco-editor').evaluate(host=>[
@@ -134,7 +134,7 @@ test('save and immediate project reopen read latest selected chapter; other chap
     document.querySelector('.draft-item').click();
   });
   await expect(page.locator('#status')).toContainText('불러왔습니다');
-  await expect(page.locator('#preview #latest')).toContainText('최신 CCC');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('#latest')).toContainText('최신 CCC');
   const latest=await record(page,'프로젝트 A');
   expect(latest.selectedChapterId).toBe(selected);
   expect(latest.chapters.find(c=>c.id===selected).xhtml).toContain('최신 CCC');
@@ -152,11 +152,11 @@ test('save and immediate project reopen read latest selected chapter; other chap
   await expect(page.locator('#status')).toContainText('로컬');
   const other=await record(page,'프로젝트 B');
   await page.getByRole('button',{name:'프로젝트 A',exact:true}).click();
-  await expect(page.locator('#preview')).toContainText('일반편집 저장');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('일반편집 저장');
   expect(await record(page,'프로젝트 B')).toEqual(other);
   await page.reload({waitUntil:'domcontentloaded'});
   await expect(page.locator('#title')).toHaveValue('프로젝트 A');
-  await expect(page.locator('#preview')).toContainText('일반편집 저장');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('일반편집 저장');
   await expect(page.locator('#list .active')).toHaveAttribute('data-chapter-id',selected);
 });
 
@@ -178,11 +178,11 @@ test('moved proofread button sends one request and updates preview; image arriva
   await page.locator('[data-mode-toggle]').click();
   await page.evaluate(()=>window.epubMonacoEditor.setValue('<p id="corrected">기도를통해 성장합니다.</p><p><img src="../Image/fixture.png" alt="fixture" /></p>'));
   await page.getByRole('button',{name:'맞춤법 교정',exact:true}).click();
-  await expect(page.locator('#preview #corrected')).toHaveText('기도를 통해 성장합니다.');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('#corrected')).toHaveText('기도를 통해 성장합니다.');
   expect(requests).toBe(1);
   await expect.poll(()=>page.evaluate(()=>window.epubMonacoEditor.getValue())).toContain('id="corrected"');
   await page.locator('#image').setInputFiles({name:'fixture.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jz1sAAAAASUVORK5CYII=','base64')});
-  await expect(page.locator('#preview img')).toHaveAttribute('src',/^blob:/);
+  await expect(page.frameLocator('.preview-isolated-frame').locator('img')).toHaveAttribute('src',/^blob:/);
   await expect.poll(()=>page.evaluate(()=>window.epubMonacoEditor.getValue())).toContain('src="../Image/fixture.png"');
   await page.locator('[data-mode-toggle]').click();
   await expect(page.locator('.ProseMirror img')).toHaveAttribute('src',/^blob:/);

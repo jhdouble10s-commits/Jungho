@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { setTheme } from './ui-helpers.js';
+import { mockApprovedSession } from './approved-session.js';
 
 test('style dialog aligns fields and stays usable in light/dark and narrow screens', async ({ page }) => {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline test'}));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.locator('.new-book').click();
   await page.locator('#add').click();
@@ -54,7 +55,7 @@ test('style dialog aligns fields and stays usable in light/dark and narrow scree
 });
 
 test('toolbar uses edge space and shows gradient overlays only in scrollable directions', async ({ page }) => {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline test'}));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.locator('.new-book').click();
   await page.locator('#add').click();

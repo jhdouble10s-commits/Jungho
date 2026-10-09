@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { mockApprovedSession } from './approved-session.js';
 
 test('XHTML attribute Tab/Enter snippets and outside Emmet preserve context', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({ status:503, body:'offline test' }));
+  await mockApprovedSession(page);
   await page.goto('/', { waitUntil:'domcontentloaded' });
   await page.locator('.new-book').click();
   await page.waitForFunction(() => window.epubMonacoEditor && window.emmetMonaco);

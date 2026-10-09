@@ -116,7 +116,7 @@ export function mountEditorTools({ toolbar, getEditor, canEdit, cssEditor, onErr
   }
 
   const tablePanel = document.createElement('div');
-  tablePanel.className = 'editor-tools-table'; tablePanel.popover = 'auto';
+  tablePanel.className = 'editor-tools-table editor-popover-motion'; tablePanel.popover = 'auto';
   tablePanel.setAttribute('role','group'); tablePanel.setAttribute('aria-label','표 편집');
   document.body.append(tablePanel);
   const tableCommands = [
@@ -192,7 +192,7 @@ export function mountEditorTools({ toolbar, getEditor, canEdit, cssEditor, onErr
   });
 
   const panel = document.createElement('section');
-  panel.className = 'editor-tools-search'; panel.hidden = true;
+  panel.className = 'editor-tools-search editor-popover-motion'; panel.hidden = true;
   panel.setAttribute('role','dialog'); panel.setAttribute('aria-label','현재 장 찾기 및 바꾸기');
   const heading = document.createElement('strong'); heading.textContent = '현재 장 · 찾기 및 바꾸기'; panel.append(heading);
   const queryInput = document.createElement('input'), replacement = document.createElement('input');
@@ -236,7 +236,7 @@ export function mountEditorTools({ toolbar, getEditor, canEdit, cssEditor, onErr
   toolbar.append(iconButton('찾기 및 바꾸기 (Ctrl+F)','Search',open));
   document.addEventListener('keydown',event => {
     if (event.key === 'Escape' && tablePanel.matches(':popover-open')) { event.preventDefault(); event.stopPropagation(); tablePanel.hidePopover(); tableButton.focus(); return; }
-    if (event.key === 'Escape' && !panel.hidden) { close(); return; }
+    if (event.key === 'Escape' && !panel.hidden) { event.preventDefault(); close(); if (canEdit()) getEditor().commands.focus(); return; }
     if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== 'f') return;
     if (!canEdit() || event.target.closest('input,textarea,.monaco-editor') && !panel.contains(event.target)) return;
     event.preventDefault(); event.stopPropagation(); open();

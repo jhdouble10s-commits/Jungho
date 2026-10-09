@@ -28,6 +28,7 @@ test('chapter history survives modes, navigation, redo branching and save', asyn
   await insert(page,'<p>Beta</p>');
   await page.locator(`[data-chapter-id="${a}"].chapter`).click();
   await page.locator('[data-editor-action=undo]').click();
+  await expect(page.locator('.rich-editor')).toBeHidden();
   expect(await source(page)).not.toContain('Alpha');
   await page.locator(`[data-chapter-id="${b}"].chapter`).click();
   expect(await source(page)).toBe('<p>Beta</p>');

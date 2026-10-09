@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { setTheme, openApiSettings } from './ui-helpers.js';
+import { mockApprovedSession } from './approved-session.js';
 
 test('semantic Light/Dark tokens reach UI and Monaco without modifying content or layout', async ({page}) => {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline fixture'}));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => Boolean(window.epubMonacoEditor), {timeout:30000});
   await expect(page.locator('#app-theme-tooltip')).toBeAttached({timeout:30000});

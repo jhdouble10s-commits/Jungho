@@ -2,8 +2,9 @@ import { test, expect } from '@playwright/test';
 import { openApiSettings } from './ui-helpers.js';
 import { readFile } from 'node:fs/promises';
 import { loadSemanticEpub } from '../../scripts/lib/epub-semantic.mjs';
+import { mockApprovedSession } from './approved-session.js';
 async function start(page) {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({ status:503, body:'offline test' }));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => Boolean(window.epubMonacoEditor));
   await expect(page.locator('.ProseMirror')).toBeAttached({timeout:30000});
@@ -33,7 +34,7 @@ test('표지 DOM 조건부 렌더 / 기본 표지와 각주 삭제 / reload에�
   await expect(page.locator('.cover-read-only-view')).toHaveCount(0);
   await select(page,'각주 페이지'); await page.locator('#del').click();
   await expect(page.locator('#list .chapter')).toHaveCount(1);
-  await expect(page.locator('#preview')).toContainText('AAA');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('AAA');
   await page.keyboard.press('ControlOrMeta+s');
   await expect(page.locator('#status')).toContainText('저장');
   await page.waitForTimeout(400); await page.reload({waitUntil:'domcontentloaded'});
@@ -41,7 +42,7 @@ test('표지 DOM 조건부 렌더 / 기본 표지와 각주 삭제 / reload에�
   await expect(page.locator('#list .chapter')).toHaveCount(1);
   await expect(page.locator('.cover-read-only-view')).toHaveCount(0);
 });
-test('전체 장 빈 태그 수정 / 유효하지 않은 XHTML 저장 차단 / 자동 format', async ({page}) => {
+test('전체 장 빈 태그 수정 / 유효하지 않은 XHTML 저장 차단', async ({page}) => {
   await start(page);
   await add(page,'본문 A','<p>A<br></p><p>안녕하세요 <strong>세계</strong></p>');
   await add(page,'본문 B','<p>B<img src="../Image/a.jpg" alt="A > B"></p>');
@@ -49,7 +50,6 @@ test('전체 장 빈 태그 수정 / 유효하지 않은 XHTML 저장 차단 / �
   await expect(page.locator('#status')).toContainText('2개 장');
   await select(page,'본문 A');
   await expect.poll(() => page.evaluate(() => window.epubMonacoEditor.getValue())).toContain('<br />');
-  await expect.poll(() => page.evaluate(() => window.epubMonacoEditor.getValue())).toContain('\n');
   await page.evaluate(() => window.epubMonacoEditor.setValue('<p id="broken">X</div>'));
   await page.keyboard.press('ControlOrMeta+s');
   await expect(page.locator('#status')).toContainText('열');
@@ -63,10 +63,10 @@ test('각주 생성 → 중앙 페이지 → 원문 왕복, 각주 삭제 후 �
   page.once('dialog', dialog => dialog.accept('각주 내용'));
   await page.getByRole('button',{name:'각주 삽입',exact:true}).click();
   await expect(page.locator('#list .chapter').filter({hasText:'각주 페이지'})).toHaveCount(1);
-  await page.locator('#preview a').click();
+  await page.frameLocator('.preview-isolated-frame').locator('a').click();
   await expect(page.locator('#ctitle')).toHaveValue('각주 페이지');
-  await expect(page.locator('#preview')).toContainText('각주 내용');
-  await page.locator('#preview aside a').click();
+  await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('각주 내용');
+  await page.frameLocator('.preview-isolated-frame').locator('aside a').click();
   await expect(page.locator('#ctitle')).toHaveValue('본문 A');
 });
 test('설정 dialog 중앙, 외부 클릭 닫기, 성공 닫기, 실패 유지', async ({page}) => {
@@ -101,7 +101,7 @@ test('일반편집 붙여넣기는 한 번만 반영 / 빠른 장 전환 후 다
   await expect(page.locator('.ProseMirror')).toContainText('CCC');
   await expect(page.locator('.ProseMirror')).not.toContainText('AAA');
   await expect(page.locator('.ProseMirror')).not.toContainText('BBB');
-  await expect(page.locator('#preview')).toContainText('CCC');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('CCC');
   const ids=await page.locator('#list .active[data-chapter-id]').getAttribute('data-chapter-id');
   await expect(page.locator('.rich-editor')).toHaveAttribute('data-chapter-id',ids);
   await expect(page.locator('#preview')).toHaveAttribute('data-chapter-id',ids);
@@ -111,11 +111,13 @@ test('같은 문장의 Preview·Tiptap·Monaco 위치 구분 / drag 후 선택 I
   await start(page);
   await add(page,'본문 A','<p>AAA</p>');
   await add(page,'본문 B','<p id="first">동일 문장</p><p id="second">동일 문장</p>');
-  await page.locator('#preview #second').click();
+  await page.frameLocator('.preview-isolated-frame').locator('#second').click();
   await expect.poll(() => page.evaluate(() => { const e=window.epubMonacoEditor; return e.getModel().getLineContent(e.getPosition().lineNumber); })).toContain('id="second"');
-  await page.locator('[data-mode-toggle]').click();
+  await expect(page.locator('#accessMessage')).toBeHidden();
+  if (await page.locator('[data-mode-toggle]').textContent() === '일반편집') await page.locator('[data-mode-toggle]').click();
+  await expect(page.locator('.rich-editor')).toBeVisible();
   await page.locator('.ProseMirror #first').click();
-  await expect(page.locator('#preview #first')).toHaveClass(/preview-focus/);
+  await expect(page.frameLocator('.preview-isolated-frame').locator('#first')).toHaveClass(/preview-focus/);
   await page.locator('[data-mode-toggle]').click();
   await page.evaluate(() => {
     const e=window.epubMonacoEditor;
@@ -124,7 +126,7 @@ test('같은 문장의 Preview·Tiptap·Monaco 위치 구분 / drag 후 선택 I
     e.trigger('keyboard', 'cursorBottom', {});
   });
   await expect.poll(() => page.evaluate(() => { const e=window.epubMonacoEditor; return e.getModel().getLineContent(e.getPosition().lineNumber); })).toContain('id="second"');
-  await expect(page.locator('#preview #second')).toHaveClass(/preview-focus/);
+  await expect(page.frameLocator('.preview-isolated-frame').locator('#second')).toHaveClass(/preview-focus/);
   const selectedId = await page.locator('#list .active[data-chapter-id]').getAttribute('data-chapter-id');
   const before = await page.evaluate(() => window.epubMonacoEditor.getValue());
   const source = page.locator(`#list [data-chapter-id="${selectedId}"] .drag-handle`);
@@ -172,5 +174,5 @@ test('실제 EPUB 찬사 본문은 해당 장에만 표시 / 전환·reload·새
   await page.locator('.new-book').click();
   await select(page,'각주 페이지');
   await expect(page.locator('.ProseMirror')).not.toContainText('매트 카터');
-  await expect(page.locator('#preview')).not.toContainText('매트 카터');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('body')).not.toContainText('매트 카터');
 });

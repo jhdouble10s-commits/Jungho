@@ -64,18 +64,18 @@ for (const [label, options] of [
     await arrangeBoot(page, options);
     await page.goto('/');
     await expect(page.locator('.app')).toBeVisible({ timeout: 30000 });
-    await expect(page.locator('#accessMessage')).toHaveCount(0);
+    await expect(page.locator('#accessMessage')).toBeHidden();
     expect(await page.locator('.workspace-tabs').count()).toBe(0);
     expect(await page.locator('#pageTitle').count()).toBe(0);
     if (options.withSavedProject) {
       await expect(page.locator('#title')).toHaveValue('저장된 원고');
-      await expect(page.locator('#preview')).toContainText('보존된 본문');
+      await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('보존된 본문');
     }
     const frames = await page.evaluate(() => window.__bootFrames);
     expect(frames.some(frame => frame.visibility !== 'hidden' && !frame.current)).toBe(false);
     await page.reload();
     await expect(page.locator('.app')).toBeVisible({ timeout: 30000 });
-    await expect(page.locator('#accessMessage')).toHaveCount(0);
+    await expect(page.locator('#accessMessage')).toBeHidden();
     const reloadFrames = await page.evaluate(() => window.__bootFrames);
     expect(reloadFrames.some(frame => frame.visibility !== 'hidden' && !frame.current)).toBe(false);
     await expect(page.locator('.ProseMirror')).toBeAttached({ timeout: 30000 });
@@ -85,13 +85,13 @@ for (const [label, options] of [
     if (!options.withSavedProject) {
       await page.locator('#title').fill('부팅 복구 회귀 테스트');
       await page.locator('.ProseMirror').fill('편집 후 저장한 본문');
-      await expect(page.locator('#preview')).toContainText('편집 후 저장한 본문');
+      await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('편집 후 저장한 본문');
       await page.getByRole('button', { name: '임시저장', exact: true }).click();
       await expect(page.locator('#status')).toContainText('로컬');
       await page.reload();
       await expect(page.locator('.app')).toBeVisible({ timeout: 30000 });
       await expect(page.locator('#title')).toHaveValue('부팅 복구 회귀 테스트');
-      await expect(page.locator('#preview')).toContainText('편집 후 저장한 본문');
+      await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('편집 후 저장한 본문');
     }
     expect(errors).toEqual([]);
   });
@@ -125,7 +125,7 @@ test('startup screen follows real access and editor phases, fits mobile and resp
     await page.screenshot({ path: testInfo.outputPath('startup-mobile.png') });
     releaseEditor();
     await expect(page.locator('.app')).toBeVisible({ timeout: 30000 });
-    await expect(screen).toHaveCount(0);
+    await expect(screen).toBeHidden();
   } finally { releaseAccess(); releaseEditor(); }
 });
 

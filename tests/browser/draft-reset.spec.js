@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { mockApprovedSession } from './approved-session.js';
 
 test('느린 Tiptap + 복원 원고는 DOM에 중복 잔존하지 않으며 새 책/reload/개별 프로젝트 삭제가 보존된다', async ({page}) => {
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({status:503,body:'offline fixture'}));
+  await mockApprovedSession(page);
   await page.goto('/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => Boolean(window.epubMonacoEditor));
   await expect(page.locator('.ProseMirror')).toBeAttached({timeout:30000});
@@ -14,6 +15,7 @@ test('느린 Tiptap + 복원 원고는 DOM에 중복 잔존하지 않으며 새 
   await page.evaluate(() => window.epubMonacoEditor.setValue('<p>이 책을 향한 찬사들 — 잔존 검사 원문</p>'));
   await page.keyboard.press('ControlOrMeta+s');
   await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('.draft-save')).toBeEnabled();
   expect(await page.evaluate(async () => {
     const {default:Dexie} = await import('https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm');
     const db = new Dexie('epub-builder-projects'); await db.open();
@@ -22,8 +24,12 @@ test('느린 Tiptap + 복원 원고는 DOM에 중복 잔존하지 않으며 새 
 
   let release;
   const gate = new Promise(resolve => { release=resolve; });
-  await page.route('https://esm.sh/**', async route => { await gate; await route.continue(); });
+  await page.route('https://esm.sh/@tiptap/**', async route => {
+    if (route.request().url().includes('/@tiptap/pm@')) return route.continue();
+    await gate; await route.continue();
+  });
   await page.reload({waitUntil:'domcontentloaded'});
+  await page.waitForFunction(() => Boolean(window.epubMonacoEditor));
   await expect(page.locator('#title')).toHaveValue('삭제할 테스트 원고');
   await expect(page.locator('.ProseMirror')).toHaveCount(0);
   // Inspect the whole host, not just .ProseMirror: stale siblings caused the bug.
@@ -37,7 +43,7 @@ test('느린 Tiptap + 복원 원고는 DOM에 중복 잔존하지 않으며 새 
   for (let i=0;i<2;i++) {
     await page.locator('#add').click();
     await expect(page.locator('.rich-editor')).not.toContainText('잔존 검사 원문');
-    await expect(page.locator('#preview')).not.toContainText('잔존 검사 원문');
+    await expect(page.frameLocator('.preview-isolated-frame').locator('body')).not.toContainText('잔존 검사 원문');
   }
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => Boolean(window.epubMonacoEditor));
@@ -62,7 +68,7 @@ test('느린 Tiptap + 복원 원고는 DOM에 중복 잔존하지 않으며 새 
   await page.waitForFunction(() => Boolean(window.epubMonacoEditor));
   await page.locator('#add').click();
   await expect(page.locator('.rich-editor')).not.toContainText('잔존 검사 원문');
-  await expect(page.locator('#preview')).not.toContainText('잔존 검사 원문');
+  await expect(page.frameLocator('.preview-isolated-frame').locator('body')).not.toContainText('잔존 검사 원문');
   await page.locator('.side .tab[data-view="editorView"]').click();
   await expect(page.locator('.drafts-empty')).toBeVisible();
 });

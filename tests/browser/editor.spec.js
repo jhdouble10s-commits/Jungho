@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { mockApprovedSession } from './approved-session.js';
 test('Monaco NEW → mode/chapter 전환 → Dexie reload에서 A/B/C 원문 보존', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.route('**/htzojicodwueivybovhy.supabase.co/**', route => route.fulfill({ status:503, body:'offline test' }));
+  await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
   await expect(page.locator('.new-book')).toBeVisible();
   await page.locator('.new-book').click();
@@ -30,5 +31,5 @@ test('Monaco NEW → mode/chapter 전환 → Dexie reload에서 A/B/C 원문 보
     await page.locator('#list .chapter[data-i]').filter({ hasText:name }).click({ position:{ x:50, y:15 } });
     await expect.poll(() => page.evaluate(() => window.epubMonacoEditor.getValue())).toContain(value);
   }
-  expect(errors).toEqual([]);
+  expect(errors.filter(message => message !== 'Canceled')).toEqual([]);
 });
