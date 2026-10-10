@@ -31,7 +31,8 @@ begin
   if p_project_id is null or p_client_id is null then raise exception 'Invalid edit lease' using errcode='22023'; end if;
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_owner::text || ':' || p_project_id::text, 0));
   select * into v_lock from public.epub_project_edit_locks where owner_id=v_owner and project_id=p_project_id for update;
-  if found and v_lock.expires_at > v_now and v_lock.holder_id <> p_client_id and not p_takeover then
+  v_now := clock_timestamp();
+  if found and v_lock.expires_at > v_now and v_lock.holder_id <> p_client_id and not coalesce(p_takeover,false) then
     return jsonb_build_object('granted',false,'server_now',v_now,'expires_at',v_lock.expires_at);
   end if;
   if found and v_lock.expires_at > v_now and v_lock.holder_id = p_client_id then
@@ -57,10 +58,11 @@ declare
 begin
   if v_owner is null or not private.is_approved_member() then raise insufficient_privilege; end if;
   if p_project_id is null or p_client_id is null or p_generation is null then raise exception 'Invalid edit lease' using errcode='22023'; end if;
-  update public.epub_project_edit_locks set expires_at=v_now + make_interval(secs=>v_ttl),updated_at=v_now
-    where owner_id=v_owner and project_id=p_project_id and holder_id=p_client_id and generation=p_generation and expires_at > v_now
+  update public.epub_project_edit_locks set expires_at=clock_timestamp() + make_interval(secs=>v_ttl),updated_at=clock_timestamp()
+    where owner_id=v_owner and project_id=p_project_id and holder_id=p_client_id and generation=p_generation and expires_at > clock_timestamp()
     returning * into v_lock;
   if not found then raise sqlstate 'PT423' using message='Edit lease expired or transferred'; end if;
+  v_now := clock_timestamp();
   return jsonb_build_object('granted',true,'generation',v_lock.generation,'server_now',v_now,'expires_at',v_lock.expires_at);
 end; $$;
 
@@ -78,11 +80,11 @@ end; $$;
 
 create function private.require_epub_project_edit_lock(p_project_id uuid,p_client_id uuid,p_generation uuid)
 returns void language plpgsql security definer set search_path = '' as $$
-declare v_owner uuid := auth.uid(); v_now timestamptz := clock_timestamp();
+declare v_owner uuid := auth.uid();
 begin
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_owner::text || ':' || p_project_id::text, 0));
   perform 1 from public.epub_project_edit_locks
-    where owner_id=v_owner and project_id=p_project_id and holder_id=p_client_id and generation=p_generation and expires_at > v_now
+    where owner_id=v_owner and project_id=p_project_id and holder_id=p_client_id and generation=p_generation and expires_at > clock_timestamp()
     for update;
   if not found then raise sqlstate 'PT423' using message='Edit lease expired or transferred'; end if;
 end; $$;
@@ -153,4 +155,8 @@ returns void language sql security invoker set search_path = '' as $$ select pri
 
 revoke all on function private.claim_epub_project_edit_lock(uuid,uuid,boolean,integer),private.renew_epub_project_edit_lock(uuid,uuid,uuid,integer),private.release_epub_project_edit_lock(uuid,uuid,uuid),private.require_epub_project_edit_lock(uuid,uuid,uuid),private.save_epub_project(uuid,bigint,jsonb,uuid,uuid),private.delete_epub_project(uuid,bigint,uuid,uuid) from public,anon,authenticated;
 revoke all on function public.claim_epub_project_edit_lock(uuid,uuid,boolean,integer),public.renew_epub_project_edit_lock(uuid,uuid,uuid,integer),public.release_epub_project_edit_lock(uuid,uuid,uuid),public.save_epub_project(uuid,bigint,jsonb,uuid,uuid),public.delete_epub_project(uuid,bigint,uuid,uuid) from public,anon;
+-- These public SECURITY INVOKER wrappers need EXECUTE on their private targets.
+-- The private schema is not exposed by PostgREST; each target still checks
+-- auth.uid() and approved membership before it can touch a lease or draft.
+grant execute on function private.claim_epub_project_edit_lock(uuid,uuid,boolean,integer),private.renew_epub_project_edit_lock(uuid,uuid,uuid,integer),private.release_epub_project_edit_lock(uuid,uuid,uuid),private.save_epub_project(uuid,bigint,jsonb,uuid,uuid),private.delete_epub_project(uuid,bigint,uuid,uuid) to authenticated;
 grant execute on function public.claim_epub_project_edit_lock(uuid,uuid,boolean,integer),public.renew_epub_project_edit_lock(uuid,uuid,uuid,integer),public.release_epub_project_edit_lock(uuid,uuid,uuid),public.save_epub_project(uuid,bigint,jsonb,uuid,uuid),public.delete_epub_project(uuid,bigint,uuid,uuid) to authenticated;

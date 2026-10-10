@@ -1912,14 +1912,9 @@ export async function initializeApp() {
   });
   const persistenceOwnerId = () => supabaseUser?.id || 'local';
   const deletionKey = (ownerId, projectId) => `${ownerId}:${projectId}`;
-  const projectClientId = (() => {
-    const key = 'sitescout-project-editor-client-id';
-    try {
-      const existing = sessionStorage.getItem(key);
-      if (existing) return existing;
-      const created = crypto.randomUUID(); sessionStorage.setItem(key,created); return created;
-    } catch { return crypto.randomUUID(); }
-  })();
+  // sessionStorage can be cloned into a duplicated/opener tab. A fresh ID for
+  // this document prevents two live tabs from sharing one server lease.
+  const projectClientId = crypto.randomUUID();
   let editLeaseSupported = null; // null until the new RPC is probed; false keeps pre-migration CAS compatibility.
   let editLease = null;
   let leaseRenewTimer = null;

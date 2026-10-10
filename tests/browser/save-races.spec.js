@@ -151,6 +151,9 @@ test('lease transfer, expiry, reconnect, and late writes retain local work witho
   expect(cloud.uploadBytes).toBe(firstUploadBytes);
   const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});const other=await context.newPage();
   try {
+    // A duplicated tab can inherit sessionStorage from its opener. It must
+    // still get a distinct in-memory client ID and become read-only.
+    await other.addInitScript(clientId=>sessionStorage.setItem('sitescout-project-editor-client-id',clientId),originalLease.clientId);
     await start(other,cloud);await other.locator('.sb-projects .tab').click();
     await other.getByRole('button',{name:'lease manuscript',exact:true}).click();
     await expect(other.getByRole('button',{name:'여기서 편집'})).toBeVisible();
