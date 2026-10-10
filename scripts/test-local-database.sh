@@ -38,7 +38,7 @@ echo 'PASS: concurrent PostgreSQL connections permit exactly one CAS write'
 "$PG_BIN/pg_restore" -h "$TASK_DB_DIR" -p 55437 -d after_restore --exit-on-error "$TASK_DB_DIR/after.dump"
 "$PG_BIN/psql" -h "$TASK_DB_DIR" -p 55437 -d after_restore -v ON_ERROR_STOP=1 -f tests/database/cutover.sql
 for task_database in postgres after_restore; do
-  "$PG_BIN/psql" -h "$TASK_DB_DIR" -p 55437 -d "$task_database" -At -v ON_ERROR_STOP=1 -c "select md5(coalesce(jsonb_agg(to_jsonb(d) order by id)::text,'')) from epub_drafts d; select md5(coalesce(jsonb_agg(to_jsonb(p) order by user_id)::text,'')) from user_profiles p; select md5(coalesce(jsonb_agg(to_jsonb(o) order by id)::text,'')) from storage.objects o;" >"$TASK_DB_DIR/$task_database.hash"
+  "$PG_BIN/psql" -h "$TASK_DB_DIR" -p 55437 -d "$task_database" -At -v ON_ERROR_STOP=1 -c "select md5(coalesce(jsonb_agg(to_jsonb(d) order by id)::text,'')) from epub_drafts d; select md5(coalesce(jsonb_agg(to_jsonb(p) order by user_id)::text,'')) from user_profiles p; select md5(coalesce(jsonb_agg(to_jsonb(o) order by id)::text,'')) from storage.objects o; select md5(coalesce(jsonb_agg(to_jsonb(t) order by owner_id,project_id)::text,'')) from epub_project_deletions t;" >"$TASK_DB_DIR/$task_database.hash"
 done
 cmp "$TASK_DB_DIR/postgres.hash" "$TASK_DB_DIR/after_restore.hash"
 echo 'PASS: synthetic pre/post migration backups restored; drafts/profiles/storage-metadata hashes match'

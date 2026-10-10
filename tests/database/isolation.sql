@@ -79,5 +79,11 @@ with removed as (delete from storage.objects returning *) select test_assert((se
 select save_epub_project('10000000-0000-4000-8000-000000000088',0,'{"title":"delete fixture","chapters":[]}');
 select delete_epub_project('10000000-0000-4000-8000-000000000088',1);
 select test_assert((select count(*)=0 from epub_drafts where project_id='10000000-0000-4000-8000-000000000088'),'own revision-checked deletion works');
+select test_assert((select revision=2 from epub_project_deletions where project_id='10000000-0000-4000-8000-000000000088'),'deletion revision is visible to owner');
+do $$ begin
+ begin perform save_epub_project('10000000-0000-4000-8000-000000000088',0,'{"title":"revived","chapters":[]}'); raise exception 'deleted identity revived'; exception when serialization_failure then null; end;
+end $$;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',false);
+select test_assert((select count(*)=0 from epub_project_deletions where project_id='10000000-0000-4000-8000-000000000088'),'other owner cannot read deletion');
 reset role;
 select 'PASS: signup, ownership, CAS, immutable assets, transitions, last admin and existing-session RLS';

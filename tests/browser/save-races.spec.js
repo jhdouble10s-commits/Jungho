@@ -40,6 +40,89 @@ async function rows(page) {return page.evaluate(async ownerId=>{
   const {default:Dexie}=await import('https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm');const db=new Dexie('epub-builder-projects');await db.open();
   try{return (await db.table('projects').where('ownerId').equals(ownerId).toArray()).map(row=>row.payload);}finally{db.close();}
 },approvedUser.id);}
+async function wouldWarnOnLeave(page) {
+  return page.evaluate(() => {
+    const event = new Event('beforeunload',{cancelable:true});
+    window.dispatchEvent(event);
+    return event.defaultPrevented;
+  });
+}
+
+test('independent profiles reconcile explicit deletion and preserve offline edits as a new-ID recovery',async ({browser,page})=>{
+  const cloud=projectCloud();await start(page,cloud);
+  await page.locator('#title').fill('shared deletion');await save(page);
+  await expect(page.locator('.sync-indicator')).toContainText('서버 저장 완료');
+  expect(await wouldWarnOnLeave(page)).toBe(false);
+  const oldId=[...cloud.rows.keys()][0];
+  const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});
+  const other=await context.newPage();
+  try {
+    await start(other,cloud);
+    cloud.failSave=true;
+    await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>오프라인에서 쓴 본문</p>'));
+    await save(page);
+    await expect(page.locator('.sync-indicator')).toContainText('실패·재시도');
+    expect(await wouldWarnOnLeave(page)).toBe(true);
+    await other.locator('.sb-projects .tab').click();
+    await other.getByRole('button',{name:'shared deletion 삭제'}).click();
+    await other.getByRole('dialog',{name:'프로젝트 삭제'}).getByRole('button',{name:'삭제'}).click();
+    await expect(other.locator('#status')).toContainText('삭제했습니다');
+    cloud.failSave=false;
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    await expect(page.locator('.sync-indicator')).toContainText('서버에서 삭제됨');
+    await expect(page.getByRole('button',{name:'shared deletion',exact:true})).toHaveCount(0);
+    await expect(page.locator('.draft-recovery')).toBeVisible();
+    expect(cloud.deletions.get(oldId).revision).toBe(2);
+    await page.getByRole('button',{name:'미저장 원고 복구'}).click();
+    await expect(page.locator('#body')).toHaveValue('<p>오프라인에서 쓴 본문</p>');
+    await save(page);
+    expect(cloud.rows.size).toBe(1);
+    expect([...cloud.rows.keys()][0]).not.toBe(oldId);
+  } finally {await context.close();}
+});
+
+test('a delayed save and revision-zero retry cannot revive a deleted project',async ({browser,page})=>{
+  const cloud=projectCloud();await start(page,cloud);
+  await page.locator('#title').fill('race deletion');await save(page);
+  const id=[...cloud.rows.keys()][0];
+  const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});
+  const other=await context.newPage();
+  try {
+    await start(other,cloud);
+    let release,started;cloud.saveGate=new Promise(resolve=>release=resolve);
+    const entering=new Promise(resolve=>started=resolve);cloud.onSave=started;
+    await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>delayed</p>'));
+    await page.locator('.draft-save').click();await entering;
+    await other.locator('.sb-projects .tab').click();
+    await other.getByRole('button',{name:'race deletion 삭제'}).click();
+    await other.getByRole('dialog',{name:'프로젝트 삭제'}).getByRole('button',{name:'삭제'}).click();
+    release();await expect(page.locator('.draft-save')).toBeEnabled();
+    await expect(page.locator('#status')).toContainText('충돌');
+    expect(cloud.rows.has(id)).toBe(false);
+    const result=await page.evaluate(async projectId=>fetch('https://htzojicodwueivybovhy.supabase.co/rest/v1/rpc/save_epub_project',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_project_id:projectId,p_expected_revision:0,p_payload:{title:'revive',chapters:[]}})
+    }).then(response=>response.status),id);
+    expect(result).toBe(409);
+    expect(cloud.rows.has(id)).toBe(false);
+  } finally {await context.close();}
+});
+
+test('server acknowledgement covers only the captured edit and controls the leave warning',async ({page})=>{
+  const cloud=projectCloud();await start(page,cloud);
+  await page.locator('#title').fill('warning state');await save(page);
+  expect(await wouldWarnOnLeave(page)).toBe(false);
+  let release,started;cloud.saveGate=new Promise(resolve=>release=resolve);
+  const entering=new Promise(resolve=>started=resolve);cloud.onSave=started;
+  await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>first</p>'));
+  await page.locator('.draft-save').click();await entering;
+  await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>newer</p>'));
+  release();await expect(page.locator('.draft-save')).toBeEnabled();
+  expect(await wouldWarnOnLeave(page)).toBe(true);
+  await expect(page.locator('.sync-indicator')).toContainText('로컬에만 저장');
+  cloud.saveGate=null;await save(page);
+  expect(await wouldWarnOnLeave(page)).toBe(false);
+  await expect(page.locator('.sync-indicator')).toContainText('서버 저장 완료');
+});
 
 test('two tabs reject a stale local revision and deletion preserves an unseen unsynced project',async ({page,context})=>{
   const cloud=projectCloud();await start(page,cloud);
@@ -53,8 +136,10 @@ test('two tabs reject a stale local revision and deletion preserves an unseen un
   await expect(stale.locator('#body')).toHaveValue('<p>new A</p>');
   await page.locator('.new-book').click();await page.locator('#title').fill('Y');cloud.failSave=true;await save(page);
   cloud.failSave=false;
-  await stale.locator('.sb-projects .tab').click();stale.once('dialog',dialog=>dialog.accept());
-  await stale.getByRole('button',{name:'X 삭제',exact:true}).click();await expect(stale.locator('#status')).toContainText('삭제했습니다');
+  await stale.locator('.sb-projects .tab').click();
+  await stale.getByRole('button',{name:'X 삭제',exact:true}).click();
+  await stale.getByRole('dialog',{name:'프로젝트 삭제'}).getByRole('button',{name:'삭제'}).click();
+  await expect(stale.locator('#status')).toContainText('삭제했습니다');
   expect((await rows(page)).map(row=>row.title)).toEqual(['Y']);
 });
 

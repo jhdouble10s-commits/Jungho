@@ -99,3 +99,34 @@ test('toolbar uses edge space and shows gradient overlays only in scrollable dir
   expect(edges.left).toBeLessThanOrEqual(6);
   expect(edges.right).toBeLessThanOrEqual(6);
 });
+
+test('preview stays at device size or smaller and hides scrollbars without losing scroll', async ({page}) => {
+  await mockApprovedSession(page);
+  await page.goto('/',{waitUntil:'domcontentloaded'});
+  await page.waitForFunction(() => window.epubMonacoEditor && document.querySelector('#phonePreview'));
+  await page.setViewportSize({width:1800,height:1600});
+  const measure = () => page.locator('#preview').evaluate(node => {
+    const frame=node.querySelector('iframe');
+    const rect=node.getBoundingClientRect();
+    return {width:rect.width,height:rect.height,bottom:rect.bottom,
+      stageBottom:node.parentElement.getBoundingClientRect().bottom,
+      editorBottom:document.querySelector('.editor').getBoundingClientRect().bottom,
+      scrollbar:getComputedStyle(node).scrollbarWidth,
+      innerScrollbar:frame?.contentDocument ? getComputedStyle(frame.contentDocument.body).scrollbarWidth : null};
+  });
+  await page.locator('#phonePreview').selectOption('iphone-16');
+  await expect.poll(async () => (await measure()).width).toBeLessThanOrEqual(393);
+  const full=await measure();
+  expect(full.height).toBeLessThanOrEqual(852);
+  expect(full.width).toBeGreaterThan(370);
+  await page.setViewportSize({width:1600,height:700});
+  await expect.poll(async () => (await measure()).height).toBeLessThan(852);
+  const small=await measure();
+  expect(Math.abs(small.width/small.height-393/852)).toBeLessThan(.03);
+  await page.locator('#phonePreview').selectOption('');
+  await expect.poll(async () => Math.abs((await measure()).bottom-(await measure()).stageBottom)).toBeLessThanOrEqual(2);
+  const plain=await measure();
+  expect(plain.scrollbar).toBe('none');
+  if(plain.innerScrollbar) expect(plain.innerScrollbar).toBe('none');
+  expect(Math.abs(plain.bottom-plain.editorBottom)).toBeLessThanOrEqual(20);
+});

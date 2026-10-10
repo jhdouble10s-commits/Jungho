@@ -51,7 +51,15 @@ uiStyle.textContent = `
   .preview-card { position:static!important; align-self:stretch!important; display:flex; flex-direction:column; }
   .preview-card .preview { flex:1!important; min-height:0; height:auto!important; }
   .preview-stage { display:flex; flex:1; min-width:0; min-height:0; align-items:flex-start; justify-content:center; }
+  .preview-stage > .preview[data-device-preview="false"] { align-self:stretch; width:100%!important; height:100%!important; }
   .preview-stage > .preview[data-device-preview="true"] { box-sizing:border-box!important; flex:0 0 auto!important; align-self:flex-start; margin:0!important; }
+  .sync-indicator { align-self:center; max-width:min(35%,260px); overflow:hidden; color:var(--sub); font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+  .sync-indicator[data-state="failed"],.sync-indicator[data-state="conflict"],.sync-indicator[data-state="deleted"] { color:var(--destructive); }
+  .draft-delete { color:var(--destructive)!important; }
+  .draft-delete svg { width:15px; height:15px; }
+  .draft-item .sync-detail { display:block; overflow:hidden; color:var(--sub); font-size:11px; font-weight:400; text-overflow:ellipsis; }
+  .draft-delete-dialog .delete-dialog-copy { padding:16px; margin:0; font-size:13px; }
+  .draft-delete-dialog [value="delete"] { background:var(--destructive)!important; color:var(--destructive-foreground)!important; }
   .editor { display:flex; flex-direction:column; overflow:hidden; }
   .editor-controls { flex:none; }
   /* 장 제목·목차 입력 영역과 두 편집기 사이의 간격은 모드와 관계없이 하나로 유지한다. */
@@ -102,7 +110,7 @@ import { validateXhtml, equivalentXhtml, xhtmlPreservationIssue, projectXhtmlFor
 import { formatXhtml, sourceElements, sourceAttribute, elementAtOffset, elementAtPath } from './xhtml-source.js?v=20261007-70';
 import { xhtmlCompletionContext, monacoAttributeSuggestions, registerXhtmlEmmet } from './xhtml-completion.js';
 import { mountEditorTools, editorSearchPlugin, setEditorActionIcon } from './editor-tools.js';
-import { createElement as lucideElement, Quote, FilePlus, Upload, Download, ListEnd, ChevronLeft, ChevronRight, Pencil, Plus } from 'https://cdn.jsdelivr.net/npm/lucide@1.52.0/+esm';
+import { createElement as lucideElement, Quote, FilePlus, Upload, Download, ListEnd, ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from 'https://cdn.jsdelivr.net/npm/lucide@1.52.0/+esm';
 import { createFocusTrap } from 'https://cdn.jsdelivr.net/npm/focus-trap@8.2.3/+esm';
 import { computePosition, autoUpdate, offset, flip, shift } from 'https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.8.0/+esm';
 import { mountAppSidebar } from './sidebar.js?v=20261008-76';
@@ -1872,6 +1880,7 @@ export async function initializeApp() {
     setAccountMessage(`아이디 ${data.username}을(를) 발급했습니다.`);
   });
   const persistenceOwnerId = () => supabaseUser?.id || 'local';
+  const deletionKey = (ownerId, projectId) => `${ownerId}:${projectId}`;
   const rememberWorkspace = (title) => {
     const ownerId = persistenceOwnerId();
     workspaceWrite = workspaceWrite.catch(() => {}).then(async () => {
@@ -1951,6 +1960,7 @@ export async function initializeApp() {
     finally { assetRetryButton.disabled = false; }
   });
   const saveCloudDraft = async (draft, assets, ownerId) => {
+    if (deletedProjectIds.has(deletionKey(ownerId,draft.projectId)) || draft.serverDeleted) throw new Error('서버에서 삭제된 프로젝트입니다. 로컬 원고를 새 복사본으로 저장하세요.');
     if (!isAccessVerified()) throw new Error('접근 권한을 다시 확인한 뒤 서버 동기화를 시도하세요.');
     const client = await cloudReady;
     if (!client || !supabaseUser || supabaseUser.id !== ownerId) return false;
@@ -1966,13 +1976,16 @@ export async function initializeApp() {
         if (existing.error || !existing.data || await assetHash(existing.data) !== asset.hash) throw new Error(`이미지 업로드 실패: ${error.message}`);
       }
     }
-    if (!isAccessVerified() || persistenceOwnerId() !== ownerId) throw new Error('접근 권한 확인이 필요합니다.');
+    if (!isAccessVerified() || persistenceOwnerId() !== ownerId || deletedProjectIds.has(deletionKey(ownerId,draft.projectId))) throw new Error('접근 권한 또는 프로젝트 삭제 상태를 다시 확인하세요.');
     const { data, error } = await client.rpc('save_epub_project', {
-      p_project_id:draft.projectId, p_expected_revision:draft.serverRevision || 0, p_payload:draft,
+      p_project_id:draft.projectId, p_expected_revision:draft.serverRevision || 0,
+      p_payload:{...draft,syncPending:false,syncState:'saved'},
     });
+    if (error?.code === 'PGRST202') throw new Error('서버 schema cache에 public.save_epub_project(p_expected_revision, p_payload, p_project_id)가 없습니다. 연결 대상의 migration 적용과 RPC 권한·cache 갱신을 확인하세요.');
     if (error) throw new Error(['40001','23505'].includes(error.code) ? '서버 저장 충돌: 최신 원격본을 확인하거나 로컬 복사본으로 보존하세요.' : `서버 조건부 저장을 사용할 수 없습니다. 마이그레이션과 연결을 확인하세요. ${error.message}`);
     if (!Number.isSafeInteger(data?.revision)) throw new Error('서버 조건부 저장 응답이 올바르지 않습니다. 로컬 초안은 유지됩니다.');
     draft.serverRevision = data.revision;
+    draft.lastServerSavedAt = data.saved_at || new Date().toISOString();
     return true;
   };
   const deleteCloudDraft = async (draft) => {
@@ -2012,6 +2025,11 @@ export async function initializeApp() {
   footnoteButton.append(lucideElement(ListEnd, {width:15, height:15, 'aria-hidden':'true'}));
   richToolbar.querySelector('[data-editor-action="undo"]').after(footnoteButton);
   draftButton.classList.add('draft-save');
+  const syncIndicator = document.createElement('span');
+  syncIndicator.className = 'sync-indicator';
+  syncIndicator.setAttribute('role', 'status');
+  syncIndicator.setAttribute('aria-live', 'polite');
+  editorActions.append(syncIndicator);
   const importButton = document.createElement('button');
   importButton.type = 'button';
   importButton.className = 'primary';
@@ -2056,6 +2074,8 @@ export async function initializeApp() {
   top.append(fileActions);
   let draftsExpanded = false;
   let openedDraftTitle = null;
+  const deletedProjectIds = new Set();
+  const deletedUnsyncedIds = new Set();
   let pendingRecovery = null;
   let activeRecoveryKey = null;
   const recoveryProjectKey = (draft) => draft.projectId || draft.title || draft.chapters?.find(chapter => !chapter.generated)?.id || draft.chapters?.[0]?.id || 'untitled';
@@ -2079,7 +2099,15 @@ export async function initializeApp() {
       if (!await loadDraft(record.payload, new Map(rows.map(row => [row.name, row])))) return;
       if (epoch !== restoreEpoch || record.ownerId !== persistenceOwnerId()) return;
       activeRecoveryKey = record.projectKey;
+      if (record.payload.serverDeleted || deletedProjectIds.has(deletionKey(record.ownerId,record.payload.projectId))) {
+        bookProject.projectId = crypto.randomUUID();
+        bookProject.serverRevision = 0;
+        bookProject.localRevision = 0;
+        openedDraftTitle = null;
+        $('#title').value = `${record.payload.title} 복구본 ${new Date().toISOString()}`;
+      }
       bookProject.dirty = true;
+      bookProject.revision++;
       recoveryBanner.hidden = true;
       setStatus('미저장 원고를 복구했습니다. 내용을 확인한 뒤 저장하세요.');
     } catch (error) { setStatus(`미저장 원고 복구 실패: ${error.message}`, 'error'); }
@@ -2094,7 +2122,33 @@ export async function initializeApp() {
   let draftIndex = [];
   let hydratedDraftOwner = null;
   let restoredLastProjectOwner = null;
-  const getDrafts = () => draftIndex.map((draft) => ({ ...draft }));
+  const getDrafts = () => draftIndex.filter(draft => !draft.serverDeleted).map((draft) => ({ ...draft }));
+  const syncLabel = (draft, editing = false) => {
+    if (draft?.serverDeleted) return '서버에서 삭제됨';
+    if (draft?.syncState === 'conflict') return '충돌';
+    if (draft?.syncState === 'failed') return '실패·재시도';
+    if (draft?.syncState === 'syncing') return '동기화 중';
+    if (editing || draft?.syncPending || !draft?.serverRevision) return '로컬에만 저장';
+    return '서버 저장 완료';
+  };
+  const syncDetail = (draft, editing = false) => {
+    const label = syncLabel(draft, editing);
+    const date = draft?.lastServerSavedAt;
+    return date ? `${label} · 마지막 서버 저장 ${new Date(date).toLocaleString('ko-KR')}` : label;
+  };
+  const updateSyncIndicator = () => {
+    const draft = draftIndex.find(item => item.projectId === bookProject.projectId);
+    const deleted = deletedProjectIds.has(deletionKey(persistenceOwnerId(),bookProject.projectId));
+    const label = deleted ? '서버에서 삭제됨' : syncDetail(draft, bookProject.dirty);
+    if (syncIndicator.textContent !== label) syncIndicator.textContent = label;
+    syncIndicator.title = label;
+    syncIndicator.dataset.state = deleted ? 'deleted' : draft?.syncState || (bookProject.dirty ? 'local' : 'saved');
+    const listDetail = draftsPanel.querySelector('.draft-item[aria-current="true"] .sync-detail');
+    if (listDetail && draft) {
+      const detail = syncDetail(draft, bookProject.dirty);
+      if (listDetail.textContent !== detail) listDetail.textContent = detail;
+    }
+  };
   const reloadDraftIndex = async () => {
     const ownerId = persistenceOwnerId();
     const rows = await projectDatabase.projects.where('ownerId').equals(ownerId).toArray();
@@ -2114,7 +2168,9 @@ export async function initializeApp() {
     draftIndex = rows.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))).map((row) => row.payload).filter((draft) => draft?.title);
     hydratedDraftOwner = ownerId;
     renderDrafts();
-    const restore = workspace ? draftIndex.find(draft => draft.title === workspace.title) : draftIndex[0];
+    draftIndex.filter(draft => draft.serverDeleted).forEach(draft => deletedProjectIds.add(deletionKey(ownerId,draft.projectId)));
+    const availableDrafts = getDrafts();
+    const restore = workspace ? availableDrafts.find(draft => draft.title === workspace.title) : availableDrafts[0];
     if (restoredLastProjectOwner !== ownerId && restore && revision === bookProject.revision && !bookProject.dirty) {
       restoredLastProjectOwner = ownerId;
       await loadDraft(restore);
@@ -3274,6 +3330,20 @@ export async function initializeApp() {
       await loadDraft(record.payload);
     } catch (error) { setStatus(`프로젝트 열기 실패: ${error.message}`, 'error'); }
   };
+  const deleteDialog = document.createElement('dialog');
+  deleteDialog.className = 'gemini-settings-dialog draft-delete-dialog';
+  deleteDialog.setAttribute('aria-label','프로젝트 삭제');
+  deleteDialog.innerHTML = '<div class="gemini-dialog-head"><h2>프로젝트 삭제</h2></div><p class="delete-dialog-copy"></p><form method="dialog" class="gemini-dialog-footer"><button type="submit" value="cancel" class="secondary" data-close>취소</button><button type="submit" value="delete" class="primary">삭제</button></form>';
+  document.body.append(deleteDialog);
+  const confirmDeleteDraft = (draft, returnFocus) => new Promise(resolve => {
+    deleteDialog.querySelector('.delete-dialog-copy').textContent = `“${draft.title}” 임시저장본을 삭제할까요?`;
+    deleteDialog.returnValue = '';
+    deleteDialog.addEventListener('close', () => {
+      if (returnFocus.isConnected) returnFocus.focus({preventScroll:true});
+      resolve(deleteDialog.returnValue === 'delete');
+    },{once:true});
+    openModal(deleteDialog,deleteDialog.querySelector('[data-close]'));
+  });
   const renderDrafts = () => {
     const drafts = getDrafts();
     draftsPanel.hidden = !draftsExpanded;
@@ -3285,14 +3355,22 @@ export async function initializeApp() {
       draftsPanel.append(empty);
       return;
     }
-    drafts.forEach((draft) => {
+    drafts.forEach((draft,index) => {
       const row = document.createElement('div');
       row.className = 'draft-row';
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'draft-item';
-      button.textContent = draft.title;
+      const name = document.createElement('span');
+      name.textContent = draft.title;
+      const detail = document.createElement('span');
+      detail.className = 'sync-detail';
+      detail.id = `draft-sync-detail-${index}`;
+      detail.textContent = syncDetail(draft, draft.projectId === bookProject.projectId && bookProject.dirty);
+      button.append(name, detail);
       button.title = draft.title;
+      button.setAttribute('aria-label', draft.title);
+      button.setAttribute('aria-describedby', detail.id);
       if (draft.title === openedDraftTitle) button.setAttribute('aria-current', 'true');
       button.addEventListener('click', () => { void openSavedProject(draft.title); });
       const remove = document.createElement('button');
@@ -3300,49 +3378,106 @@ export async function initializeApp() {
       remove.className = 'draft-delete';
       remove.title = '임시저장본 삭제';
       remove.setAttribute('aria-label', `${draft.title} 삭제`);
-      remove.textContent = '🗑';
+      remove.append(lucideElement(Trash2,{width:15,height:15,'aria-hidden':'true'}));
       remove.addEventListener('click', async (event) => {
         event.stopPropagation();
-        if (!window.confirm(`“${draft.title}” 임시저장본을 정말 삭제할까요?`)) return;
+        if (!await confirmDeleteDraft(draft,remove)) return;
         try {
+          await saveInFlight;
+          const ownerId = persistenceOwnerId();
+          const latest = await projectDatabase.projects.get([ownerId,draft.title]);
+          if (latest?.payload.projectId !== draft.projectId || latest.payload.localRevision !== draft.localRevision)
+            throw new Error('다른 탭 또는 저장 작업에서 변경되었습니다. 목록을 다시 확인하세요.');
+          const isOpen = bookProject.projectId === draft.projectId;
+          if (isOpen && bookProject.dirty) {
+            await preserveLocalSnapshot(ownerId,collectDraft(),Array.from(previewAssets));
+            await showAvailableRecovery();
+          }
           restoreEpoch++;
           await deleteCloudDraft(draft);
-          await deleteLocalProject(projectDatabase, persistenceOwnerId(), draft);
+          if (draft.serverRevision) deletedProjectIds.add(deletionKey(ownerId,draft.projectId));
+          await deleteLocalProject(projectDatabase, ownerId, draft);
           await reloadDraftIndex();
         } catch (error) {
           setStatus(`임시저장본 삭제 실패: ${error.message || '저장소 연결 실패'}`, 'error');
+          if (deletedProjectIds.has(deletionKey(persistenceOwnerId(),draft.projectId))) void restoreCloudDrafts();
           return;
         }
-        if (openedDraftTitle === draft.title) {
-          openedDraftTitle = null;
-          setEditorActionIcon(draftButton,'Save','임시저장');
-        }
+        if (bookProject.projectId === draft.projectId) newBookButton.click();
         renderDrafts();
+        (draftsPanel.querySelector('.draft-item') || editorTab)?.focus({preventScroll:true});
         setStatus(`“${draft.title}” 임시저장본을 삭제했습니다.`);
       });
       row.append(button, remove);
       draftsPanel.append(row);
     });
+    updateSyncIndicator();
   };
-  const restoreCloudDrafts = async () => {
+  let cloudRestoreInFlight = null;
+  let cloudRestoreQueued = false;
+  const restoreCloudDrafts = () => {
+    if (cloudRestoreInFlight) { cloudRestoreQueued = true; return cloudRestoreInFlight; }
+    cloudRestoreInFlight = (async () => {
     if (!isAccessVerified()) return;
     const client = await cloudReady;
     if (!client || !supabaseUser) return;
     const epoch = restoreEpoch;
     const ownerId = supabaseUser.id;
     await hydrateDrafts();
+    const deletions = [];
+    let deletionError = null;
+    for (let offset = 0; ; offset += 500) {
+      const page = await client.from('epub_project_deletions')
+        .select('project_id,revision,deleted_at').eq('owner_id', ownerId)
+        .order('project_id').range(offset,offset + 499);
+      if (page.error) { deletionError = page.error; break; }
+      deletions.push(...page.data);
+      if (page.data.length < 500) break;
+    }
+    if (!deletionError && epoch === restoreEpoch && ownerId === persistenceOwnerId()) {
+      for (const deletion of deletions || []) {
+        deletedProjectIds.add(deletionKey(ownerId,deletion.project_id));
+        const row = (await projectDatabase.projects.where('ownerId').equals(ownerId).toArray())
+          .find(item => item.payload.projectId === deletion.project_id);
+        if (!row || row.payload.serverDeleted) continue;
+        const isOpen = bookProject.projectId === deletion.project_id;
+        const working = isOpen && bookProject.dirty ? collectDraft() : row.payload;
+        if (row.payload.syncPending || isOpen && bookProject.dirty) {
+          deletedUnsyncedIds.add(deletionKey(ownerId,deletion.project_id));
+          const assets = await projectDatabase.assets.where('[ownerId+title]').equals([ownerId,row.title]).toArray();
+          const preservedAssets = new Map(assets.map(asset => [asset.name,{blob:asset.blob}]));
+          if (isOpen) for (const [name,asset] of previewAssets) preservedAssets.set(name,{blob:asset.blob});
+          await preserveLocalSnapshot(ownerId,{...working,serverDeleted:true},
+            Array.from(preservedAssets));
+          await showAvailableRecovery();
+        }
+        await projectDatabase.transaction('rw',projectDatabase.projects,async () => {
+          const latest = await projectDatabase.projects.get([ownerId,row.title]);
+          if (latest?.payload.projectId !== deletion.project_id) return;
+          await projectDatabase.projects.delete([ownerId,row.title]);
+        });
+        if (isOpen) {
+          conflictText.textContent = '서버에서 삭제됨 · 현재 원고는 로컬에 보존했습니다.';
+          showSaveConflict();
+        }
+      }
+      await reloadDraftIndex();
+      renderDrafts();
+    }
     let { data, error } = await client
       .from('epub_drafts')
-      .select('payload,project_id,revision')
+      .select('payload,project_id,revision,updated_at')
       .eq('owner_id', ownerId)
       .order('updated_at', { ascending:false });
     if (error && ['42703','PGRST204'].includes(error.code)) ({data,error} = await client.from('epub_drafts').select('payload').eq('owner_id',ownerId).order('updated_at',{ascending:false}));
-    if (error || !data?.length || epoch !== restoreEpoch || ownerId !== persistenceOwnerId()) return;
+    if (error || epoch !== restoreEpoch || ownerId !== persistenceOwnerId()) return;
     let updatedOpenDraft = null;
     let deferredOpenDraft = false;
     await projectDatabase.transaction('rw',projectDatabase.projects,async () => {
-      for (const remote of data) {
-        const draft = {...remote.payload,projectId:remote.project_id || remote.payload?.projectId,serverRevision:remote.revision || remote.payload?.serverRevision || 0};
+      for (const remote of data || []) {
+        const draft = {...remote.payload,projectId:remote.project_id || remote.payload?.projectId,serverRevision:remote.revision || remote.payload?.serverRevision || 0,
+          lastServerSavedAt:remote.updated_at || remote.payload?.lastServerSavedAt};
+        if (deletedProjectIds.has(deletionKey(ownerId,draft.projectId))) continue;
         if (!draft.title) continue;
         const rows = await projectDatabase.projects.where('ownerId').equals(ownerId).toArray();
         const row = rows.find(row => row.payload.projectId === draft.projectId) || rows.find(row => row.title === draft.title);
@@ -3351,7 +3486,7 @@ export async function initializeApp() {
         if (isOpen && bookProject.dirty || row?.payload.syncPending) { deferredOpenDraft ||= isOpen; continue; }
         if (row && (draft.serverRevision ? (row.payload.serverRevision || 0) >= draft.serverRevision : String(row.updatedAt || '') >= String(draft.updatedAt || ''))) continue;
         if (row && rows.some(other => other !== row && other.title === draft.title)) continue;
-        const payload = {...draft,localRevision:(row?.payload.localRevision || 0)+1,syncPending:false};
+        const payload = {...draft,localRevision:(row?.payload.localRevision || 0)+1,syncPending:false,syncState:'saved'};
         if (row && row.title !== draft.title) await projectDatabase.projects.delete([ownerId,row.title]);
         await projectDatabase.projects.put({ownerId,title:draft.title,payload,updatedAt:draft.updatedAt});
         if (isOpen) updatedOpenDraft = payload;
@@ -3364,6 +3499,18 @@ export async function initializeApp() {
     }
     if (deferredOpenDraft) setStatus('서버 저장본과 로컬 변경을 확인해야 합니다. 현재 편집 내용을 보존하려고 자동 교체하지 않았습니다.', 'error');
     renderDrafts();
+    })().catch(error => {
+      console.warn('서버 프로젝트 동기화 실패',error);
+      setStatus(`서버 변경 확인 실패: ${error.message}`, 'error');
+      return false;
+    }).finally(() => {
+      cloudRestoreInFlight = null;
+      if (cloudRestoreQueued) {
+        cloudRestoreQueued = false;
+        void restoreCloudDrafts();
+      }
+    });
+    return cloudRestoreInFlight;
   };
   const performSaveCurrentDraft = async ({ shortcut = false } = {}) => {
     const epoch = restoreEpoch;
@@ -3382,6 +3529,7 @@ export async function initializeApp() {
     }
     draft.updatedAt = new Date().toISOString();
     draft.syncPending = true;
+    draft.syncState = 'syncing';
     const footnoteResult = prepareFootnotes(draft);
     if (footnoteResult.errors.length) {
       setStatus(`각주 오류 ${footnoteResult.errors.length}건이 있어 저장할 수 없습니다. 각주 링크와 내용을 확인하세요.`, 'error');
@@ -3398,6 +3546,14 @@ export async function initializeApp() {
     if (!draft.title) { setStatus('책 제목을 입력한 뒤 임시저장하세요.', 'error'); return false; }
     await hydrateDrafts();
     if (!current()) return false;
+    if (deletedProjectIds.has(deletionKey(ownerId,draft.projectId))) {
+      await preserveLocalSnapshot(ownerId,{...draft,serverDeleted:true},assets);
+      await showAvailableRecovery();
+      conflictText.textContent = '서버에서 삭제됨 · 현재 원고는 로컬에 보존했습니다.';
+      showSaveConflict();
+      setStatus('서버에서 삭제된 원고입니다. 새 복사본으로 저장하세요.', 'error');
+      return false;
+    }
     const drafts = getDrafts();
     const existingIndex = drafts.findIndex((item) => item.title === draft.title);
     const isUpdate = openedDraftTitle === draft.title && existingIndex >= 0;
@@ -3435,26 +3591,55 @@ export async function initializeApp() {
       }
       renderDrafts();
       if (current()) await rememberWorkspace(draft.title);
-      if (current() && savedRevision === bookProject.revision) bookProject.dirty = false;
+      if (current() && savedRevision === bookProject.revision) {
+        bookProject.dirty = false;
+        const projectKey = recoveryProjectKey(draft);
+        await projectDatabase.transaction('rw',projectDatabase.recoveries,projectDatabase.recoveryAssets,async () => {
+          await projectDatabase.recoveries.delete([ownerId,projectKey]);
+          await projectDatabase.recoveryAssets.where('[ownerId+projectKey]').equals([ownerId,projectKey]).delete();
+        });
+      }
       if (htmlErrors.length) setStatus(`임시저장은 완료했지만 HTML 오류 ${htmlErrors.length}건이 있습니다.`, 'error');
       try {
         if (missingAssets) {
+          await projectDatabase.transaction('rw',projectDatabase.projects,async () => {
+            const row = await projectDatabase.projects.get([ownerId,draft.title]);
+            if (row?.payload.localRevision === draft.localRevision)
+              await projectDatabase.projects.put({...row,payload:{...row.payload,syncState:'failed',syncPending:true}});
+          });
+          await reloadDraftIndex(); renderDrafts();
           if (current()) setStatus(`로컬 저장됨 · 이미지 ${missingAssets}개를 복구한 뒤 서버 동기화를 다시 시도하세요.`, 'error');
           return false;
         }
         const synced = await saveCloudDraft(draft, new Map(assets), ownerId);
         if (synced) {
           draft.syncPending = false;
+          draft.syncState = 'saved';
           await projectDatabase.transaction('rw',projectDatabase.projects,async () => {
             const row = await projectDatabase.projects.get([ownerId,draft.title]);
             if (row?.payload.localRevision === draft.localRevision) await projectDatabase.projects.put({...row,payload:draft});
           });
           if (current()) bookProject.serverRevision = draft.serverRevision;
           await reloadDraftIndex(); renderDrafts();
+        } else {
+          await projectDatabase.transaction('rw',projectDatabase.projects,async () => {
+            const row = await projectDatabase.projects.get([ownerId,draft.title]);
+            if (row?.payload.localRevision === draft.localRevision)
+              await projectDatabase.projects.put({...row,payload:{...row.payload,syncState:'local',syncPending:true}});
+          });
+          await reloadDraftIndex(); renderDrafts();
         }
         if (current()) setStatus(synced ? '로컬 저장됨 · 서버 동기화됨' : '로컬에 저장되었습니다.');
       } catch (error) {
         console.warn('Supabase 저장 동기화 실패', error);
+        const conflict = error.message.includes('충돌') || error.message.includes('삭제된');
+        await projectDatabase.transaction('rw',projectDatabase.projects,async () => {
+          const row = await projectDatabase.projects.get([ownerId,draft.title]);
+          if (row?.payload.localRevision === draft.localRevision)
+            await projectDatabase.projects.put({...row,payload:{...row.payload,syncState:conflict ? 'conflict' : 'failed',syncPending:true}});
+        });
+        await reloadDraftIndex(); renderDrafts();
+        if (conflict && isAccessVerified()) await restoreCloudDrafts();
         if (current()) { setStatus(`로컬 저장됨 · 서버 동기화 실패: ${error.message}`, 'error'); if (error.message.includes('충돌')) showSaveConflict(); }
         return false;
       }
@@ -3476,6 +3661,7 @@ export async function initializeApp() {
   remoteButton.addEventListener('click', async () => {
     const ownerId = persistenceOwnerId(), instance = bookProject.instanceId, id = bookProject.projectId;
     try {
+      if (deletedProjectIds.has(deletionKey(ownerId,id))) throw new Error('서버에서 삭제된 원고입니다. 로컬 작업을 새 복사본으로 저장하세요.');
       await preserveLocalSnapshot(ownerId,collectDraft(),Array.from(previewAssets));
       if (!isAccessVerified()) throw new Error('권한 확인 후 다시 시도하세요.');
       let {data,error} = await authClient.from('epub_drafts').select('payload,project_id,revision').eq('owner_id',ownerId).eq('project_id',id).maybeSingle();
@@ -3562,11 +3748,14 @@ export async function initializeApp() {
       const style = doc.createElement('style');
       style.textContent = $('#css').value;
       doc.head.append(style);
+      const scrollbarStyle = doc.createElement('style');
+      scrollbarStyle.textContent = 'html,body{scrollbar-width:none!important;-ms-overflow-style:none!important}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}';
+      doc.head.append(scrollbarStyle);
       hydrateResourceImages(doc.body, activeChapterIndex());
       doc.body.scrollTop = scrollTop;
       doc.addEventListener('click', handlePreviewClick);
     }, { once:true });
-    frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;min-height:100%;font:14px/1.6 sans-serif;color:inherit}body{padding:18px;box-sizing:border-box;overflow:auto}img{max-width:100%;height:auto}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:5px}.preview-focus{background:rgba(240,142,49,.16);outline:2px solid #e88a31}</style></head><body>${content.innerHTML}</body></html>`;
+    frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;min-height:100%;font:14px/1.6 sans-serif;color:inherit;scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}body{padding:18px;box-sizing:border-box;overflow:auto}img{max-width:100%;height:auto}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:5px}.preview-focus{background:rgba(240,142,49,.16);outline:2px solid #e88a31}</style></head><body>${content.innerHTML}</body></html>`;
     previewIframe = frame;
     preview.replaceChildren(frame);
   };
@@ -4698,6 +4887,44 @@ export async function initializeApp() {
       await projectDatabase.recoveryAssets.bulkPut(assets);
       await projectDatabase.recoveries.put({ownerId, projectKey, payload, updatedAt:new Date().toISOString()});
     });
+  });
+  let observedRevision = bookProject.revision;
+  let workingCopyTimer = null;
+  const preserveWorkingCopy = async () => {
+    if (!bookProject.dirty) return;
+    const ownerId = persistenceOwnerId();
+    const payload = collectDraft();
+    const projectKey = recoveryProjectKey(payload);
+    if (deletedProjectIds.has(deletionKey(ownerId,payload.projectId))) payload.serverDeleted = true;
+    const revision = bookProject.revision;
+    const assets = Array.from(previewAssets,([name,asset]) => ({ownerId,projectKey,name,blob:asset.blob}));
+    await projectDatabase.transaction('rw',projectDatabase.recoveries,projectDatabase.recoveryAssets,async () => {
+      if (!bookProject.dirty || bookProject.revision !== revision || bookProject.projectId !== payload.projectId || persistenceOwnerId() !== ownerId) return;
+      await projectDatabase.recoveryAssets.where('[ownerId+projectKey]').equals([ownerId,projectKey]).delete();
+      await projectDatabase.recoveryAssets.bulkPut(assets);
+      await projectDatabase.recoveries.put({ownerId,projectKey,payload,updatedAt:new Date().toISOString()});
+    });
+    if (deletedProjectIds.has(deletionKey(ownerId,payload.projectId))) await showAvailableRecovery();
+  };
+  setInterval(() => {
+    updateSyncIndicator();
+    if (bookProject.revision === observedRevision) return;
+    observedRevision = bookProject.revision;
+    clearTimeout(workingCopyTimer);
+    workingCopyTimer = setTimeout(() => { void preserveWorkingCopy().catch(error => console.warn('로컬 복구본 저장 실패',error)); }, 350);
+  }, 200);
+  window.addEventListener('beforeunload', event => {
+    const active = draftIndex.find(draft => draft.projectId === bookProject.projectId);
+    if (!bookProject.dirty && !active?.syncPending && !saveInFlight
+      && !deletedUnsyncedIds.has(deletionKey(persistenceOwnerId(),bookProject.projectId))) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+  window.addEventListener('online', () => { void restoreCloudDrafts(); });
+  window.addEventListener('focus', () => { void restoreCloudDrafts(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void restoreCloudDrafts();
+    else if (bookProject.dirty) void preserveWorkingCopy().catch(error => console.warn('로컬 복구본 저장 실패',error));
   });
   void hydrateDrafts();
   void refreshAccountUi();
