@@ -143,3 +143,55 @@ test('first-line and paragraph indentation preserve tags/classes/CSS and EPUB ro
   await expect(page.locator('#status')).toContainText('불러왔');
   await expect(page.locator('#css')).toHaveValue(savedCss);
 });
+
+test('text style marks survive a visual/XHTML round trip and resetting the font keeps size and colour',async ({page}) => {
+  await start(page,'<p>Alpha Beta</p>');
+  const editor = page.locator('.ProseMirror');
+  await editor.click();
+  await page.keyboard.press('ControlOrMeta+a');
+  const size = page.locator('[data-font-size]');
+  await size.fill('24');
+  await size.press('Enter');
+  await page.getByLabel('글자색').evaluate(input => {
+    input.value = '#123456';
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  await page.locator('[data-font-family]').selectOption('serif');
+  await page.locator('[data-font-family]').selectOption('');
+  await page.locator('[data-mode-toggle]').click();
+  const after = await source(page);
+  expect(after).toContain('font-size: 24px');
+  expect(after).toContain('color: rgb(18, 52, 86)');
+  expect((after.match(/<span\b/g) || []).length).toBe(1);
+  await page.locator('[data-mode-toggle]').click();
+  await expect(page.locator('.visual-read-only-notice')).toBeHidden();
+  await expect(editor).toContainText('Alpha Beta');
+});
+
+test('quote, Roman list and toolbar active state use the Tiptap selection',async ({page}) => {
+  await start(page,'<p>Alpha</p><ol><li>One</li></ol>');
+  await page.locator('.ProseMirror > p').click();
+  await tool(page,'인용');
+  await expect(page.locator('.ProseMirror blockquote')).toContainText('Alpha');
+  await page.locator('.ProseMirror li').click();
+  await page.locator('[data-list]').selectOption('upper-roman');
+  await expect(page.locator('.ProseMirror > ol')).toHaveCSS('list-style-type','upper-roman');
+  await page.locator('.ProseMirror blockquote').click();
+  await page.keyboard.press('ControlOrMeta+a');
+  await tool(page,'굵게');
+  await expect(page.locator('[data-command="bold"]')).toHaveClass(/active/);
+});
+
+test('the visual host has one editable document and keeps the ProseMirror selection after an explicit save',async ({page}) => {
+  await start(page,'<p>Alpha Beta</p>');
+  await expect(page.locator('.rich-editor')).not.toHaveAttribute('contenteditable');
+  const paragraph = page.locator('.ProseMirror p');
+  await paragraph.click();
+  await page.keyboard.press('End');
+  for (let index = 0; index < 4; index++) await page.keyboard.press('Shift+ArrowLeft');
+  await page.locator('.draft-save').click();
+  await expect(page.locator('.draft-save')).toBeEnabled();
+  await tool(page,'굵게');
+  await expect(page.locator('.ProseMirror strong')).toHaveText('Beta');
+  expect(await source(page)).toContain('Alpha <strong>Beta</strong>');
+});

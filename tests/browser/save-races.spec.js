@@ -202,12 +202,14 @@ test('two tabs reject a stale local revision and deletion preserves an unseen un
   await stale.getByRole('dialog',{name:'프로젝트 삭제'}).getByRole('button',{name:'삭제'}).click();
   await expect(stale.locator('#status')).toContainText('삭제했습니다');
   expect((await rows(page)).map(row=>row.title)).toEqual(['Y']);
+  await expect(page.locator('#title')).toHaveValue('Y');
+  await expect(page.locator('#body')).toContainText('');
 });
 
 test('two devices reject stale server revision and keep local copy; rename keeps project identity',async ({browser,page})=>{
   const cloud=projectCloud();await start(page,cloud);await page.locator('#title').fill('cloud X');await save(page,cloud);
   const original=[...cloud.rows.values()][0];
-  const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});const other=await context.newPage();
+  const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:test.info().project.use.baseURL});const other=await context.newPage();
   try {
     await start(other,cloud);await other.locator('.sb-projects .tab').click();await other.getByRole('button',{name:'cloud X',exact:true}).click();await expect(other.locator('#title')).toHaveValue('cloud X');
     await page.locator('#title').fill('renamed X');await save(page,cloud);
@@ -269,7 +271,7 @@ test('legacy local drafts without a server revision survive migration and requir
 
 test('reversed device save responses retain both immutable uploads and commit only the winning revision',async ({page,browser})=>{
   const cloud=projectCloud();await start(page,cloud);await page.locator('#title').fill('upload race');await save(page,cloud);
-  const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});const other=await context.newPage();
+  const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:test.info().project.use.baseURL});const other=await context.newPage();
   try {
     await start(other,cloud);await other.locator('.sb-projects .tab').click();await other.getByRole('button',{name:'upload race',exact:true}).click();
     await expect(other.locator('#status')).toContainText('임시저장본을 불러왔습니다');

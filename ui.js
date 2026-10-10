@@ -16,7 +16,7 @@ uiStyle.textContent = `
   .grid { --chapter-width:270px; --preview-width:440px; min-width:0; max-width:100%; position:relative; grid-template-columns:var(--chapter-width) minmax(420px,1fr) var(--preview-width)!important; gap:16px!important; }.panel-resize-handle { position:absolute; top:0; bottom:0; z-index:10; width:14px; transform:translateX(-7px); cursor:col-resize; touch-action:none; }.panel-resize-handle::after { content:''; position:absolute; top:20%; bottom:20%; left:6px; width:2px; border-radius:2px; background:transparent; transition:background .15s; }.panel-resize-handle:hover::after,.panel-resize-handle.is-resizing::after { background:var(--accent); }.card { min-width:0; background:var(--surface)!important; border-color:var(--line)!important; box-shadow:none!important; }.editor,.preview-card { min-width:0; padding:18px!important; }.head { padding:0!important; border:0!important; }.left-tabs { display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px; border-bottom:1px solid var(--line); }.left-tab { border:0; border-radius:8px; padding:9px 6px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; }.left-tab.active { background:var(--accent-soft); color:var(--accent); }
   .chapter-card { display:flex; flex-direction:column; }.left-tabs { grid-template-columns:repeat(3,1fr)!important; }.left-panel-host { position:relative; flex:1; min-height:0; overflow:hidden; }.left-panel { display:none!important; position:absolute; inset:0; overflow:auto; }.left-panel.active { display:block!important; }.left-panel#chaptersPanel.active { display:flex!important; flex-direction:column; overflow:hidden; }.left-panel#chaptersPanel .chapters { flex:1; min-height:0; overflow-y:auto; padding:8px 8px 20px!important; }.chapter { position:relative; overflow:hidden; padding-left:34px!important; padding-right:38px!important; text-overflow:ellipsis; white-space:nowrap; }.toc-toggle { position:absolute; right:29px; top:50%; z-index:2; width:18px; height:18px; transform:translateY(-50%); border:0; padding:0; background:transparent; color:var(--sub); font-size:14px; cursor:pointer; }.toc-toggle:hover { color:var(--accent); }.toc-eye { position:absolute; left:7px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:var(--sub); cursor:pointer; }.toc-eye.is-hidden { opacity:.35; }.add { flex:none; width:calc(100% - 16px)!important; margin:7px 8px 13px!important; background:var(--surface)!important; border-color:var(--accent)!important; color:var(--accent)!important; }.left-panel#cssPanel,.left-panel#assetsPanel { padding:12px!important; }.left-panel#cssPanel section { padding:0!important; }.left-panel#cssPanel .css { height:520px!important; }.left-panel#cssPanel #images { display:none!important; }.left-panel#cssPanel .hint,.asset-hint { color:var(--sub)!important; }.asset-upload { display:flex; align-items:center; justify-content:center; width:100%; margin-bottom:10px; border:1px dashed var(--accent); border-radius:8px; padding:10px; color:var(--accent); font-size:12px; font-weight:700; cursor:pointer; }.asset-hint { color:var(--sub); font-size:12px; }.asset-row { display:flex; align-items:center; gap:6px; margin:5px 0; }.asset-row .draft-item { flex:1; }.asset-insert { width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--accent-soft); color:var(--accent); font-size:18px; cursor:pointer; }.draft-row { display:flex; gap:4px; }.draft-row .draft-item { flex:1; }.draft-delete { width:30px; border:1px solid var(--line); border-radius:8px; background:transparent; color:#ff9c75; cursor:pointer; }.cover-chapter { display:flex!important; align-items:center; gap:8px; }.cover-chapter::before { content:'▧'; color:var(--accent); font-size:14px; }
   .editor-controls { min-width:0; display:flex; align-items:center; gap:10px; margin:0 0 14px; }.editor-mode { display:flex; flex:none; align-items:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }.editor-mode button { border:0; border-radius:7px; padding:7px 10px; background:transparent; color:var(--sub); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.editor-mode button.active { background:var(--accent-soft); color:var(--accent); }.toolbar-viewport { position:relative; min-width:0; flex:1; overflow:hidden; }.rich-toolbar { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; min-width:0; overflow-x:auto; overflow-y:hidden; justify-content:space-between; padding:5px 4px; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-2); scrollbar-width:none; }.rich-toolbar::-webkit-scrollbar { display:none; }.toolbar-viewport::before,.toolbar-viewport::after { content:''; pointer-events:none; opacity:0; transition:opacity .2s ease; position:absolute; top:1px; bottom:1px; z-index:1; width:64px; }.toolbar-viewport.show-previous::before,.toolbar-viewport.show-next::after { opacity:1; }.toolbar-viewport::before { left:1px; border-radius:9px 0 0 9px; background:linear-gradient(90deg,var(--surface-2) 15%,color-mix(in srgb,var(--surface-2) 85%,transparent) 48%,transparent); }.toolbar-viewport::after { right:1px; border-radius:0 9px 9px 0; background:linear-gradient(270deg,var(--surface-2) 15%,color-mix(in srgb,var(--surface-2) 85%,transparent) 48%,transparent); }.toolbar-previous,.toolbar-next { position:absolute; top:50%; z-index:2; width:29px; height:29px; transform:translateY(-50%); border:0; border-radius:7px; padding:6px; background:transparent; color:var(--text); cursor:pointer; }.toolbar-previous { left:5px; }.toolbar-next { right:5px; }.toolbar-previous:hover,.toolbar-next:hover { background:var(--accent-soft); color:var(--accent); }.toolbar-previous svg,.toolbar-next svg { display:block; }.rich-toolbar button { min-width:30px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; background:var(--bg); color:var(--text); font:700 12px inherit; cursor:pointer; white-space:nowrap; }.rich-toolbar button:hover { border-color:var(--accent); color:var(--accent); }.rich-toolbar input { width:31px!important; height:28px; padding:2px!important; cursor:pointer; }.rich-toolbar select { height:29px; flex:none; border:1px solid var(--line); border-radius:6px; padding:0 6px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.rich-toolbar .tool-separator { width:1px; height:22px; flex:none; background:var(--line); }.rich-editor { min-height:610px; padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); line-height:1.8; outline:none; overflow:auto; }.rich-editor:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; }.rich-editor img { max-width:100%; height:auto; }.rich-editor table { border-collapse:collapse; max-width:100%; }.rich-editor td,.rich-editor th { min-width:72px; border:1px solid var(--sub); padding:6px; }
-  .preview-card .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }.device-controls { display:flex; align-items:center; gap:6px; }.device-controls select { max-width:118px; height:28px; border:1px solid var(--line); border-radius:6px; padding:0 5px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.preview-card { overflow:hidden; }.preview .cover-preview-page { display:flex; align-items:center; justify-content:center; min-height:100%; }.preview .cover-preview-page img { display:block; max-width:100%; max-height:100%; object-fit:contain; }.preview[data-device-preview="true"] { box-sizing:content-box; flex:none; margin:0 auto; border:8px solid #1b1b1e!important; border-radius:22px; box-shadow:0 10px 30px #00000045; transition:width .2s,height .2s; }
+  .preview-card .head { display:flex; align-items:center; justify-content:space-between; gap:10px; }.device-controls { display:flex; align-items:center; gap:6px; }.device-controls select { max-width:118px; height:28px; border:1px solid var(--line); border-radius:6px; padding:0 5px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.device-controls button { height:28px; border:1px solid var(--line); border-radius:6px; padding:0 7px; background:var(--bg); color:var(--text); font:600 11px inherit; cursor:pointer; }.device-controls button[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }.device-controls input[type="range"] { width:68px; accent-color:var(--accent); }.device-controls output { min-width:30px; color:var(--sub); font-size:11px; text-align:right; }.preview-card { overflow:hidden; }.preview .cover-preview-page { display:flex; align-items:center; justify-content:center; min-height:100%; }.preview .cover-preview-page img { display:block; max-width:100%; max-height:100%; object-fit:contain; }.preview[data-device-preview="true"] { box-sizing:content-box!important; flex:none; margin:0!important; padding:0!important; border:8px solid #1b1b1e!important; border-radius:22px; box-shadow:0 10px 30px #00000045; transform-origin:top left; transition:transform .16s ease; }
   .rich-toolbar button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }.rich-toolbar button svg { display:block; width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }.rich-toolbar input[data-font-size] { width:62px!important; height:29px; flex:none; font-size:11px!important; }.rich-toolbar input[data-table-color] { width:29px!important; height:29px; flex:none; }.table-color-control { display:flex; align-items:center; gap:4px; height:29px; flex:none; }.rich-toolbar .tool-label { flex:none; color:var(--sub); font-size:12px; line-height:29px; white-space:nowrap; }
   .rich-editor { height:clamp(420px,calc(100vh - 310px),900px); min-height:0; }.preview-card { position:sticky; top:24px; align-self:start; max-height:calc(100vh - 48px); display:flex; flex-direction:column; overflow:hidden; }.preview-card .preview { flex:none; }.preview .preview-focus { background:#ff510018; outline:1px solid #ff5100aa; outline-offset:4px; border-radius:4px; transition:background .15s; }.preview mark.preview-context { background:#ff510052; color:inherit; border-radius:2px; padding:0 1px; }
   h1,h2,label { color:var(--text)!important; } input,textarea { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; } input:focus,textarea:focus { border-color:var(--accent)!important; box-shadow:0 0 0 3px #ff510030!important; }.secondary { background:var(--surface-2)!important; border-color:var(--line)!important; color:var(--text)!important; }.danger { color:#ff8660!important; }.chapter { color:var(--text)!important; }.chapter:hover { background:var(--surface-2)!important; }.chapter.active { background:var(--accent-soft)!important; color:var(--accent)!important; }.preview { background:var(--bg)!important; border-color:var(--line)!important; color:var(--text)!important; }.preview-card .head { padding:0 0 12px!important; border-bottom:1px solid var(--line)!important; margin-bottom:12px; }.code { height:610px!important; }
@@ -138,12 +138,18 @@ export async function initializeApp() {
   const preview = $('#preview');
   let previewIframe = null;
   const previewContentRoot = () => previewIframe?.isConnected ? previewIframe.contentDocument?.body || preview : preview;
+  const previewScrollRoot = () => previewIframe?.isConnected
+    ? previewIframe.contentDocument?.scrollingElement || previewContentRoot()
+    : preview;
   const previewCard = preview.closest('.preview-card');
   const previewHeader = previewCard.querySelector('.head');
   const previewStage = document.createElement('div');
   previewStage.className = 'preview-stage';
+  const previewDeviceShell = document.createElement('div');
+  previewDeviceShell.className = 'preview-device-shell';
   preview.before(previewStage);
-  previewStage.append(preview);
+  previewStage.append(previewDeviceShell);
+  previewDeviceShell.append(preview);
   const grid = chapterCard.parentElement;
   const editorCard = chapterCard.nextElementSibling;
   const resizeHandles = ['chapters', 'preview'].map((panel) => {
@@ -215,31 +221,56 @@ export async function initializeApp() {
     'ipad-pro-11': { label: 'iPad Pro 11″', width: 834, height: 1194 },
     'ipad-pro-13': { label: 'iPad Pro 13″', width: 1032, height: 1376 },
   };
-  previewHeader.innerHTML = `<span>미리보기</span><div class="device-controls"><select id="phonePreview" aria-label="아이폰 미리보기"><option value="">아이폰</option><option value="iphone-16">iPhone 16</option><option value="iphone-16-plus">16 Plus</option><option value="iphone-16-pro">16 Pro</option><option value="iphone-16-pro-max">16 Pro Max</option><option value="iphone-17">iPhone 17</option><option value="iphone-17-air">17 Air</option><option value="iphone-17-pro">17 Pro</option><option value="iphone-17-pro-max">17 Pro Max</option><option value="iphone-18">iPhone 18</option><option value="iphone-18-pro">18 Pro</option><option value="iphone-18-pro-max">18 Pro Max</option></select><select id="tabletPreview" aria-label="태블릿 미리보기"><option value="">Tablet</option><option value="ipad-mini">iPad mini</option><option value="ipad">iPad</option><option value="ipad-air">iPad Air</option><option value="ipad-pro-11">iPad Pro 11″</option><option value="ipad-pro-13">iPad Pro 13″</option></select></div>`;
+  previewHeader.innerHTML = `<span>미리보기</span><div class="device-controls"><select id="phonePreview" aria-label="아이폰 미리보기"><option value="">아이폰</option><option value="iphone-16">iPhone 16</option><option value="iphone-16-plus">16 Plus</option><option value="iphone-16-pro">16 Pro</option><option value="iphone-16-pro-max">16 Pro Max</option><option value="iphone-17">iPhone 17</option><option value="iphone-17-air">17 Air</option><option value="iphone-17-pro">17 Pro</option><option value="iphone-17-pro-max">17 Pro Max</option><option value="iphone-18">iPhone 18</option><option value="iphone-18-pro">18 Pro</option><option value="iphone-18-pro-max">18 Pro Max</option></select><select id="tabletPreview" aria-label="태블릿 미리보기"><option value="">Tablet</option><option value="ipad-mini">iPad mini</option><option value="ipad">iPad</option><option value="ipad-air">iPad Air</option><option value="ipad-pro-11">iPad Pro 11″</option><option value="ipad-pro-13">iPad Pro 13″</option></select><button type="button" data-preview-fit aria-pressed="true">맞춤</button><button type="button" data-preview-actual aria-pressed="false">100%</button><input type="range" data-preview-scale min="25" max="100" value="100" step="5" aria-label="미리보기 배율"><output data-preview-scale-value>맞춤</output></div>`;
   const phonePreview = $('#phonePreview');
   const tabletPreview = $('#tabletPreview');
+  const previewFit = previewHeader.querySelector('[data-preview-fit]');
+  const previewActual = previewHeader.querySelector('[data-preview-actual]');
+  const previewScale = previewHeader.querySelector('[data-preview-scale]');
+  const previewScaleValue = previewHeader.querySelector('[data-preview-scale-value]');
   let selectedDevice = '';
+  let previewScaleMode = 'fit';
   const applyDevicePreview = () => {
     const device = devicePresets[selectedDevice];
     if (!device) {
       preview.dataset.devicePreview = 'false';
+      previewDeviceShell.dataset.devicePreview = 'false';
       preview.style.removeProperty('width');
       preview.style.removeProperty('height');
       preview.style.removeProperty('aspect-ratio');
+      preview.style.removeProperty('transform');
+      previewDeviceShell.style.removeProperty('width');
+      previewDeviceShell.style.removeProperty('height');
+      previewFit.disabled = previewActual.disabled = previewScale.disabled = true;
+      previewFit.setAttribute('aria-pressed','false'); previewActual.setAttribute('aria-pressed','false');
+      previewScaleValue.textContent = '—';
       return;
     }
-    // The stage is the actual area below the header.  The frame is measured
-    // border-box, so its border cannot overflow the calculated dimensions.
+    // Keep the iframe at the device's CSS viewport. Only its presentation is
+    // scaled; feeding a physical, scaled width into the iframe changes CSS
+    // breakpoints and produces an inaccurate device preview.
     const availableWidth = Math.max(1, previewStage.clientWidth);
     const availableHeight = Math.max(1, previewStage.clientHeight);
-    const scale = Math.min(1, availableWidth / device.width, availableHeight / device.height);
+    const fitted = Math.min(1, availableWidth / (device.width + 16), availableHeight / (device.height + 16));
+    const requested = previewScaleMode === 'fit' ? fitted : previewScaleMode === 'actual' ? 1 : Number(previewScale.value) / 100;
+    const scale = Math.max(.1, Math.min(1, requested));
     preview.dataset.devicePreview = 'true';
-    preview.style.setProperty('aspect-ratio', `${device.width} / ${device.height}`);
-    preview.style.setProperty('width', `${Math.round(device.width * scale)}px`, 'important');
-    preview.style.setProperty('height', `${Math.round(device.height * scale)}px`, 'important');
+    previewDeviceShell.dataset.devicePreview = 'true';
+    preview.style.setProperty('width', `${device.width}px`, 'important');
+    preview.style.setProperty('height', `${device.height}px`, 'important');
+    preview.style.setProperty('transform', `scale(${scale})`);
+    previewDeviceShell.style.width = `${Math.round((device.width + 16) * scale)}px`;
+    previewDeviceShell.style.height = `${Math.round((device.height + 16) * scale)}px`;
+    previewFit.disabled = previewActual.disabled = previewScale.disabled = false;
+    previewFit.setAttribute('aria-pressed',String(previewScaleMode === 'fit'));
+    previewActual.setAttribute('aria-pressed',String(previewScaleMode === 'actual'));
+    previewScaleValue.textContent = previewScaleMode === 'fit' ? `맞춤 ${Math.round(scale * 100)}%` : `${Math.round(scale * 100)}%`;
   };
-  phonePreview.addEventListener('change', () => { selectedDevice = phonePreview.value; if (selectedDevice) tabletPreview.value = ''; applyDevicePreview(); });
-  tabletPreview.addEventListener('change', () => { selectedDevice = tabletPreview.value; if (selectedDevice) phonePreview.value = ''; applyDevicePreview(); });
+  phonePreview.addEventListener('change', () => { selectedDevice = phonePreview.value; if (selectedDevice) tabletPreview.value = ''; previewScaleMode = 'fit'; applyDevicePreview(); });
+  tabletPreview.addEventListener('change', () => { selectedDevice = tabletPreview.value; if (selectedDevice) phonePreview.value = ''; previewScaleMode = 'fit'; applyDevicePreview(); });
+  previewFit.addEventListener('click', () => { previewScaleMode = 'fit'; applyDevicePreview(); });
+  previewActual.addEventListener('click', () => { previewScaleMode = 'actual'; applyDevicePreview(); });
+  previewScale.addEventListener('input', () => { previewScaleMode = 'custom'; applyDevicePreview(); });
   new ResizeObserver(applyDevicePreview).observe(previewCard);
   new ResizeObserver(applyDevicePreview).observe(previewStage);
 
@@ -1350,7 +1381,6 @@ export async function initializeApp() {
   });
   const visualEditor = document.createElement('div');
   visualEditor.className = 'rich-editor';
-  visualEditor.contentEditable = 'false';
   visualEditor.setAttribute('aria-label', '일반 편집기');
   visualEditor.hidden = true;
   const visualReadOnlyNotice = document.createElement('p');
@@ -1403,6 +1433,11 @@ export async function initializeApp() {
     catch { /* 선택 범위가 DOM 변경으로 무효화된 경우 다음 선택에서 다시 만든다. */ }
   };
   const rememberVisualRange = () => {
+    // ProseMirror owns the selection of the mounted rich editor. Keeping a
+    // second DOM Range for it makes a toolbar click restore stale positions
+    // after a save or document transaction. The native range is only a
+    // fallback while the editor module is unavailable.
+    if (tiptapEditor) return;
     const selection = window.getSelection();
     const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
     // 툴바 input을 누른 뒤에는 브라우저 selection이 input으로 옮겨간다. 이때
@@ -1413,6 +1448,10 @@ export async function initializeApp() {
     }
   };
   const restoreVisualRange = () => {
+    if (tiptapEditor) {
+      tiptapEditor.commands.focus();
+      return tiptapEditor.state.selection;
+    }
     if (!lastVisualRange || !visualEditor.contains(lastVisualRange.commonAncestorContainer)) return null;
     const selection = window.getSelection();
     visualEditor.focus();
@@ -1422,11 +1461,12 @@ export async function initializeApp() {
     return selection.getRangeAt(0);
   };
   const storedVisualRange = () => (
-    lastVisualRange && visualEditor.contains(lastVisualRange.commonAncestorContainer)
+    !tiptapEditor && lastVisualRange && visualEditor.contains(lastVisualRange.commonAncestorContainer)
       ? lastVisualRange.cloneRange()
       : null
   );
   document.addEventListener('selectionchange', () => {
+    if (tiptapEditor) return;
     const selection = window.getSelection();
     if (!selection?.rangeCount) return;
     const range = selection.getRangeAt(0);
@@ -3429,6 +3469,11 @@ export async function initializeApp() {
         if (!await confirmDeleteDraft(draft,remove)) return;
         try {
           const ownerId = persistenceOwnerId();
+          // Delete uses the row's stable project ID/revision, never the
+          // currently open project's values. Do not invalidate the active
+          // editor or its in-memory assets when a different sidebar row is
+          // removed.
+          const ownerId = persistenceOwnerId();
           await deleteCloudDraft(draft);
           deletedProjectIds.add(deletionKey(ownerId,draft.projectId));
           draftIndex = draftIndex.filter(item => item.projectId !== draft.projectId);
@@ -3614,7 +3659,7 @@ export async function initializeApp() {
       USE_PROFILES:{ html:true, svg:true, svgFilters:true },
       ADD_ATTR:['epub:type', 'xml:lang', 'data-sitescout-footnote'],
     });
-    const scrollTop = previewContentRoot().scrollTop;
+    const scrollTop = previewScrollRoot().scrollTop;
     const chapterId = bookProject.selectedChapterId;
     const frame = document.createElement('iframe');
     frame.className = 'preview-isolated-frame';
@@ -3634,10 +3679,10 @@ export async function initializeApp() {
       scrollbarStyle.textContent = 'html,body{scrollbar-width:none!important;-ms-overflow-style:none!important}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}';
       doc.head.append(scrollbarStyle);
       hydrateResourceImages(doc.body, activeChapterIndex());
-      doc.body.scrollTop = scrollTop;
+      (doc.scrollingElement || doc.body).scrollTop = scrollTop;
       doc.addEventListener('click', handlePreviewClick);
     }, { once:true });
-    frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;min-height:100%;font:14px/1.6 sans-serif;color:inherit;scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}body{padding:18px;box-sizing:border-box;overflow:auto}img{max-width:100%;height:auto}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:5px}.preview-focus{background:rgba(240,142,49,.16);outline:2px solid #e88a31}</style></head><body>${content.innerHTML}</body></html>`;
+    frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;min-height:100%;font:14px/1.6 sans-serif;color:inherit}body{padding:18px;box-sizing:border-box;overflow:auto}img{max-width:100%;height:auto}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:5px}.preview-focus{background:rgba(240,142,49,.16);outline:2px solid #e88a31}mark.preview-context{background:rgba(240,142,49,.32);color:inherit;border-radius:2px;padding:0 1px}</style></head><body>${content.innerHTML}</body></html>`;
     previewIframe = frame;
     preview.replaceChildren(frame);
   };
@@ -3709,7 +3754,42 @@ export async function initializeApp() {
     const bounds = target.getBoundingClientRect(); const frame = panel.getBoundingClientRect();
     if (bounds.top < frame.top || bounds.bottom > frame.bottom) panel.scrollTop += bounds.top - frame.top - panel.clientHeight / 3;
   };
-  const synchronizeFocus = (node, origin) => {
+  const previewTextOffset = (element, container, offset) => {
+    if (!element || !container || !element.contains(container)) return 0;
+    try {
+      const range = element.ownerDocument.createRange();
+      range.selectNodeContents(element); range.setEnd(container, offset);
+      return range.toString().length;
+    } catch { return 0; }
+  };
+  const sourceTextOffset = (node, offset) => {
+    if (!node || !Number.isInteger(offset)) return 0;
+    const source = htmlEditor.value.slice(node.start, Math.max(node.start, offset));
+    const contentStart = source.indexOf('>');
+    if (contentStart < 0) return 0;
+    return new DOMParser().parseFromString(`<body>${source.slice(contentStart + 1)}</body>`, 'text/html').body.textContent.length;
+  };
+  const highlightPreviewContext = (element, caretOffset = 0) => {
+    const rootNode = previewContentRoot();
+    rootNode.querySelectorAll('mark.preview-context').forEach(mark => mark.replaceWith(...mark.childNodes));
+    if (!element) return;
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    const words = []; let node; let base = 0;
+    while ((node = walker.nextNode())) {
+      for (const match of node.data.matchAll(/\S+/g)) words.push({ node, start:base + match.index, end:base + match.index + match[0].length, localStart:match.index, localEnd:match.index + match[0].length });
+      base += node.data.length;
+    }
+    const index = words.findIndex(word => caretOffset >= word.start && caretOffset <= word.end);
+    const selected = (index >= 0 ? [words[Math.max(0,index - 1)], words[index], words[index + 1]] : words.slice(0, 2)).filter(Boolean);
+    // Wrap from the end so offsets in preceding text nodes stay stable.
+    for (const word of [...new Set(selected)].sort((left,right) => right.start - left.start)) {
+      const range = rootNode.ownerDocument.createRange();
+      range.setStart(word.node, word.localStart); range.setEnd(word.node, word.localEnd);
+      const mark = rootNode.ownerDocument.createElement('mark'); mark.className = 'preview-context';
+      try { range.surroundContents(mark); } catch { /* inline boundary: keep the block highlight */ }
+    }
+  };
+  const synchronizeFocus = (node, origin, caretOffset = 0) => {
     if (!node || focusSyncing || isCoverSelected()) return;
     const chapterId = bookProject.selectedChapterId;
     focusSyncing = true;
@@ -3719,7 +3799,8 @@ export async function initializeApp() {
       if (previewElement) {
         previewRoot.querySelectorAll('.preview-focus').forEach(element => element.classList.remove('preview-focus'));
         previewElement.classList.add('preview-focus');
-        if (origin !== 'preview') scrollWithin(previewRoot, previewElement);
+        highlightPreviewContext(previewElement, caretOffset);
+        if (origin !== 'preview') scrollWithin(previewScrollRoot(), previewElement);
       }
       const visualRoot = visualEditor.querySelector('.ProseMirror') || visualEditor;
       const visualElement = renderedElementForSource(node, visualRoot);
@@ -3758,18 +3839,21 @@ export async function initializeApp() {
     const anchor = event.target.closest('a[href]');
     if (anchor && followBookLink(anchor)) { event.preventDefault(); return; }
     const rootNode = previewContentRoot();
-    synchronizeFocus(sourceNodeForElement(event.target.closest(previewBlockSelector + ',a,span,strong,em'), rootNode), 'preview');
+    const target = event.target.closest(previewBlockSelector + ',a,span,strong,em');
+    synchronizeFocus(sourceNodeForElement(target, rootNode), 'preview', previewTextOffset(target, event.target, 0));
   };
   preview.addEventListener('click', handlePreviewClick);
   visualEditor.addEventListener('click', event => {
     const anchor = event.target.closest('a[href]');
     if (anchor && followBookLink(anchor)) { event.preventDefault(); return; }
-    synchronizeFocus(sourceNodeForElement(event.target.closest(previewBlockSelector + ',a,span,strong,em'), visualEditor), 'visual');
+    const target = event.target.closest(previewBlockSelector + ',a,span,strong,em');
+    const selection = window.getSelection();
+    synchronizeFocus(sourceNodeForElement(target, visualEditor), 'visual', previewTextOffset(target, selection?.anchorNode, selection?.anchorOffset || 0));
   });
   visualEditor.addEventListener('keyup', () => {
     const selection = window.getSelection();
     const element = selection?.anchorNode?.nodeType === 1 ? selection.anchorNode : selection?.anchorNode?.parentElement;
-    synchronizeFocus(sourceNodeForElement(element, visualEditor), 'visual');
+    synchronizeFocus(sourceNodeForElement(element, visualEditor), 'visual', previewTextOffset(element, selection?.anchorNode, selection?.anchorOffset || 0));
   });
   const xhtmlVoidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
   const normaliseXhtml = (source) => {
@@ -4064,6 +4148,19 @@ export async function initializeApp() {
   });
   let activeBlock = null;
   const editableBlock = (node) => node?.closest?.('p,h1,h2,h3,h4,h5,li,blockquote,td,th');
+  const orderedListSelection = () => {
+    if (!tiptapEditor) return null;
+    const list = activeBlock?.closest?.('ol');
+    if (list && visualEditor.contains(list)) {
+      try {
+        const $pos = tiptapEditor.state.doc.resolve(tiptapEditor.view.posAtDOM(list, 0));
+        for (let depth = $pos.depth; depth > 0; depth--) if ($pos.node(depth).type.name === 'orderedList') return { $from:$pos, depth };
+      } catch { /* use the current ProseMirror selection below */ }
+    }
+    const {$from} = tiptapEditor.state.selection;
+    for (let depth = $from.depth; depth > 0; depth--) if ($from.node(depth).type.name === 'orderedList') return { $from, depth };
+    return null;
+  };
   visualEditor.addEventListener('click', (event) => {
     activeBlock = editableBlock(event.target);
   });
@@ -4072,7 +4169,31 @@ export async function initializeApp() {
     const model = window.epubMonacoEditor?.getModel();
     for (const button of historyButtons) button.disabled = document.documentElement.dataset.projectEditAccess === 'readonly'
       || !bookProject.selectedChapter || !(button.dataset.editorAction === 'undo' ? model?.canUndo() : model?.canRedo());
-    if (tiptapEditor) return;
+    if (tiptapEditor) {
+      const editor = tiptapEditor;
+      const active = (name, attrs) => editor.isActive(name, attrs);
+      [['bold','bold'], ['italic','italic'], ['superscript','superscript'], ['subscript','subscript']].forEach(([command, selector]) => {
+        richToolbar.querySelector(`[data-command="${selector}"]`)?.classList.toggle('active', active(command));
+      });
+      const alignment = editor.getAttributes('paragraph').textAlign || editor.getAttributes('heading').textAlign || 'left';
+      [['justifyLeft','left'], ['justifyCenter','center'], ['justifyRight','right'], ['justifyFull','justify']].forEach(([selector, value]) => {
+        richToolbar.querySelector(`[data-command="${selector}"]`)?.classList.toggle('active', alignment === value);
+      });
+      const heading = [1,2,3,4,5].find(level => active('heading',{level}));
+      richToolbar.querySelector('[data-heading]').value = heading ? `h${heading}` : '';
+      let listNode = null;
+      const {$from} = editor.state.selection;
+      for (let depth = $from.depth; depth > 0; depth--) {
+        const node = $from.node(depth);
+        if (node.type.name === 'orderedList' || node.type.name === 'bulletList') { listNode = node; break; }
+      }
+      richToolbar.querySelector('[data-list]').value = listNode
+        ? (listNode.type.name === 'bulletList' ? 'disc' : (listNode.attrs.style?.match(/list-style-type\s*:\s*([^;]+)/i)?.[1] || 'decimal')) : '';
+      const textStyle = editor.getAttributes('textStyle');
+      richToolbar.querySelector('[data-font-size]').value = textStyle.fontSize?.replace('px','') || '';
+      richToolbar.querySelector('[data-font-family]').value = textStyle.fontFamily || '';
+      return;
+    }
     const selection = window.getSelection();
     const node = selection?.anchorNode?.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
     if (!node || !visualEditor.contains(node)) return;
@@ -4094,6 +4215,11 @@ export async function initializeApp() {
   visualEditor.addEventListener('input', () => { syncFromVisual({ normalise:false }); updateToolbarState(); });
   visualEditor.addEventListener('keyup', () => { rememberVisualRange(); updateToolbarState(); });
   visualEditor.addEventListener('mouseup', () => { rememberVisualRange(); updateToolbarState(); });
+  // Toolbar buttons must not steal the ProseMirror DOM selection before their
+  // command runs. Selects and text inputs remain focusable controls.
+  richToolbar.addEventListener('mousedown', event => {
+    if (event.target.closest('button')) event.preventDefault();
+  });
   richToolbar.addEventListener('click', (event) => {
     const button = event.target.closest('button');
     if (!button) return;
@@ -4101,8 +4227,18 @@ export async function initializeApp() {
     if (tiptapEditor) {
       const chain = tiptapEditor.chain().focus();
       if (button.dataset.list) {
-        (button.dataset.list === 'disc' ? chain.toggleBulletList() : chain.toggleOrderedList()).run();
-      } else if (button.dataset.block) {
+        if (button.dataset.list === 'disc') chain.toggleBulletList().run();
+        else {
+          const requested = button.dataset.list;
+          tiptapEditor.commands.focus();
+          const ordered = orderedListSelection();
+          if (ordered) {
+            const node = ordered.$from.node(ordered.depth);
+            const style = requested === 'decimal' ? null : `list-style-type: ${requested}`;
+            tiptapEditor.view.dispatch(tiptapEditor.state.tr.setNodeMarkup(ordered.$from.before(ordered.depth), undefined, { ...node.attrs, style }));
+          } else chain.toggleOrderedList().run();
+        }
+      } else if (button.dataset.block || button.dataset.value === 'blockquote') {
         chain.toggleBlockquote().run();
       } else {
         const actions = {
@@ -4269,8 +4405,11 @@ export async function initializeApp() {
     if (tiptapEditor) {
       const chain = tiptapEditor.chain().focus();
       if (fontFamily) chain.setMark('textStyle', { fontFamily }).run();
-      else chain.unsetMark('textStyle').run();
+      // Clearing only the font family must retain text size and colour in
+      // this TextStyle mark. unsetMark removes every typography attribute.
+      else chain.setMark('textStyle', { fontFamily:null }).run();
       syncFromVisual();
+      updateToolbarState();
       return;
     }
     const selection = window.getSelection();
@@ -4285,9 +4424,18 @@ export async function initializeApp() {
   richToolbar.querySelector('[data-list]').addEventListener('change', (event) => {
     if (!event.target.value) return;
     if (tiptapEditor) {
-      const chain = tiptapEditor.chain().focus();
-      (event.target.value === 'disc' ? chain.toggleBulletList() : chain.toggleOrderedList()).run();
+      const requested = event.target.value;
+      tiptapEditor.commands.focus();
+      const chain = tiptapEditor.chain();
+      const ordered = orderedListSelection();
+      if (requested === 'disc') chain.toggleBulletList().run();
+      else if (ordered) {
+        const node = ordered.$from.node(ordered.depth);
+        const style = requested === 'decimal' ? null : `list-style-type: ${requested}`;
+        tiptapEditor.view.dispatch(tiptapEditor.state.tr.setNodeMarkup(ordered.$from.before(ordered.depth), undefined, { ...node.attrs, style }));
+      } else chain.toggleOrderedList().run();
       syncFromVisual();
+      updateToolbarState();
       return;
     }
     visualEditor.focus();
@@ -4391,7 +4539,9 @@ export async function initializeApp() {
       editor.onDidChangeCursorPosition(event => {
         if (focusSyncing || event.reason !== monaco.editor.CursorChangeReason.Explicit) return;
         if (editor.getValue() !== htmlEditor.value) return;
-        synchronizeFocus(elementAtOffset(htmlEditor.value, editor.getModel().getOffsetAt(event.position)), 'monaco');
+        const offset = editor.getModel().getOffsetAt(event.position);
+        const node = elementAtOffset(htmlEditor.value, offset);
+        synchronizeFocus(node, 'monaco', sourceTextOffset(node, offset));
       });
       let synchronising = false;
       const history = createChapterHistory(monaco, bookProject);
@@ -4565,7 +4715,7 @@ export async function initializeApp() {
   const installTiptapVisualEditor = async () => {
     try {
       // CDN의 ESM 번들을 사용하므로 이 정적 앱의 저장/배포 구조는 바꾸지 않는다.
-      const [coreModule, starterModule, textStyleModule, colorModule, imageModule, tableModule, tableRowModule, tableCellModule, tableHeaderModule, alignModule, superModule, subModule, linkModule, underlineModule] = await Promise.all([
+      const [coreModule, starterModule, textStyleModule, colorModule, imageModule, tableModule, tableRowModule, tableCellModule, tableHeaderModule, alignModule, superModule, subModule, linkModule, underlineModule, orderedListModule] = await Promise.all([
         import('https://esm.sh/@tiptap/core@2.11.5'),
         import('https://esm.sh/@tiptap/starter-kit@2.11.5'),
         import('https://esm.sh/@tiptap/extension-text-style@2.11.5'),
@@ -4580,6 +4730,7 @@ export async function initializeApp() {
         import('https://esm.sh/@tiptap/extension-subscript@2.11.5'),
         import('https://esm.sh/@tiptap/extension-link@2.11.5'),
         import('https://esm.sh/@tiptap/extension-underline@2.11.5'),
+        import('https://esm.sh/@tiptap/extension-ordered-list@2.11.5'),
       ]);
       const Editor = coreModule.Editor;
       const Extension = coreModule.Extension;
@@ -4587,7 +4738,24 @@ export async function initializeApp() {
       const Mark = coreModule.Mark;
       const StarterKit = starterModule.default;
       const TextStyle = textStyleModule.default;
-      if (!Editor || !StarterKit || !TextStyle) throw new Error('Tiptap module unavailable');
+      const OrderedList = orderedListModule.default;
+      if (!Editor || !StarterKit || !TextStyle || !OrderedList) throw new Error('Tiptap module unavailable');
+      const textStyleProperties = ['font-size','font-family','color'];
+      const epubSpanAttrs = element => {
+        const style = document.createElement('span').style;
+        style.cssText = element.getAttribute('style') || '';
+        textStyleProperties.forEach(property => style.removeProperty(property));
+        const attrs = {
+          class:element.getAttribute('class'), id:element.getAttribute('id'),
+          style:style.cssText || null,
+          'data-footnote-content':element.getAttribute('data-footnote-content'),
+        };
+        // A span containing only TextStyle properties is represented by the
+        // TextStyle mark alone. Parsing it as epubSpan as well creates nested
+        // spans and makes a later XHTML safety check see a false structural
+        // change.
+        return Object.values(attrs).some(Boolean) ? attrs : false;
+      };
       const InlineStyle = TextStyle.extend({
         addGlobalAttributes() {
           return [{
@@ -4609,7 +4777,16 @@ export async function initializeApp() {
       const Span = Mark.create({
         name:'epubSpan', inclusive:false,
         addAttributes:() => ({ class:{default:null}, id:{default:null}, style:{default:null}, 'data-footnote-content':{default:null} }),
-        parseHTML:() => [{ tag:'span', consuming:false, priority:110 }], renderHTML:({ HTMLAttributes }) => ['span', HTMLAttributes, 0],
+        parseHTML:() => [{ tag:'span', consuming:false, priority:110, getAttrs:epubSpanAttrs }],
+        renderHTML:({ HTMLAttributes }) => ['span', { ...HTMLAttributes, 'data-sitescout-epub-span-projection':'true' }, 0],
+      });
+      const StyledOrderedList = OrderedList.extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            style:{ default:null, parseHTML:element => element.getAttribute('style'), renderHTML:attributes => attributes.style ? { style:attributes.style } : {} },
+          };
+        },
       });
       const Aside = Node.create({
         name:'epubAside', group:'block', content:'block*', defining:true,
@@ -4627,7 +4804,9 @@ export async function initializeApp() {
           return [{
             types:['paragraph','heading','blockquote','bulletList','orderedList','listItem','table','tableRow','tableCell','tableHeader','image','link'],
             attributes:{
-              class:{default:null}, id:{default:null}, style:{default:null},
+              class:{ default:null, parseHTML:(element) => element.getAttribute('class'), renderHTML:(attributes) => attributes.class ? { class:attributes.class } : {} },
+              id:{ default:null, parseHTML:(element) => element.getAttribute('id'), renderHTML:(attributes) => attributes.id ? { id:attributes.id } : {} },
+              style:{ default:null, parseHTML:(element) => element.getAttribute('style'), renderHTML:(attributes) => attributes.style ? { style:attributes.style } : {} },
               'epub:type':{ default:null, parseHTML:(element) => element.getAttribute('epub:type'), renderHTML:(attributes) => attributes['epub:type'] ? { 'epub:type':attributes['epub:type'] } : {} },
               'data-sitescout-footnote':{ default:null, parseHTML:(element) => element.getAttribute('data-sitescout-footnote'), renderHTML:(attributes) => attributes['data-sitescout-footnote'] ? { 'data-sitescout-footnote':attributes['data-sitescout-footnote'] } : {} },
             },
@@ -4666,17 +4845,27 @@ export async function initializeApp() {
       tiptapEditor = new Editor({
         element:visualEditor,
         extensions:[
-          StarterKit.configure({ link:false, underline:false, history:false }), InlineStyle,
+          StarterKit.configure({ link:false, underline:false, history:false, orderedList:false }), InlineStyle,
           Extension.create({ name:'documentSearch', addProseMirrorPlugins:() => [editorSearchPlugin()] }),
           colorModule.default.configure({ types:['textStyle'] }), imageModule.default,
           tableModule.default.configure({ resizable:true, View:PreservedTableView }), tableRowModule.default, tableHeaderModule.default, tableCellModule.default,
-          alignModule.default.configure({ types:['heading','paragraph'] }), superModule.default, subModule.default,
+          alignModule.default.configure({ types:['heading','paragraph'] }), superModule.default, subModule.default, StyledOrderedList,
           linkModule.default.configure({ openOnClick:false, HTMLAttributes:{ target:null, rel:null } }), underlineModule.default, Div, Span, Aside, Section, PreserveAttributes, StyleShortcuts,
         ],
         content:htmlEditor.value,
         parseOptions:{ preserveWhitespace:'full' },
         onUpdate:({ editor:instance }) => {
           syncFromVisual({ normalise:false });
+        },
+        onSelectionUpdate:({ editor:instance }) => {
+          if (focusSyncing || visualEditor.hidden || visualLoadedChapterId !== bookProject.selectedChapterId) return;
+          const { from } = instance.state.selection;
+          const dom = instance.view.domAtPos(from).node;
+          const element = dom.nodeType === Node.ELEMENT_NODE ? dom : dom.parentElement;
+          const block = element?.closest(previewBlockSelector + ',a,span,strong,em');
+          const node = sourceNodeForElement(block, visualEditor);
+          synchronizeFocus(node, 'visual', previewTextOffset(block, dom, instance.view.domAtPos(from).offset));
+          updateToolbarState();
         },
       });
       const clipboardParser = ProseMirrorDOMParser.fromSchema(tiptapEditor.schema);
@@ -4708,7 +4897,7 @@ export async function initializeApp() {
       document.head.append(style);
     } catch (error) {
       console.warn('Tiptap 일반편집기를 불러오지 못했습니다.', error);
-      visualEditor.contentEditable = 'false';
+      visualEditor.setAttribute('aria-disabled', 'true');
       setStatus('일반편집기를 불러오지 못했습니다. XHTML 편집을 사용하거나 다시 접속하세요.', 'error');
     }
   };

@@ -142,6 +142,24 @@ test('sidebar menus delegate to original controls, native submenu keyboard, impo
   await expect(page).toHaveURL(/\/login\/\?reason=login$/);
 });
 
+test('device preview keeps its CSS viewport while fit, 100%, and custom display scales change', async ({page}) => {
+  await start(page);
+  await page.locator('#phonePreview').selectOption('iphone-16');
+  await expect(page.locator('#preview')).toHaveAttribute('style',/width: 393px/);
+  await expect(page.locator('#preview')).toHaveAttribute('style',/height: 852px/);
+  await expect(page.locator('[data-preview-scale-value]')).toContainText('맞춤');
+  await page.getByRole('button',{name:'100%',exact:true}).click();
+  await expect(page.locator('#preview')).toHaveAttribute('style',/transform: scale\(1\)/);
+  await page.locator('[data-preview-scale]').evaluate(input => { input.value = '75'; input.dispatchEvent(new Event('input',{bubbles:true})); });
+  await expect(page.locator('[data-preview-scale-value]')).toHaveText('75%');
+  await page.locator('#phonePreview').selectOption('');
+  await expect(page.locator('#preview')).toHaveAttribute('data-device-preview','false');
+  const bottoms = await page.evaluate(() => ['.editor','.preview-card'].map(selector => {
+    const rect = document.querySelector(selector).getBoundingClientRect(); return Math.round(rect.bottom);
+  }));
+  expect(Math.abs(bottoms[0] - bottoms[1])).toBeLessThanOrEqual(1);
+});
+
 test('mobile native drawer traps focus, closes by Escape/backdrop/action and returns to desktop without duplicates', async ({page}) => {
   await page.setViewportSize({width:390,height:844});
   await start(page);

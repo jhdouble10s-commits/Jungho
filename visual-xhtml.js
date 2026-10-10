@@ -4,6 +4,40 @@ import {validateXhtml} from './xhtml-validation.js';
 // escaping, namespaces and empty elements follow XML rules at one boundary.
 export function serializeVisualXhtml(html, documentImpl = document) {
   const template = documentImpl.createElement('template'); template.innerHTML = html;
+  // TextStyle and epubSpan intentionally parse the same EPUB span when it
+  // carries both editable typography and preservation-only attributes. Merge
+  // the lossless projection back to the original single-span boundary before
+  // converting to XHTML; this is not a blanket HTML cleanup.
+  const mergeTextStyleSpans = parent => {
+    for (const child of Array.from(parent.children)) mergeTextStyleSpans(child);
+    const projected = parent.getAttribute?.('data-sitescout-epub-span-projection') === 'true';
+    if (parent.localName !== 'span' || parent.childNodes.length !== 1 || !projected) {
+      if (projected) parent.removeAttribute('data-sitescout-epub-span-projection');
+      return;
+    }
+    const child = parent.firstElementChild;
+    if (!child || child.localName !== 'span' || parent.firstChild !== child
+      || Array.from(child.attributes).some(attribute => attribute.name !== 'style')) {
+      parent.removeAttribute('data-sitescout-epub-span-projection');
+      return;
+    }
+    const parentStyle = parent.getAttribute('style') || '';
+    const childStyle = child.getAttribute('style') || '';
+    if (parentStyle || childStyle) {
+      const merged = documentImpl.createElement('span').style;
+      merged.cssText = parentStyle;
+      for (const property of childStyle.split(';')) {
+        const separator = property.indexOf(':');
+        if (separator < 0) continue;
+        merged.setProperty(property.slice(0, separator).trim(), property.slice(separator + 1).trim());
+      }
+      if (merged.cssText) parent.setAttribute('style', merged.cssText);
+      else parent.removeAttribute('style');
+    }
+    parent.replaceChildren(...child.childNodes);
+    parent.removeAttribute('data-sitescout-epub-span-projection');
+  };
+  Array.from(template.content.children).forEach(mergeTextStyleSpans);
   const xml = documentImpl.implementation.createDocument('http://www.w3.org/1999/xhtml','root');
   const copy = node => {
     if (node.nodeType === 3) return xml.createTextNode(node.data);
