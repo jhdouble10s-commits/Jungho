@@ -142,17 +142,23 @@ test('sidebar menus delegate to original controls, native submenu keyboard, impo
   await expect(page).toHaveURL(/\/login\/\?reason=login$/);
 });
 
-test('device preview keeps its CSS viewport while fit, 100%, and custom display scales change', async ({page}) => {
+test('device preview fits its CSS viewport without zoom controls and uses a 20px base font', async ({page}) => {
   await start(page);
+  await expect(page.locator('[data-preview-fit], [data-preview-actual], [data-preview-scale], [data-preview-scale-value]')).toHaveCount(0);
+  await page.locator('#add').click();
+  await expect.poll(() => page.frameLocator('.preview-isolated-frame').locator('body').evaluate(body => getComputedStyle(body).fontSize)).toBe('20px');
   await page.locator('#phonePreview').selectOption('iphone-16');
   await expect(page.locator('#preview')).toHaveAttribute('style',/width: 393px/);
   await expect(page.locator('#preview')).toHaveAttribute('style',/height: 852px/);
-  await expect(page.locator('[data-preview-scale-value]')).toContainText('맞춤');
-  await page.getByRole('button',{name:'100%',exact:true}).click();
-  await expect(page.locator('#preview')).toHaveAttribute('style',/transform: scale\(1\)/);
-  await page.locator('[data-preview-scale]').evaluate(input => { input.value = '75'; input.dispatchEvent(new Event('input',{bubbles:true})); });
-  await expect(page.locator('[data-preview-scale-value]')).toHaveText('75%');
+  const scale = await page.locator('#preview').evaluate(element => Number(element.style.transform.match(/scale\(([^)]+)\)/)?.[1]));
+  expect(scale).toBeGreaterThan(0);
+  expect(scale).toBeLessThanOrEqual(1);
+  await previewFits(page);
+  await page.locator('#tabletPreview').selectOption('ipad');
+  await expect(page.locator('#preview')).toHaveAttribute('style',/width: 820px/);
+  await previewFits(page);
   await page.locator('#phonePreview').selectOption('');
+  await page.locator('#tabletPreview').selectOption('');
   await expect(page.locator('#preview')).toHaveAttribute('data-device-preview','false');
   const bottoms = await page.evaluate(() => ['.editor','.preview-card'].map(selector => {
     const rect = document.querySelector(selector).getBoundingClientRect(); return Math.round(rect.bottom);
