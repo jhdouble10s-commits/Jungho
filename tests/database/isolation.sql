@@ -15,7 +15,7 @@ select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001'
 select save_epub_project('10000000-0000-4000-8000-000000000001',0,'{"title":"same","chapters":[],"assets":[]}');
 insert into storage.objects(bucket_id,name) values('epub-assets','00000000-0000-4000-8000-000000000001/projects/10000000-0000-4000-8000-000000000001/hash-a');
 do $$ begin
- begin perform save_epub_project('10000000-0000-4000-8000-000000000001',0,'{"title":"same","chapters":[]}'); raise exception 'CAS allowed stale insert'; exception when serialization_failure then null; end;
+ begin perform save_epub_project('10000000-0000-4000-8000-000000000001',0,'{"title":"same","chapters":[]}'); raise exception 'CAS allowed stale insert'; exception when SQLSTATE 'PT409' then null; end;
  begin update user_profiles set role='admin'; raise exception 'role escalation'; exception when insufficient_privilege then null; end;
  begin perform set_member_status('00000000-0000-4000-8000-000000000001','approved','suspended'); raise exception 'user called admin RPC'; exception when insufficient_privilege then null; end;
  begin update epub_drafts set owner_id='00000000-0000-4000-8000-000000000002'; raise exception 'direct update'; exception when insufficient_privilege then null; end;
@@ -24,15 +24,15 @@ do $$ begin
 end $$;
 select save_epub_project('10000000-0000-4000-8000-000000000001',1,'{"title":"renamed","chapters":[]}');
 do $$ begin
- begin perform save_epub_project('10000000-0000-4000-8000-000000000001',1,'{"title":"stale","chapters":[]}'); raise exception 'CAS stale update'; exception when serialization_failure then null; end;
+ begin perform save_epub_project('10000000-0000-4000-8000-000000000001',1,'{"title":"stale","chapters":[]}'); raise exception 'CAS stale update'; exception when SQLSTATE 'PT409' then null; end;
 end $$;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',false);
 select test_assert((select count(*)=0 from epub_drafts),'B cannot read A');
 select test_assert((select count(*)=0 from storage.objects),'B cannot read A images');
 select save_epub_project('10000000-0000-4000-8000-000000000002',0,'{"title":"renamed","chapters":[]}');
 do $$ begin
- begin perform delete_epub_project('10000000-0000-4000-8000-000000000001',2); raise exception 'B deleted A'; exception when serialization_failure then null; end;
- begin perform save_epub_project('10000000-0000-4000-8000-000000000001',2,'{"title":"attack","chapters":[]}'); raise exception 'B updated A'; exception when serialization_failure then null; end;
+ begin perform delete_epub_project('10000000-0000-4000-8000-000000000001',2); raise exception 'B deleted A'; exception when SQLSTATE 'PT409' then null; end;
+ begin perform save_epub_project('10000000-0000-4000-8000-000000000001',2,'{"title":"attack","chapters":[]}'); raise exception 'B updated A'; exception when SQLSTATE 'PT409' then null; end;
  begin insert into storage.objects(bucket_id,name) values('epub-assets','00000000-0000-4000-8000-000000000001/stolen'); raise exception 'B inserted A image'; exception when insufficient_privilege then null; end;
 end $$;
 with changed as (update storage.objects set owner_id=auth.uid()::text where name like '00000000-0000-4000-8000-000000000001/%' returning *) select test_assert((select count(*)=0 from changed),'B cannot change A image owner');
@@ -81,7 +81,7 @@ select delete_epub_project('10000000-0000-4000-8000-000000000088',1);
 select test_assert((select count(*)=0 from epub_drafts where project_id='10000000-0000-4000-8000-000000000088'),'own revision-checked deletion works');
 select test_assert((select revision=2 from epub_project_deletions where project_id='10000000-0000-4000-8000-000000000088'),'deletion revision is visible to owner');
 do $$ begin
- begin perform save_epub_project('10000000-0000-4000-8000-000000000088',0,'{"title":"revived","chapters":[]}'); raise exception 'deleted identity revived'; exception when serialization_failure then null; end;
+ begin perform save_epub_project('10000000-0000-4000-8000-000000000088',0,'{"title":"revived","chapters":[]}'); raise exception 'deleted identity revived'; exception when SQLSTATE 'PT409' then null; end;
 end $$;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',false);
 select test_assert((select count(*)=0 from epub_project_deletions where project_id='10000000-0000-4000-8000-000000000088'),'other owner cannot read deletion');

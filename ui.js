@@ -1986,7 +1986,7 @@ export async function initializeApp() {
       p_payload:{...draft,syncPending:false,syncState:'saved'},
     });
     if (error?.code === 'PGRST202') throw new Error('서버 schema cache에 public.save_epub_project(p_expected_revision, p_payload, p_project_id)가 없습니다. 연결 대상의 migration 적용과 RPC 권한·cache 갱신을 확인하세요.');
-    if (error) throw new Error(['40001','23505'].includes(error.code) ? '서버 저장 충돌: 최신 원격본을 확인하거나 로컬 복사본으로 보존하세요.' : `서버 조건부 저장을 사용할 수 없습니다. 마이그레이션과 연결을 확인하세요. ${error.message}`);
+    if (error) throw new Error(['40001','23505','PT409'].includes(error.code) ? '서버 저장 충돌: 최신 원격본을 확인하거나 로컬 복사본으로 보존하세요.' : `서버 조건부 저장을 사용할 수 없습니다. 마이그레이션과 연결을 확인하세요. ${error.message}`);
     if (!Number.isSafeInteger(data?.revision)) throw new Error('서버 조건부 저장 응답이 올바르지 않습니다. 로컬 초안은 유지됩니다.');
     draft.serverRevision = data.revision;
     draft.lastServerSavedAt = data.saved_at || new Date().toISOString();

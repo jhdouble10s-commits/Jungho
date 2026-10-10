@@ -9,16 +9,16 @@ export function projectCloud() {
       if (state.missingMigration) return route.fulfill({status:404,json:{code:'PGRST202',message:'function absent'}});
       if (state.failSave) return route.fulfill({status:503,json:{message:'database unavailable'}});
       const old = rows.get(args.p_project_id);
-      if (deletions.has(args.p_project_id)) return route.fulfill({status:409,json:{code:'40001',message:'Project deleted'}});
-      if ([...rows.values()].some(row=>row.project_id!==args.p_project_id && row.payload.title===args.p_payload.title)) return route.fulfill({status:409,json:{code:'40001',message:'title conflict'}});
-      if ((old?.revision || 0) !== args.p_expected_revision) return route.fulfill({status:409,json:{code:'40001',message:'conflict'}});
+      if (deletions.has(args.p_project_id)) return route.fulfill({status:409,json:{code:'PT409',message:'Project deleted'}});
+      if ([...rows.values()].some(row=>row.project_id!==args.p_project_id && row.payload.title===args.p_payload.title)) return route.fulfill({status:409,json:{code:'PT409',message:'title conflict'}});
+      if ((old?.revision || 0) !== args.p_expected_revision) return route.fulfill({status:409,json:{code:'PT409',message:'conflict'}});
       const revision = args.p_expected_revision+1, saved_at = new Date().toISOString();
       rows.set(args.p_project_id,{project_id:args.p_project_id,revision,updated_at:saved_at,payload:{...args.p_payload,serverRevision:revision,syncPending:false}});
       return route.fulfill({json:{revision,saved_at}});
     }
     if (url.pathname.endsWith('/delete_epub_project')) {
       const args=request.postDataJSON(),row=rows.get(args.p_project_id);
-      if (row?.revision !== args.p_expected_revision) return route.fulfill({status:409,json:{code:'40001',message:'conflict'}});
+      if (row?.revision !== args.p_expected_revision) return route.fulfill({status:409,json:{code:'PT409',message:'conflict'}});
       rows.delete(args.p_project_id);
       deletions.set(args.p_project_id,{project_id:args.p_project_id,revision:row.revision+1,deleted_at:new Date().toISOString()});
       return route.fulfill({json:null});
