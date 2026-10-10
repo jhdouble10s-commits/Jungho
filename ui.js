@@ -2093,7 +2093,17 @@ export async function initializeApp() {
     });
     if (leaseUnavailable(error)) { editLeaseSupported = false; setProjectEditingAccess(true); return true; }
     if (error) {
+      // Before the feature is discovered, a transient request failure must not
+      // turn legacy/local-only editing into a data-loss trap. Once a lease was
+      // successfully established, the same failure is a real authority loss
+      // and the editor is locked below.
+      if (editLeaseSupported !== true) { editLeaseSupported = false; setProjectEditingAccess(true); return true; }
       editLeaseSupported = true; setProjectEditingAccess(false,'편집 권한을 확인하지 못했습니다. 통신을 복구한 뒤 다시 확인하세요.');
+      return false;
+    }
+    if (!data || typeof data !== 'object' || Array.isArray(data) || typeof data.granted !== 'boolean') {
+      if (editLeaseSupported !== true) { editLeaseSupported = false; setProjectEditingAccess(true); return true; }
+      setProjectEditingAccess(false,'편집 권한 응답이 올바르지 않습니다. 통신을 복구한 뒤 다시 확인하세요.');
       return false;
     }
     editLeaseSupported = true;
@@ -3717,7 +3727,11 @@ export async function initializeApp() {
     let draft = collectDraft();
     const ownerId = persistenceOwnerId();
     const instanceId = bookProject.instanceId;
+    // collectDraft flushes the active editor into BookProject. Capture only
+    // after that canonical snapshot so this save can acknowledge its own
+    // flush, while later user edits still remain dirty.
     const savedRevision = bookProject.revision;
+    lastSaveSnapshotRevision = savedRevision;
     const current = () => epoch === restoreEpoch && ownerId === persistenceOwnerId() && instanceId === bookProject.instanceId;
     const missingAssets = unresolvedAssets.size;
     const assets = Array.from(previewAssets, ([name, asset]) => [name, { ...asset }]);
@@ -3947,7 +3961,9 @@ export async function initializeApp() {
   let saveInFlight = null;
   let saveQueued = false;
   let autoSaveTimer = null;
+  let lastSaveSnapshotRevision = bookProject.revision;
   const saveCurrentDraft = (options = {}) => {
+    if (!options.auto) clearTimeout(autoSaveTimer);
     saveQueued = true;
     if (saveInFlight) return saveInFlight;
     draftButton.disabled = true;
@@ -3958,9 +3974,8 @@ export async function initializeApp() {
       // snapshot and a second CAS request, never a false "saved" acknowledgement.
       while (saveQueued) {
         saveQueued = false;
-        const revision = bookProject.revision;
         result = await performSaveCurrentDraft(options);
-        if (bookProject.revision !== revision) saveQueued = true;
+        if (bookProject.revision !== lastSaveSnapshotRevision) saveQueued = true;
         options = {auto:true};
       }
       return result;
@@ -3975,6 +3990,10 @@ export async function initializeApp() {
   const scheduleAutoSave = () => {
     clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(() => {
+      // The in-flight save compares the revision it captured and queues the
+      // next snapshot itself. Do not enqueue an unchanged duplicate merely
+      // because this debounce timer happened to expire mid-save.
+      if (saveInFlight) return;
       if (bookProject.dirty && !(editLeaseSupported === true && !hasCurrentEditLease())) void saveCurrentDraft({auto:true});
     },700);
   };

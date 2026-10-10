@@ -35,7 +35,16 @@ async function start(page,cloud) {
   await mockApprovedSession(page);await cloud.attach(page);await page.goto('/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.epubMonacoEditor && document.querySelector('.ProseMirror'));
 }
-async function save(page) {await page.locator('.draft-save').click();await expect(page.locator('.draft-save')).toBeEnabled();}
+async function save(page,cloud,{server=true}={}) {
+  const button=page.locator('.draft-save');
+  const before=cloud.saveCount;
+  await button.click();
+  if (server) await expect.poll(()=>cloud.saveCount).toBeGreaterThan(before);
+  await expect(button).toBeEnabled();
+}
+async function expectServerSaved(page) {
+  await expect(page.locator('.sync-indicator')).toContainText('서버 저장 완료');
+}
 async function rows(page) {return page.evaluate(async ownerId=>{
   const {default:Dexie}=await import('https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm');const db=new Dexie('epub-builder-projects');await db.open();
   try{return (await db.table('projects').where('ownerId').equals(ownerId).toArray()).map(row=>row.payload);}finally{db.close();}
@@ -50,7 +59,7 @@ async function wouldWarnOnLeave(page) {
 
 test('independent profiles reconcile explicit deletion and preserve offline edits as a new-ID recovery',async ({browser,page})=>{
   const cloud=projectCloud();await start(page,cloud);
-  await page.locator('#title').fill('shared deletion');await save(page);
+  await page.locator('#title').fill('shared deletion');await save(page,cloud);
   await expect(page.locator('.sync-indicator')).toContainText('서버 저장 완료');
   expect(await wouldWarnOnLeave(page)).toBe(false);
   const oldId=[...cloud.rows.keys()][0];
@@ -60,7 +69,7 @@ test('independent profiles reconcile explicit deletion and preserve offline edit
     await start(other,cloud);
     cloud.failSave=true;
     await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>오프라인에서 쓴 본문</p>'));
-    await save(page);
+    await save(page,cloud);
     await expect(page.locator('.sync-indicator')).toContainText('실패·재시도');
     expect(await wouldWarnOnLeave(page)).toBe(true);
     await other.locator('.sb-projects .tab').click();
@@ -75,7 +84,7 @@ test('independent profiles reconcile explicit deletion and preserve offline edit
     expect(cloud.deletions.get(oldId).revision).toBe(2);
     await page.getByRole('button',{name:'미저장 원고 복구'}).click();
     await expect(page.locator('#body')).toHaveValue('<p>오프라인에서 쓴 본문</p>');
-    await save(page);
+    await save(page,cloud);
     expect(cloud.rows.size).toBe(1);
     expect([...cloud.rows.keys()][0]).not.toBe(oldId);
   } finally {await context.close();}
@@ -83,7 +92,7 @@ test('independent profiles reconcile explicit deletion and preserve offline edit
 
 test('a delayed save and revision-zero retry cannot revive a deleted project',async ({browser,page})=>{
   const cloud=projectCloud();await start(page,cloud);
-  await page.locator('#title').fill('race deletion');await save(page);
+  await page.locator('#title').fill('race deletion');await save(page,cloud);
   const id=[...cloud.rows.keys()][0];
   const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});
   const other=await context.newPage();
@@ -96,6 +105,7 @@ test('a delayed save and revision-zero retry cannot revive a deleted project',as
     await other.locator('.sb-projects .tab').click();
     await other.getByRole('button',{name:'race deletion 삭제'}).click();
     await other.getByRole('dialog',{name:'프로젝트 삭제'}).getByRole('button',{name:'삭제'}).click();
+    await expect(other.locator('#status')).toContainText('삭제했습니다');
     release();await expect(page.locator('.draft-save')).toBeEnabled();
     await expect(page.locator('#status')).toContainText('충돌');
     expect(cloud.rows.has(id)).toBe(false);
@@ -109,7 +119,7 @@ test('a delayed save and revision-zero retry cannot revive a deleted project',as
 
 test('server acknowledgement covers only the captured edit and controls the leave warning',async ({page})=>{
   const cloud=projectCloud();await start(page,cloud);
-  await page.locator('#title').fill('warning state');await save(page);
+  await page.locator('#title').fill('warning state');await save(page,cloud);
   expect(await wouldWarnOnLeave(page)).toBe(false);
   let release,started;cloud.saveGate=new Promise(resolve=>release=resolve);
   const entering=new Promise(resolve=>started=resolve);cloud.onSave=started;
@@ -119,22 +129,61 @@ test('server acknowledgement covers only the captured edit and controls the leav
   release();await expect(page.locator('.draft-save')).toBeEnabled();
   expect(await wouldWarnOnLeave(page)).toBe(true);
   await expect(page.locator('.sync-indicator')).toContainText('로컬에만 저장');
-  cloud.saveGate=null;await save(page);
+  cloud.saveGate=null;await save(page,cloud);
+  await expectServerSaved(page);
   expect(await wouldWarnOnLeave(page)).toBe(false);
   await expect(page.locator('.sync-indicator')).toContainText('서버 저장 완료');
 });
 
+test('lease transfer, expiry, reconnect, and late writes retain local work without resending immutable assets',async ({browser,page})=>{
+  const cloud=projectCloud();cloud.leaseEnabled=true;await start(page,cloud);
+  await page.locator('#title').fill('lease manuscript');
+  await page.locator('#image').setInputFiles({name:'cover.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jz1sAAAAASUVORK5CYII=','base64')});
+  await expect(page.locator('.asset-row')).toHaveCount(1);await save(page,cloud);
+  await expectServerSaved(page);
+  const projectId=[...cloud.rows.keys()][0];
+  const originalLease=structuredClone(cloud.leases.get(projectId));
+  const firstUploadCount=cloud.uploadCount,firstUploadBytes=cloud.uploadBytes;
+  await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>text only revision</p>'));
+  await save(page,cloud);
+  await expectServerSaved(page);
+  expect(cloud.uploadCount).toBe(firstUploadCount);
+  expect(cloud.uploadBytes).toBe(firstUploadBytes);
+  const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});const other=await context.newPage();
+  try {
+    await start(other,cloud);await other.locator('.sb-projects .tab').click();
+    await other.getByRole('button',{name:'lease manuscript',exact:true}).click();
+    await expect(other.getByRole('button',{name:'여기서 편집'})).toBeVisible();
+    await expect(other.locator('#title')).toBeDisabled();
+    await other.getByRole('button',{name:'여기서 편집'}).click();
+    await other.getByRole('dialog',{name:'편집 권한 가져오기'}).getByRole('button',{name:'여기서 편집'}).click();
+    await expect(other.locator('#title')).toBeEnabled();
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    // The previous owner's delayed request must be rejected server-side even
+    // if it has not yet received its focus/renewal callback.
+    const staleSave=await page.evaluate(async ({projectId,lease,revision})=>fetch('https://htzojicodwueivybovhy.supabase.co/rest/v1/rpc/save_epub_project',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_project_id:projectId,p_expected_revision:revision,p_client_id:lease.clientId,p_generation:lease.generation,p_payload:{title:'late writer',chapters:[]}})
+    }).then(response=>response.status),{projectId,lease:originalLease,revision:2});
+    expect(staleSave).toBe(423);
+    const activeLease=cloud.leases.get(projectId);activeLease.expiresAt=Date.now()-1;
+    await other.evaluate(()=>window.dispatchEvent(new Event('offline')));
+    await expect(other.locator('#title')).toBeDisabled();
+    await other.evaluate(()=>window.dispatchEvent(new Event('online')));
+    await expect(other.locator('#title')).toBeEnabled();
+  } finally {await context.close();}
+});
+
 test('two tabs reject a stale local revision and deletion preserves an unseen unsynced project',async ({page,context})=>{
   const cloud=projectCloud();await start(page,cloud);
-  await page.locator('#title').fill('X');await save(page);
+  await page.locator('#title').fill('X');await save(page,cloud);
   const stale=await context.newPage();await start(stale,cloud);await expect(stale.locator('#title')).toHaveValue('X');
-  await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>new A</p>'));await save(page);
-  await stale.evaluate(()=>window.epubMonacoEditor.setValue('<p>stale B</p>'));await save(stale);
+  await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>new A</p>'));await save(page,cloud);
+  await stale.evaluate(()=>window.epubMonacoEditor.setValue('<p>stale B</p>'));await save(stale,cloud,{server:false});
   await expect(stale.locator('#status')).toContainText('로컬 저장 충돌');
   expect((await rows(page)).find(row=>row.title==='X').chapters.some(ch=>ch.body.includes('new A'))).toBe(true);
   await stale.locator('.draft-conflict button').filter({hasText:'최신 저장본 확인'}).click();
   await expect(stale.locator('#body')).toHaveValue('<p>new A</p>');
-  await page.locator('.new-book').click();await page.locator('#title').fill('Y');cloud.failSave=true;await save(page);
+  await page.locator('.new-book').click();await page.locator('#title').fill('Y');cloud.failSave=true;await save(page,cloud);
   cloud.failSave=false;
   await stale.locator('.sb-projects .tab').click();
   await stale.getByRole('button',{name:'X 삭제',exact:true}).click();
@@ -144,34 +193,39 @@ test('two tabs reject a stale local revision and deletion preserves an unseen un
 });
 
 test('two devices reject stale server revision and keep local copy; rename keeps project identity',async ({browser,page})=>{
-  const cloud=projectCloud();await start(page,cloud);await page.locator('#title').fill('cloud X');await save(page);
+  const cloud=projectCloud();await start(page,cloud);await page.locator('#title').fill('cloud X');await save(page,cloud);
   const original=[...cloud.rows.values()][0];
   const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});const other=await context.newPage();
   try {
     await start(other,cloud);await other.locator('.sb-projects .tab').click();await other.getByRole('button',{name:'cloud X',exact:true}).click();await expect(other.locator('#title')).toHaveValue('cloud X');
-    await page.locator('#title').fill('renamed X');await save(page);
+    await page.locator('#title').fill('renamed X');await save(page,cloud);
     expect([...cloud.rows.values()][0].project_id).toBe(original.project_id);
-    await other.evaluate(()=>window.epubMonacoEditor.setValue('<p>device B draft</p>'));await save(other);
+    await other.evaluate(()=>window.epubMonacoEditor.setValue('<p>device B draft</p>'));await save(other,cloud);
     await expect(other.locator('#status')).toContainText('서버 저장 충돌');
     expect([...cloud.rows.values()][0].payload.title).toBe('renamed X');
     expect((await rows(other))[0].chapters.some(ch=>ch.body.includes('device B draft'))).toBe(true);
-    await other.getByRole('button',{name:'로컬 작업을 복사본으로 저장'}).click();await expect(other.locator('.draft-save')).toBeEnabled();
-    expect(cloud.rows.size).toBe(2);
+    await other.getByRole('button',{name:'로컬 작업을 복사본으로 저장'}).click();
+    await expect.poll(()=>cloud.rows.size).toBe(2);await expect(other.locator('.draft-save')).toBeEnabled();
   }finally{await context.close();}
 });
 
 test('DB failure and missing migration keep the local draft and old immutable image references',async ({page})=>{
   const cloud=projectCloud();await start(page,cloud);await page.locator('#title').fill('image versions');
   const upload=async bytes=>page.locator('#image').setInputFiles({name:'same.png',mimeType:'image/png',buffer:Buffer.from(bytes,'base64')});
-  await upload('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jz1sAAAAASUVORK5CYII=');await save(page);
+  await upload('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jz1sAAAAASUVORK5CYII=');
+  // Image decoding is intentionally asynchronous; do not race the first
+  // request against a file-change event that has not become an asset yet.
+  await expect(page.locator('.asset-row')).toHaveCount(1);await save(page,cloud);
+  await expect.poll(()=>cloud.rows.size).toBe(1);
   const old=structuredClone([...cloud.rows.values()][0]);const firstObjects=[...cloud.objects.entries()];
   await upload('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==');
-  cloud.failUpload=true;await save(page);await expect(page.locator('#status')).toContainText('업로드 실패');expect([...cloud.rows.values()][0]).toEqual(old);cloud.failUpload=false;
-  cloud.failSave=true;await save(page);await expect(page.locator('#status')).toContainText('서버 동기화 실패');
+  await expect(page.locator('.asset-row')).toHaveCount(2);
+  cloud.failUpload=true;await save(page,cloud,{server:false});await expect(page.locator('#status')).toContainText('업로드 실패');expect([...cloud.rows.values()][0]).toEqual(old);cloud.failUpload=false;
+  cloud.failSave=true;await save(page,cloud);await expect(page.locator('#status')).toContainText('서버 동기화 실패');
   expect([...cloud.rows.values()][0]).toEqual(old);for(const [key,value] of firstObjects)expect(cloud.objects.get(key)).toEqual(value);
-  cloud.failSave=false;cloud.missingMigration=true;await save(page);await expect(page.locator('#status')).toContainText('마이그레이션');
+  cloud.failSave=false;cloud.missingMigration=true;await save(page,cloud);await expect(page.locator('#status')).toContainText('migration');
   expect((await rows(page))[0].assets.length).toBeGreaterThan(old.payload.assets.length);
-  cloud.missingMigration=false;await save(page);await expect(page.locator('#status')).toContainText('서버 동기화됨');
+  cloud.missingMigration=false;await save(page,cloud);await expect(page.locator('#status')).toContainText('서버 동기화됨');
   expect([...cloud.rows.values()][0].revision).toBe(old.revision+1);
 });
 
@@ -197,12 +251,12 @@ test('legacy local drafts without a server revision survive migration and requir
   await page.goto('/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.epubMonacoEditor);
   await expect(page.locator('#body')).toHaveValue('<p>동기화되지 않은 로컬 원고</p>');
   expect((await rows(page))[0].syncPending).toBe(true);
-  await save(page);await expect(page.locator('#status')).toContainText('서버 저장 충돌');expect(cloud.rows.get(id).revision).toBe(4);
+  await save(page,cloud);await expect(page.locator('#status')).toContainText('서버 저장 충돌');expect(cloud.rows.get(id).revision).toBe(4);
 });
 
 
 test('reversed device save responses retain both immutable uploads and commit only the winning revision',async ({page,browser})=>{
-  const cloud=projectCloud();await start(page,cloud);await page.locator('#title').fill('upload race');await save(page);
+  const cloud=projectCloud();await start(page,cloud);await page.locator('#title').fill('upload race');await save(page,cloud);
   const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});const other=await context.newPage();
   try {
     await start(other,cloud);await other.locator('.sb-projects .tab').click();await other.getByRole('button',{name:'upload race',exact:true}).click();
@@ -220,7 +274,7 @@ test('reversed device save responses retain both immutable uploads and commit on
     let release,started;const hold=new Promise(resolve=>release=resolve);const first=new Promise(resolve=>started=resolve);let calls=0;
     cloud.onSave=()=>{cloud.saveGate=++calls===1?hold:null;started();};
     await page.locator('.draft-save').click();await first;
-    await save(other);await expect(other.locator('#status')).toContainText('서버 동기화됨');
+    await save(other,cloud);await expect(other.locator('#status')).toContainText('서버 동기화됨');
     const winner=structuredClone([...cloud.rows.values()][0]);expect(winner.revision).toBe(2);
     release();await expect(page.locator('.draft-save')).toBeEnabled();await expect(page.locator('#status')).toContainText('서버 저장 충돌');
     expect([...cloud.rows.values()][0]).toEqual(winner);expect(cloud.objects.size).toBe(2);

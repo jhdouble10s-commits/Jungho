@@ -2,7 +2,7 @@
 export function projectCloud() {
   const rows = new Map(), objects = new Map(), deletions = new Map();
   const leases = new Map();
-  const state = {rows,objects,deletions,leases,leaseEnabled:false,failSave:false,missingMigration:false,failUpload:false,saveGate:null,uploadGate:null,onSave:null,onUpload:null};
+  const state = {rows,objects,deletions,leases,leaseEnabled:false,failSave:false,missingMigration:false,failUpload:false,saveGate:null,uploadGate:null,onSave:null,onUpload:null,saveCount:0,uploadCount:0,uploadBytes:0};
   state.attach = async page => page.route('**/htzojicodwueivybovhy.supabase.co/**',async route => {
     const request = route.request(), url = new URL(request.url());
     if (url.pathname.endsWith('/claim_epub_project_edit_lock')) {
@@ -26,7 +26,7 @@ export function projectCloud() {
       return route.fulfill({json:null});
     }
     if (url.pathname.endsWith('/save_epub_project')) {
-      const args = request.postDataJSON(); state.onSave?.(args); if (state.saveGate) await state.saveGate;
+      const args = request.postDataJSON(); state.saveCount++; state.onSave?.(args); if (state.saveGate) await state.saveGate;
       if (state.missingMigration) return route.fulfill({status:404,json:{code:'PGRST202',message:'function absent'}});
       if (state.failSave) return route.fulfill({status:503,json:{message:'database unavailable'}});
       const old = rows.get(args.p_project_id), lease=leases.get(args.p_project_id);
@@ -54,13 +54,13 @@ export function projectCloud() {
     if(url.pathname.includes('/storage/')) {
       const path=url.pathname.replace('/storage/v1/object/authenticated/','').replace('/storage/v1/object/','');
       if(request.method()==='POST') {
-        state.onUpload?.(path);if(state.uploadGate)await state.uploadGate;
+        state.uploadCount++;state.onUpload?.(path);if(state.uploadGate)await state.uploadGate;
         if(state.failUpload)return route.fulfill({status:503,json:{message:'upload unavailable'}});
         if(objects.has(path))return route.fulfill({status:409,json:{statusCode:'409',message:'already exists'}});
         const content = request.headers()['content-type'];
         let bytes=request.postDataBuffer();
         if(content?.startsWith('multipart/')) {const form=await new Response(bytes,{headers:{'content-type':content}}).formData();const file=[...form.values()].find(value=>typeof value !== 'string');bytes=Buffer.from(await file.arrayBuffer());}
-        objects.set(path,bytes);return route.fulfill({json:{Key:path}});
+        state.uploadBytes+=bytes.length;objects.set(path,bytes);return route.fulfill({json:{Key:path}});
       }
       if(request.method()==='GET')return objects.has(path)?route.fulfill({body:objects.get(path),contentType:'image/png'}):route.fulfill({status:404,json:{message:'missing'}});
       throw new Error('Image deletion/overwrite is not allowed in fixture');
