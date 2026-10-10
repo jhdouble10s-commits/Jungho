@@ -59,7 +59,7 @@ test('account switch reloads into the other owner without exposing the previous 
   await expect(page.locator('#status')).toContainText('서버 저장 완료');
   auth.switchUser();
   await page.evaluate(async () => {
-    const {client} = await import('/auth-client.js');
+    const {client} = await import('/dist/auth-client.js');
     await client.auth.signInWithPassword({email:'other@users.sitescout.local',password:'fixture'});
   });
   await expect(page.locator('#title')).not.toHaveValue('첫 계정의 원고');
@@ -90,7 +90,7 @@ test('a 503 preserves an unsaved recovery copy across reload without replacing t
   await expect(page.locator('#body')).toHaveValue('<p>503 직전 미저장 원고</p>');
   auth.switchUser();
   await page.evaluate(async () => {
-    const {client} = await import('/auth-client.js');
+    const {client} = await import('/dist/auth-client.js');
     await client.auth.signInWithPassword({email:'other@users.sitescout.local',password:'fixture'});
   });
   await expect(page.locator('#body')).not.toHaveValue('<p>503 직전 미저장 원고</p>');
@@ -110,7 +110,7 @@ test('same-user focus and token refresh coalesce without hiding the editor or re
   });await first;
   await expect(page.locator('.app')).toHaveJSProperty('inert',false);await expect(page.locator('#accessMessage')).toBeHidden();expect(queries).toBe(1);
   expect(await page.evaluate(()=>({model:window.epubMonacoEditor.getModel().uri.toString(),position:window.epubMonacoEditor.getPosition(),source:window.epubMonacoEditor.getValue()}))).toEqual(before);
-  release();await page.evaluate(async()=>{const {client}=await import('/auth-client.js');await client.auth.refreshSession();});
+  release();await page.evaluate(async()=>{const {client}=await import('/dist/auth-client.js');await client.auth.refreshSession();});
   await expect(page.locator('.app')).toHaveJSProperty('inert',false);await expect(page.locator('#accessMessage')).toBeHidden();
   expect(await page.locator('#body').inputValue()).toBe(before.source);
   await expect(page.locator('[data-editor-action=undo]')).toBeEnabled();

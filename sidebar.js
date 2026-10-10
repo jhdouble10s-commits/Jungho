@@ -34,7 +34,7 @@ function decorate(button, label, glyph) {
 export function mountAppSidebar({ app, side, main, nodes }) {
   const stylesheet = document.createElement('link');
   stylesheet.rel = 'stylesheet';
-  stylesheet.href = new URL('./sidebar.css?v=20261008-76', import.meta.url).href;
+  stylesheet.href = '/sidebar.css?v=20261008-76';
   document.head.append(stylesheet);
 
   app.classList.add('epub-sidebar-layout');

@@ -106,7 +106,7 @@ test('startup screen follows real access and editor phases, fits mobile and resp
   const accessGate = new Promise(resolve => { releaseAccess = resolve; });
   const editorGate = new Promise(resolve => { releaseEditor = resolve; });
   await page.route(`${supabaseUrl}/rest/v1/user_profiles*`, async route => { await accessGate; await route.fallback(); });
-  await page.route('**/ui.js?*', async route => { await editorGate; await route.continue(); });
+  await page.route('**/dist/chunks/ui-*.js', async route => { await editorGate; await route.continue(); });
   try {
     await page.goto('/', { waitUntil: 'commit' });
     const screen = page.locator('#accessMessage');
@@ -133,19 +133,19 @@ test('startup screen follows real access and editor phases, fits mobile and resp
 
 test('module load failure shows a recoverable error without exposing legacy UI', async ({ page }) => {
   await arrangeBoot(page);
-  await page.route('**/editor-tools.js', route => route.fulfill({ status: 404, body: 'missing' }));
+  await page.route('**/dist/chunks/ui-*.js', route => route.fulfill({ status: 404, body: 'missing' }));
   await page.goto('/');
   await expect(page.getByRole('alert')).toContainText('편집기를 불러오지 못했습니다.');
   await expect(page.locator('.startup-progress')).toBeHidden();
   await expect(page.locator('.app')).toBeHidden();
-  await page.unroute('**/editor-tools.js');
+  await page.unroute('**/dist/chunks/ui-*.js');
   await page.getByRole('link', { name: '다시 시도' }).click();
   await expect(page.locator('.app')).toBeVisible({ timeout: 30000 });
 });
 
 test('initialization rejection keeps the app hidden and reports the failure', async ({ page }) => {
   await arrangeBoot(page);
-  await page.route('**/ui.js?*', route => route.fulfill({
+  await page.route('**/dist/chunks/ui-*.js', route => route.fulfill({
     contentType: 'application/javascript',
     body: 'export async function initializeApp() { throw new Error("startup failure"); }',
   }));

@@ -4470,7 +4470,7 @@ export async function initializeApp() {
   // 실제 편집 UI만 Monaco로 대체한다. Monaco를 못 받아도 textarea가 그대로 동작한다.
   const installMonacoEditor = () => {
     if (!window.require || window.epubMonacoEditor) return;
-    window.require.config({ paths:{ vs:'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs' } });
+    window.require.config({ paths:{ vs:`${location.origin}/dist/monaco/vs` } });
     window.require(['vs/editor/editor.main'], () => {
       const monaco = window.monaco;
       if (!monaco || window.epubMonacoEditor) return;
@@ -4599,7 +4599,7 @@ export async function initializeApp() {
         };
         if (window.emmetMonaco) return activate();
         const script = document.createElement('script');
-        script.src = 'https://unpkg.com/emmet-monaco-es@5.7.0/dist/emmet-monaco.min.js';
+        script.src = '/dist/emmet-monaco.min.js';
         script.onload = activate;
         script.onerror = () => console.warn('Emmet 라이브러리를 불러오지 못했습니다.');
         document.head.append(script);

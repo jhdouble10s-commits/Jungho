@@ -1,0 +1,49 @@
+import {
+  Node,
+  mergeAttributes
+} from "./chunk-SQB3THMU.js";
+import "./chunk-TU7O2H4E.js";
+import "./chunk-XCBH6NLF.js";
+
+// node_modules/@tiptap/extension-table-header/dist/index.js
+var TableHeader = Node.create({
+  name: "tableHeader",
+  addOptions() {
+    return {
+      HTMLAttributes: {}
+    };
+  },
+  content: "block+",
+  addAttributes() {
+    return {
+      colspan: {
+        default: 1
+      },
+      rowspan: {
+        default: 1
+      },
+      colwidth: {
+        default: null,
+        parseHTML: (element) => {
+          const colwidth = element.getAttribute("colwidth");
+          const value = colwidth ? colwidth.split(",").map((width) => parseInt(width, 10)) : null;
+          return value;
+        }
+      }
+    };
+  },
+  tableRole: "header_cell",
+  isolating: true,
+  parseHTML() {
+    return [
+      { tag: "th" }
+    ];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["th", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
+  }
+});
+export {
+  TableHeader,
+  TableHeader as default
+};
