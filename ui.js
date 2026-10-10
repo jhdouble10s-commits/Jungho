@@ -26,7 +26,7 @@ uiStyle.textContent = `
   .side nav { position:relative; }.new-book { position:absolute; top:7px; right:7px; z-index:2; width:28px; height:28px; border:1px solid var(--accent); border-radius:7px; background:var(--surface); color:var(--accent); font-size:19px; line-height:20px; cursor:pointer; }.new-book:hover { background:var(--accent-soft); }.chapter { padding-left:10px!important; padding-right:38px!important; }.chapter::after { content:''; position:absolute; right:11px; top:50%; width:16px; height:16px; transform:translateY(-50%); background:var(--accent); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.chapter.is-toc-hidden { color:var(--sub)!important; background:transparent!important; }.chapter.is-toc-hidden::after { background:#777; opacity:1; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z M3 3l18 18'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='black'/%3E%3C/svg%3E") center/contain no-repeat; }.asset-rename { width:28px; height:28px; border:1px solid var(--line); border-radius:7px; background:var(--surface-2); color:var(--sub); font-size:15px; cursor:pointer; }.asset-rename:hover { border-color:var(--accent); color:var(--accent); }.fields select { height:36px; width:100%; border:1px solid var(--line); border-radius:8px; padding:0 30px 0 10px; background:var(--bg); color:var(--text); font:600 13px inherit; cursor:pointer; appearance:auto; }.fields select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #ff510030; outline:0; }.editor > .toolbar label[for="image"] { display:none!important; }.css-save { width:100%; margin:0 0 10px; padding:8px; font-size:12px; }.status.ok,.status.error { position:fixed!important; top:20px; right:20px; z-index:1000; display:flex!important; align-items:center; min-height:46px; max-width:min(440px,calc(100vw - 40px)); margin:0!important; padding:12px 44px 12px 15px!important; border:1px solid #ffffff38; border-radius:11px; background:#0000001a!important; color:#fff!important; box-shadow:0 14px 36px #00000028; -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px); opacity:1; transform:translateY(0); transition:opacity .28s ease,transform .28s ease; }.status.error { border-color:#ff8b72aa; }.status.is-leaving { opacity:0; transform:translateY(-8px); }
   .fields { grid-template-columns:minmax(0,1fr) minmax(170px,.3fr)!important; align-items:end; }.fields > div:not(.full) { display:flex; min-width:0; flex-direction:column; }.fields > div:not(.full) label { height:16px; margin-bottom:6px!important; font-size:12px!important; line-height:16px!important; }.fields > div:not(.full) input,.fields > div:not(.full) select { height:36px!important; min-height:36px; padding:0 10px!important; }.chapter::after { background:#FF5100!important; }.chapter.is-toc-hidden::after { background:#707078!important; }.chapter.is-toc-hidden { color:#707078!important; }
   .chapter { padding-right:56px!important; }
-  .preview { -ms-overflow-style:none; scrollbar-width:none; }.preview::-webkit-scrollbar { display:none; width:0; height:0; }
+  .preview { -ms-overflow-style:none; scrollbar-width:none; }.preview::-webkit-scrollbar { display:none; width:0; height:0; }.preview[data-device-preview="true"] { overflow:hidden!important; }.preview[data-device-preview="true"] .preview-isolated-frame { -ms-overflow-style:none; scrollbar-width:none; }.preview[data-device-preview="true"] .preview-isolated-frame::-webkit-scrollbar { display:none; width:0; height:0; }
   .css-preset-control { display:grid; gap:8px; margin:0 0 10px; }.css-preset-row { display:flex; min-width:0; align-items:center; gap:8px; }.css-preset-control label { margin:0!important; white-space:nowrap; font-size:12px!important; }.css-preset-control select,.css-preset-control input { min-width:0; height:34px; border:1px solid var(--line); border-radius:8px; padding:0 9px; background:var(--bg); color:var(--text); }.css-preset-control select,.css-preset-control input { flex:1 1 auto; }.css-preset-save,.css-preset-delete { flex:none; height:30px; border:1px solid var(--accent); border-radius:7px; padding:0 9px; background:var(--accent-soft); color:var(--accent); font:700 12px inherit; cursor:pointer; }.css-preset-delete { border-color:#9b4850; background:#4b2026; color:#ffb7bd; }.left-panel#cssPanel:has(#css-monaco-editor) .css { display:none!important; }#css-monaco-editor { height:520px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }@media(max-width:700px) { #css-monaco-editor { height:260px; } }
   .drag-handle { display:inline-flex; width:16px; margin-right:5px; color:var(--sub); cursor:grab; user-select:none; }.drag-handle:active { cursor:grabbing; }.chapter.is-dragging { opacity:.45; }.chapter.drop-before { box-shadow:inset 0 2px var(--accent); }.chapter.drop-after { box-shadow:inset 0 -2px var(--accent); }.chapter.drop-child { background:var(--accent-soft)!important; outline:1px dashed var(--accent); }
   .fields { grid-template-columns:minmax(0,1fr) minmax(125px,.5fr) minmax(125px,.38fr)!important; }.fields > .full { grid-column:1/-1!important; }
@@ -103,7 +103,7 @@ import { BookProject } from './book-project.js?v=20261008-styles';
 import { stylesFromCss, applyCustomStyle, applyTagStyle } from './text-styles.js';
 import { mountTextStyles } from './text-styles-ui.js';
 import { styleShortcutBindings } from './style-shortcuts.js';
-import { immutableAssetPath, savedAssetPath } from './cloud-asset-path.js';
+import { immutableAssetPath, savedAssetPaths } from './cloud-asset-path.js';
 import { putLocalProject, deleteLocalProject } from './project-persistence.js';
 import { imageAssetPath, imageReferences, resolveImagePath } from './image-references.js';
 import { validateXhtml, equivalentXhtml, xhtmlPreservationIssue, projectXhtmlForVisual } from './xhtml-validation.js?v=20261007-70';
@@ -1911,9 +1911,11 @@ export async function initializeApp() {
         const client = await cloudReady;
         if (client && supabaseUser) {
           try {
-            const { data, error } = await client.storage.from('epub-assets').download(
-              await savedAssetPath(ownerId, draft, asset), { cacheNonce:asset.hash || String(Date.now()) });
-            if (!error && data && (!asset.hash || await assetHash(data) === asset.hash)) blob = data;
+            for (const storagePath of await savedAssetPaths(ownerId, draft, asset)) {
+              const { data, error } = await client.storage.from('epub-assets').download(
+                storagePath, { cacheNonce:asset.hash || String(Date.now()) });
+              if (!error && data && (!asset.hash || await assetHash(data) === asset.hash)) { blob = data; break; }
+            }
           } catch { /* Keep the manifest entry for a later retry. */ }
         }
       }
@@ -1946,9 +1948,11 @@ export async function initializeApp() {
         if (blob && (!metadata.hash && supabaseUser || metadata.hash && await assetHash(blob) !== metadata.hash)) blob = null;
         if (!blob && supabaseUser) {
           const client = await cloudReady;
-          const { data, error } = await client.storage.from('epub-assets').download(
-            await savedAssetPath(ownerId, {title,projectId:bookProject.projectId}, metadata), { cacheNonce:metadata.hash || String(Date.now()) });
-          if (!error && data && (!metadata.hash || await assetHash(data) === metadata.hash)) blob = data;
+          for (const storagePath of await savedAssetPaths(ownerId, {title,projectId:bookProject.projectId}, metadata)) {
+            const { data, error } = await client.storage.from('epub-assets').download(
+              storagePath, { cacheNonce:metadata.hash || String(Date.now()) });
+            if (!error && data && (!metadata.hash || await assetHash(data) === metadata.hash)) { blob = data; break; }
+          }
         }
         if (!blob || epoch !== restoreEpoch || ownerId !== persistenceOwnerId()) continue;
         previewAssets.set(name, { ...metadata, blob, hash:metadata.hash || await assetHash(blob), url:URL.createObjectURL(blob) });

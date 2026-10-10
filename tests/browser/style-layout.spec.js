@@ -119,6 +119,8 @@ test('preview stays at device size or smaller and hides scrollbars without losin
   const full=await measure();
   expect(full.height).toBeLessThanOrEqual(852);
   expect(full.width).toBeGreaterThan(370);
+  expect(full.scrollbar).toBe('none');
+  if(full.innerScrollbar) expect(full.innerScrollbar).toBe('none');
   await page.setViewportSize({width:1600,height:700});
   await expect.poll(async () => (await measure()).height).toBeLessThan(852);
   const small=await measure();
