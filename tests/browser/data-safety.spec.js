@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 import JSZip from 'jszip';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { DOMParser } from '@xmldom/xmldom';
 import { createHash } from 'node:crypto';
+import {immutableAssetPath} from '../../cloud-asset-path.js';
 import { approvedUser, mockApprovedSession } from './approved-session.js';
 import { loadSemanticEpub } from '../../scripts/lib/epub-semantic.mjs';
 
@@ -45,7 +46,9 @@ async function storedDraft(page, title) {
 test('import, safe edit, save, reload and export retain XHTML, dollars, cover bytes, image, spine and nested anchor TOC', async ({page}) => {
   await start(page);
   page.once('dialog', dialog => dialog.accept());
-  await page.locator('input[type=file][accept^=".epub"]').setInputFiles({ name:'safe.epub', mimeType:'application/epub+zip', buffer:await fixture() });
+  const inputBytes=await fixture();
+  await writeFile(test.info().outputPath('preservation-input.epub'),inputBytes);
+  await page.locator('input[type=file][accept^=".epub"]').setInputFiles({ name:'safe.epub', mimeType:'application/epub+zip', buffer:inputBytes });
   await expect(page.locator('#status')).toContainText('불러왔');
   await expect(page.locator('#title')).toBeVisible();
   await expect(page.locator('#title')).not.toHaveCSS('display', 'none');
@@ -68,6 +71,7 @@ test('import, safe edit, save, reload and export retain XHTML, dollars, cover by
   expect(await page.locator('#body').inputValue()).toContain('AA<ruby>');
   const download = page.waitForEvent('download'); await page.locator('#export').click();
   const bytes = await readFile(await (await download).path());
+  await writeFile(test.info().outputPath('preservation-roundtrip.epub'),bytes);
   const zip = await JSZip.loadAsync(bytes);
   for (const path of Object.keys(zip.files).filter(path => path.endsWith('.xhtml'))) xml(await zip.file(path).async('string'));
   const semantic = await loadSemanticEpub(bytes);
@@ -143,7 +147,9 @@ test('footnote content survives undo, chapter navigation, redo, save and reload'
   await page.locator(`#list [data-chapter-id="${chapterId}"]`).click({position:{x:55,y:15}});
   expect(await page.locator('#body').inputValue()).toContain('data-sitescout-footnote');
   const download = page.waitForEvent('download'); await page.locator('#export').click();
-  const zip = await JSZip.loadAsync(await readFile(await (await download).path()));
+  const bytes = await readFile(await (await download).path());
+  await writeFile(test.info().outputPath('footnote-roundtrip.epub'),bytes);
+  const zip = await JSZip.loadAsync(bytes);
   const paths = Object.keys(zip.files).filter(path => path.endsWith('.xhtml'));
   const documents = await Promise.all(paths.map(path => zip.file(path).async('string')));
   documents.forEach(xml);
@@ -182,7 +188,7 @@ test('failed image restore preserves manifest through save, blocks export and re
   await start(page);
   const cloudWrites = [];
   page.on('request', request => {
-    if (request.method() !== 'GET' && /\/(?:rest\/v1\/epub_drafts|storage\/v1\/object)\b/.test(request.url())) cloudWrites.push(`${request.method()} ${request.url()}`);
+    if (request.method() !== 'GET' && /\/(?:rest\/v1\/(?:epub_drafts|rpc\/save_epub_project)|storage\/v1\/object)\b/.test(request.url())) cloudWrites.push(`${request.method()} ${request.url()}`);
   });
   await page.locator('#title').fill('복구 실패 시험');
   await page.locator('#add').click();
@@ -256,8 +262,10 @@ test('newer server asset hash wins over same-name local cache and remains curren
   await save(page);
   const remote = structuredClone(await storedDraft(page, '이미지 버전 시험'));
   remote.assets[0].hash = createHash('sha256').update(newCover).digest('hex');
+  remote.assets[0].storagePath = immutableAssetPath(approvedUser.id,remote.projectId,remote.assets[0].hash);
+  remote.serverRevision++; remote.syncPending=false;
   remote.updatedAt = new Date(Date.parse(remote.updatedAt) + 1).toISOString();
-  await page.route('**/rest/v1/epub_drafts*', route => route.fulfill({json:[{payload:remote}]}));
+  await page.route('**/rest/v1/epub_drafts*', route => route.fulfill({json:[{payload:remote,project_id:remote.projectId,revision:remote.serverRevision}]}));
   await page.route('**/storage/v1/**', route => route.request().method() === 'GET'
     ? route.fulfill({status:200,contentType:'image/png',body:newCover}) : route.fallback());
   await page.reload({waitUntil:'domcontentloaded'});

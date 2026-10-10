@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import JSZip from 'jszip';
 import { readFile } from 'node:fs/promises';
-import { cloudAssetPath } from '../../cloud-asset-path.js';
+
 import { mockApprovedSession } from './approved-session.js';
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jz1sAAAAASUVORK5CYII=','base64');
 const row = (page,name) => page.locator('.asset-row').filter({has:page.getByRole('button',{name:`${name} 관리`,exact:true})});
@@ -116,32 +116,28 @@ test('imported EPUB rename/delete updates image entries and manifest while retai
   await expect(row(page,'a-2.png')).toHaveCount(0);
 });
 
-test('server cleanup follows payload save, is scoped to this project, and retries after failure',async ({page}) => {
-  const user = {id:'asset-user',email:'asset@users.sitescout.local',user_metadata:{username:'asset'}};
+test('saving asset deletion never removes immutable images from earlier revisions',async ({page}) => {
+  const user = {id:'00000000-0000-4000-8000-000000000012',email:'asset@example.test',user_metadata:{username:'asset'}};
   await mockApprovedSession(page, {user});
-  let failRemove = true; const removed = [], events = [];
+  const removed = [], uploads = [], payloads = [];
   await page.route('**/htzojicodwueivybovhy.supabase.co/**',async route => {
     const request = route.request(), url = request.url();
-    if (request.method() === 'DELETE' && url.includes('/storage/')) {
-      events.push('remove'); removed.push(request.postDataJSON());
-      return route.fulfill(failRemove ? {status:403,json:{message:'fixture denied'}} : {json:[]});
-    }
-    if (url.includes('/epub_drafts') && request.method() === 'POST') { events.push('payload'); return route.fulfill({json:[]}); }
-    if (url.includes('/storage/') && request.method() === 'POST') return route.fulfill({json:{Key:'fixture'}});
+    if (request.method() === 'DELETE' && url.includes('/storage/')) { removed.push(url); return route.fulfill({json:[]}); }
+    if (url.includes('/save_epub_project')) { payloads.push(request.postDataJSON()); return route.fallback(); }
+    if (url.includes('/storage/') && request.method() === 'POST') { uploads.push({url,upsert:request.headers()['x-upsert']}); return route.fulfill({json:{Key:'fixture'}}); }
     return route.fallback();
   });
   await page.goto('/',{waitUntil:'domcontentloaded'});
-  await expect(page.locator('.account-button')).toContainText('asset');
   await page.waitForFunction(() => window.epubMonacoEditor && document.querySelector('.ProseMirror'));
   await page.locator('.new-book').click(); await page.locator('#title').fill('이미지 회귀');
   await upload(page,'unused.png'); await save(page); await expect(page.locator('#status')).toContainText('서버 동기화됨');
+  expect(uploads[0].url).toMatch(/\/projects\/[0-9a-f-]+\/[0-9a-f]{64}$/);
+  expect(uploads[0].upsert).toBe('false');
   const item = await actions(page,'unused.png'); await item.getByRole('button',{name:'삭제',exact:true}).click();
-  await page.locator('.draft-save').click(); await expect(page.locator('#status')).toContainText('서버 정리에 실패');
-  expect(removed[0].prefixes).toEqual([await cloudAssetPath(user.id,'이미지 회귀','unused.png')]);
-  expect(events.slice(-2)).toEqual(['payload','remove']);
-  failRemove = false;
-  await page.locator('.draft-save').click(); await expect(page.locator('#status')).toContainText('서버 동기화됨');
-  expect(removed).toHaveLength(2);
+  await save(page); await expect(page.locator('#status')).toContainText('서버 동기화됨');
+  expect(removed).toEqual([]);
+  expect(payloads.at(-1).p_payload.assets).toEqual([]);
+  expect(payloads.at(-1).p_expected_revision).toBe(1);
 });
 
 test('cover deletion warns and preserves chapter IDs and XHTML',async ({page}) => {

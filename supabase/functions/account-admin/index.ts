@@ -79,13 +79,13 @@ Deno.serve(async (request) => {
       return json({ members });
     }
     if (action === 'set-status') {
-      if (!['approved', 'rejected'].includes(body.status) ||
+      if (!['approved', 'rejected', 'suspended'].includes(body.status) ||
           typeof body.userId !== 'string' || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(body.userId)) {
         return json({ error: '유효한 회원 ID와 승인 상태가 필요합니다.' }, 400);
       }
-      const { data: member, error } = await callerClient.from('user_profiles')
-        .update({ status: body.status }).eq('user_id', body.userId)
-        .eq('status', 'pending').eq('role', 'user').select('user_id,status').maybeSingle();
+      const { data: member, error } = await callerClient.rpc('set_member_status', {
+        p_user_id:body.userId,p_expected_status:body.expectedStatus || 'pending',p_status:body.status,
+      });
       if (error) throw error;
       if (!member) return json({ error: '이미 처리되었거나 승인 대기 회원이 아닙니다.' }, 409);
       return json({ member });
@@ -114,9 +114,9 @@ Deno.serve(async (request) => {
         .update({ username, display_name: displayName }).eq('user_id', data.user.id).select('user_id').single();
       if (profileError || !member) throw profileError || new Error('회원 정보를 저장하지 못했습니다.');
       // Use the issuing admin's JWT: RLS rechecks approval authority at the write.
-      const { data: approved, error: approvalError } = await callerClient.from('user_profiles')
-        .update({ status: 'approved' }).eq('user_id', data.user.id)
-        .eq('role', 'user').eq('status', 'pending').select('user_id,status').single();
+      const { data: approved, error: approvalError } = await callerClient.rpc('set_member_status', {
+        p_user_id:data.user.id,p_expected_status:'pending',p_status:'approved',
+      });
       if (approvalError || !approved) throw approvalError || new Error('계정을 승인하지 못했습니다.');
     } catch (creationError) {
       const { error: cleanupError } = await adminClient.auth.admin.deleteUser(data.user.id);

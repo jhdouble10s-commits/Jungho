@@ -5,6 +5,7 @@ import { showStartupPhase } from './startup-screen.js';
 let revision = 0;
 let activeUserId = null;
 let accessVerified = false;
+let checkInFlight = null;
 export const isAccessVerified = () => accessVerified;
 let preserveInterruptedDraft = null;
 export const registerAccessRecovery = (handler) => { preserveInterruptedDraft = handler; };
@@ -26,7 +27,7 @@ export function markAppUiReady() {
   if (screen) screen.hidden = true;
 }
 
-async function checkAccess() {
+async function performAccessCheck() {
   const targetRevision = ++revision;
   accessVerified = false;
   // A focus recheck may be triggered when leaving the preview iframe. Keep
@@ -36,7 +37,7 @@ async function checkAccess() {
   try {
     const access = await readAccess(client);
     if (targetRevision !== revision) return null;
-    if (activeUserId && activeUserId !== access.user.id) { location.reload(); return null; }
+    if (activeUserId && activeUserId !== access.user.id) { lock(); window.dispatchEvent(new Event('sitescout-identity-invalidated')); location.reload(); return null; }
     activeUserId = access.user.id;
     accessVerified = true;
     showStartupPhase('editor');
@@ -44,7 +45,7 @@ async function checkAccess() {
     return access;
   } catch (error) {
     if (targetRevision !== revision) return null;
-    if (error.code === 'stale') return checkAccess();
+    if (error.code === 'stale') { queueMicrotask(() => { checkInFlight = null; void checkAccess(); }); return null; }
     lock();
     if (error.code === 'unavailable') {
       showStartupPhase('error');
@@ -68,17 +69,35 @@ async function checkAccess() {
       }
       return null;
     }
+    window.dispatchEvent(new Event('sitescout-identity-invalidated'));
     location.replace(`login/?reason=${encodeURIComponent(error.code || 'unavailable')}`);
     return null;
   }
 }
 
+function checkAccess() {
+  if (!checkInFlight) {
+    const task = performAccessCheck();
+    checkInFlight = task;
+    void task.finally(() => { if (checkInFlight === task) checkInFlight = null; });
+  }
+  return checkInFlight;
+}
+
 export const appAccess = checkAccess();
-client.auth.onAuthStateChange((event) => {
+client.auth.onAuthStateChange((event, session) => {
   if (event === 'INITIAL_SESSION') return;
+  const identityChanged = event === 'SIGNED_OUT' || (activeUserId && session?.user?.id !== activeUserId);
+  if (identityChanged) {
+    revision++;
+    accessVerified = false;
+    lock();
+    window.dispatchEvent(new Event('sitescout-identity-invalidated'));
+    checkInFlight = null;
+  }
   // Do not call SDK methods while the Auth event callback holds its session lock.
-  lock();
   setTimeout(() => { void appAccess.then(checkAccess); }, 0);
 });
-window.addEventListener('pageshow', (event) => { if (event.persisted) { lock(); void appAccess.then(checkAccess); } });
+window.addEventListener('pageshow', (event) => { if (event.persisted) void appAccess.then(checkAccess); });
 window.addEventListener('focus', () => { void appAccess.then(checkAccess); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void appAccess.then(checkAccess); });

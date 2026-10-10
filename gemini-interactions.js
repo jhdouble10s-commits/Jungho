@@ -35,9 +35,10 @@ const parseInteractionJson = (text) => {
   }
 };
 
-export const requestGeminiStructuredJson = async ({ apiKey, systemInstruction, input, schema, fetchImpl = fetch }) => {
+export const requestGeminiStructuredJson = async ({ apiKey, systemInstruction, input, schema, signal, fetchImpl = fetch }) => {
   const response = await fetchImpl(INTERACTIONS_ENDPOINT, {
     method:'POST',
+    signal:signal ? AbortSignal.any([signal, AbortSignal.timeout(120000)]) : AbortSignal.timeout(120000),
     headers:{ 'Content-Type':'application/json', 'x-goog-api-key':apiKey },
     body:JSON.stringify({
       model:GEMINI_PROOFREAD_MODEL,
@@ -59,9 +60,10 @@ export const requestGeminiStructuredJson = async ({ apiKey, systemInstruction, i
 
 // Gemini는 교정 판단만 담당한다. XHTML과 source offset은 브라우저로 보내지 않고,
 // 문단 ID와 text만 전달해 앱이 안전한 diff 적용을 수행한다.
-export const requestGeminiCorrections = async ({ apiKey, systemInstruction, paragraphs, fetchImpl }) => {
+export const requestGeminiCorrections = async ({ apiKey, systemInstruction, paragraphs, fetchImpl, signal }) => {
   const result = await requestGeminiStructuredJson({
     apiKey,
+    signal,
     systemInstruction:`${systemInstruction}\n\n반드시 입력의 각 문단 id를 유지한 JSON만 반환하세요. 수정할 내용이 없으면 correctedText에 원문을 그대로 넣으세요.`,
     input:JSON.stringify({ paragraphs:paragraphs.map(({ id, text }) => ({ id, text })) }),
     schema:GEMINI_PROOFREAD_RESPONSE_SCHEMA,

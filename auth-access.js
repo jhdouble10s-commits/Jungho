@@ -1,6 +1,7 @@
 export const accessMessages = {
   pending: '관리자 승인 대기 중입니다.',
   rejected: '가입 승인이 되지 않았습니다.',
+  suspended: '이 계정은 이용이 정지되었습니다. 관리자에게 문의하세요.',
   missing: '회원 정보를 확인할 수 없습니다. 관리자에게 문의하세요.',
   login: '로그인이 필요합니다.',
   unavailable: '승인 상태를 확인할 수 없습니다. 잠시 후 다시 시도하세요.',
@@ -41,7 +42,7 @@ export async function readAccess(client) {
   if (profileError) throw new AccessError([401, 403].includes(profileError.status) ? 'missing' : 'unavailable');
   if (!profile || profile.user_id !== targetId) throw new AccessError('missing');
   if (profile.status !== 'approved') throw new AccessError(
-    ['pending', 'rejected'].includes(profile.status) ? profile.status : 'missing');
+    ['pending', 'rejected', 'suspended'].includes(profile.status) ? profile.status : 'missing');
   return { user, profile };
 }
 

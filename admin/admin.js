@@ -44,7 +44,7 @@ const table = createTable({
   },
 });
 table.setOptions(options => ({...options, state:{...table.initialState, pagination:{pageIndex:0,pageSize:10}, sorting:[{id:'created_at',desc:true}]}}));
-const statusLabels = {pending:'승인 대기',approved:'승인됨',rejected:'거절됨'};
+const statusLabels = {pending:'승인 대기',approved:'승인됨',rejected:'거절됨',suspended:'정지됨'};
 function renderMembers() {
   const members = table.getRowModel().rows.map(row => row.original);
   const incoming = new Set(members.map(member => member.user_id));
@@ -55,7 +55,7 @@ function renderMembers() {
       row = list.insertRow(); row.dataset.userId = member.user_id;
       for (let i = 0; i < 7; i++) row.insertCell();
       row.cells[6].className = 'member-actions';
-      for (const [status,label] of [['approved','승인'],['rejected','거절'],['detail','상세']]) {
+      for (const [status,label] of [['approved','승인'],['rejected','거절'],['suspended','정지'],['detail','상세']]) {
         const button = document.createElement('button'); button.type='button'; button.textContent=label;
         if (status === 'detail') button.dataset.detail = 'true'; else button.dataset.status = status;
         row.cells[6].append(button);
@@ -68,7 +68,10 @@ function renderMembers() {
     row.cells[4].textContent = date(member.last_sign_in_at);
     row.cells[5].textContent = statusLabels[member.status] || '확인 필요';
     row.cells[5].dataset.status = member.status;
-    row.querySelectorAll('[data-status]').forEach(button => { if (button.tagName === 'BUTTON') button.hidden = member.status !== 'pending' || member.role === 'admin'; });
+    row.querySelectorAll('[data-status]').forEach(button => { if (button.tagName === 'BUTTON') {
+      button.hidden = button.dataset.status === 'approved' ? !['pending','rejected','suspended'].includes(member.status) : button.dataset.status === 'rejected' ? member.status !== 'pending' : member.status !== 'approved';
+      button.dataset.expectedStatus = member.status;
+    } });
     list.append(row);
   }
   empty.hidden = members.length !== 0;
@@ -125,11 +128,11 @@ list.addEventListener('click', async (event) => {
   row.querySelectorAll('button').forEach(node => { node.disabled = true; });
   try {
     const actorId = await requireAdmin();
-    await invoke({ action: 'set-status', userId: targetUserId, status: button.dataset.status });
+    await invoke({ action: 'set-status', userId: targetUserId, status: button.dataset.status, expectedStatus:button.dataset.expectedStatus });
     if (targetRevision !== revision || actorId !== await requireAdmin()) return;
     row.querySelectorAll('button').forEach(node => { node.disabled = false; });
     updateMembers(table.options.data.map(member => member.user_id === targetUserId ? {...member,status:button.dataset.status} : member));
-    showMessage(button.dataset.status === 'approved' ? '가입을 승인했습니다.' : '가입을 거절했습니다.');
+    showMessage(`회원 상태: ${statusLabels[button.dataset.status]}`);
   } catch (error) {
     if (targetRevision === revision) {
       showMessage(error.message, true);

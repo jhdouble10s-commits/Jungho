@@ -10,3 +10,14 @@ test('Korean titles and filenames produce stable ASCII Storage keys without coll
   assert.notEqual(path, await cloudAssetPath(owner, '인간력', '다른 이미지.jpg'));
   assert.notEqual(path, await cloudAssetPath(owner, '다른 책', '표지 이미지.jpg'));
 });
+
+test('immutable images use project identity and exact content hash, not title/name; cross-owner metadata is refused',async()=>{
+  const {immutableAssetPath,savedAssetPath}=await import('../cloud-asset-path.js');
+  const owner='00000000-0000-4000-8000-000000000001',project='10000000-0000-4000-8000-000000000001',hash='a'.repeat(64);
+  const path=immutableAssetPath(owner,project,hash);
+  assert.notEqual(path,immutableAssetPath(owner,project,'b'.repeat(64)));
+  assert.notEqual(path,immutableAssetPath(owner,'10000000-0000-4000-8000-000000000002',hash));
+  assert.equal(await savedAssetPath(owner,{projectId:project,title:'renamed'},{storagePath:path,hash}),path);
+  await assert.rejects(savedAssetPath('00000000-0000-4000-8000-000000000002',{projectId:project},{storagePath:path,hash}));
+  assert.throws(()=>immutableAssetPath(owner,'../bad',hash));
+});

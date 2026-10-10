@@ -1,3 +1,4 @@
+import {setFakeGeminiKey} from './ui-helpers.js';
 import { test, expect } from '@playwright/test';
 import { mockApprovedSession } from './approved-session.js';
 async function start(page) {
@@ -90,7 +91,7 @@ test('AI and XHTML repairs are undoable; deletion never lends history to a new c
   expect(await source(page)).toContain('<col span="2" />');
   await page.locator('[data-editor-action=undo]').click(); expect(await source(page)).toBe(before);
   await page.locator('[data-editor-action=redo]').click();
-  await page.evaluate(() => localStorage.setItem('epub-gemini-api-key-v1','fixture'));
+  await setFakeGeminiKey(page);
   await page.route('**/v1/interactions',async route => {
     const input=JSON.parse(route.request().postDataJSON().input);
     await route.fulfill({json:{steps:[{type:'model_output',content:[{type:'text',text:JSON.stringify({paragraphs:input.paragraphs.map(p=>({id:p.id,correctedText:p.text.replace('기도를통해','기도를 통해')}))})}]}]}});
@@ -151,7 +152,7 @@ test('keyboard history and late AI response never overwrite another chapter', as
   await page.keyboard.press('ControlOrMeta+z'); expect(await source(page)).toContain('keyboard');
   await page.keyboard.press('ControlOrMeta+Shift+z'); expect(await source(page)).toContain('기도를통해');
   const a=await page.locator('#list .chapter.active').getAttribute('data-chapter-id');
-  await page.evaluate(() => localStorage.setItem('epub-gemini-api-key-v1','fixture'));
+  await setFakeGeminiKey(page);
   let release, started;
   const gate=new Promise(resolve=>{release=resolve;});
   const requestStarted=new Promise(resolve=>{started=resolve;});
@@ -162,9 +163,9 @@ test('keyboard history and late AI response never overwrite another chapter', as
   try {
     await page.getByRole('button',{name:'맞춤법 교정',exact:true}).click(); await requestStarted;
     await page.locator('#add').click(); await insert(page,'<p>Unrelated chapter</p>');
-    release(); await expect(page.locator('#status')).toContainText('검사한 장이 바뀌었습니다');
+    release(); await expect(page.locator('#status')).toContainText('교정을 적용했습니다');
     expect(await source(page)).toBe('<p>Unrelated chapter</p>');
-    await page.locator(`[data-chapter-id="${a}"].chapter`).click(); expect(await source(page)).toBe('<p>기도를통해</p>');
+    await page.locator(`[data-chapter-id="${a}"].chapter`).click(); expect(await source(page)).toBe('<p>기도를 통해</p>');
   } finally { release(); }
 });
 

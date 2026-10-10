@@ -10,8 +10,17 @@ export class BookProject {
   chapters = [];
   dirty = false;
   revision = 0;
+  projectId = crypto.randomUUID();
+  instanceId = crypto.randomUUID();
+  serverRevision = 0;
+  localRevision = 0;
   get selectedChapter() { return this.chapters.find(chapter => chapter.id === this.selectedChapterId) || null; }
   replace(chapters, selectedId, styles = {}) {
+    this.onInvalidate?.();
+    this.projectId = styles.projectId || crypto.randomUUID();
+    this.instanceId = crypto.randomUUID();
+    this.serverRevision = styles.serverRevision || 0;
+    this.localRevision = styles.localRevision || 0;
     Object.assign(this, restoreStyles(styles));
     this.cssPresetId = typeof styles.cssPresetId === 'string' && styles.cssPresetId !== 'custom' ? styles.cssPresetId : null;
     this.removedAssetNames = [...new Set((styles.removedAssetNames || []).filter(name => typeof name === 'string'))];
@@ -32,8 +41,11 @@ export class BookProject {
     const chapter = this.chapters.find(item => item.id === id);
     if (!chapter) return false;
     const { id:ignored, body, ...fields } = patch;
+    const nextSource = body ?? fields.xhtml ?? chapter.xhtml;
+    const sourceRevision = (chapter.sourceRevision || 0) + Number(nextSource !== chapter.xhtml);
     Object.assign(chapter, fields);
     if (body !== undefined) chapter.xhtml = body;
+    chapter.sourceRevision = sourceRevision;
     this.dirty = true;
     this.revision++;
     return true;
@@ -41,10 +53,11 @@ export class BookProject {
   remove(id) {
     const position = this.chapters.findIndex(chapter => chapter.id === id);
     if (position < 0) return;
+    this.onInvalidate?.(this.chapters[position]);
     this.chapters.splice(position, 1);
     if (this.selectedChapterId === id) this.selectedChapterId = this.chapters[Math.min(position, this.chapters.length - 1)]?.id || null;
     this.dirty = true;
     this.revision++;
   }
-  snapshot() { return { typographyStyles:structuredClone(this.typographyStyles), customStyles:structuredClone(this.customStyles), cssPresetId:this.cssPresetId, removedAssetNames:[...this.removedAssetNames], selectedChapterId:this.selectedChapterId, chapters:this.chapters.map(chapter => ({ ...chapter })) }; }
+  snapshot() { return { projectId:this.projectId,serverRevision:this.serverRevision,localRevision:this.localRevision,typographyStyles:structuredClone(this.typographyStyles), customStyles:structuredClone(this.customStyles), cssPresetId:this.cssPresetId, removedAssetNames:[...this.removedAssetNames], selectedChapterId:this.selectedChapterId, chapters:this.chapters.map(chapter => ({ ...chapter })) }; }
 }

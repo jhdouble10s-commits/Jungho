@@ -1,12 +1,14 @@
+import {cacheCdn} from './cdn-cache.js';
 import { test, expect } from '@playwright/test';
 
 const supabaseUrl = 'https://htzojicodwueivybovhy.supabase.co';
 const user = {
-  id: 'eb205327-3994-46f0-b392-58c435c7e644', email: 'jungho@users.sitescout.local',
+  id: '00000000-0000-4000-8000-000000000001', email: 'jungho@users.sitescout.local',
   app_metadata: {}, user_metadata: { username: 'jungho' }, is_anonymous: false,
 };
 
 async function arrangeBoot(page, { withSavedProject = false } = {}) {
+  await cacheCdn(page);
   const expiresAt = Math.floor(Date.now() / 1000) + 3600;
   const session = {
     access_token: `header.${Buffer.from(JSON.stringify({ sub: user.id, exp: expiresAt })).toString('base64url')}.signature`,

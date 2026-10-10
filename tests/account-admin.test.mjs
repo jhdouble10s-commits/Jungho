@@ -25,6 +25,12 @@ function fixture({ role = 'admin', status = 'approved', duplicate = false, failA
           deleteUser: async id => { deleted.push(id); profiles.delete(id); return { error: null }; },
         },
       },
+      rpc: async (_name,args) => {
+        const actor = profiles.get('actor'), member = profiles.get(args.p_user_id);
+        if (key !== 'anon' || actor.role !== 'admin' || actor.status !== 'approved' || failApproval || member?.status !== args.p_expected_status) return {data:null,error:new Error('RLS denied')};
+        member.status = args.p_status; writes.push({key,patch:{status:args.p_status}});
+        return {data:member,error:null};
+      },
       from: () => {
         let patch;
         const filters = [];
