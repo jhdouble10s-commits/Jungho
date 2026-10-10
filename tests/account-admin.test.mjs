@@ -81,7 +81,7 @@ test('admin issues an email-confirmed ordinary account and approves it through c
   assert.equal(f.writes.find(write => write.patch.status)?.key, 'anon');
   assert.ok(!JSON.stringify([result, [...f.profiles], f.writes]).includes(input.password));
 });
-for (const [role, status] of [['user', 'approved'], ['admin', 'pending'], ['admin', 'rejected']]) {
+for (const [role, status] of [['user', 'approved'], ['admin', 'pending'], ['admin', 'rejected'], ['admin', 'suspended']]) {
   test(`${role}/${status} cannot issue accounts despite admin metadata`, async () => {
     const f = fixture({ role, status });
     assert.equal((await f.request(input)).status, 403);
@@ -138,8 +138,16 @@ test('dashboard follows Auth pages without dropping or duplicating members', asy
   assert.equal(result.body.members.length,206);
   assert.equal(new Set(result.body.members.map(member=>member.user_id)).size,206);
 });
-for (const [role,status] of [['user','approved'],['admin','pending'],['admin','rejected']]) {
+for (const [role,status] of [['user','approved'],['admin','pending'],['admin','rejected'],['admin','suspended']]) {
   test(`dashboard rejects ${role}/${status}`, async () => {
     assert.equal((await fixture({role,status}).request({action:'list-members'})).status,403);
   });
 }
+test('every request checks current admin approval again', async () => {
+  const f=fixture();
+  assert.equal((await f.request({action:'list-members'})).status,200);
+  f.profiles.get('actor').status='suspended';
+  assert.equal((await f.request({action:'list-members'})).status,403);
+  assert.equal((await f.request(input)).status,403);
+  assert.equal(f.created.length,0);
+});

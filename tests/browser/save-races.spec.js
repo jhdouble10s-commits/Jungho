@@ -121,10 +121,17 @@ test('reversed device save responses retain both immutable uploads and commit on
   const context=await browser.newContext({ignoreHTTPSErrors:true,baseURL:'http://127.0.0.1:4173'});const other=await context.newPage();
   try {
     await start(other,cloud);await other.locator('.sb-projects .tab').click();await other.getByRole('button',{name:'upload race',exact:true}).click();
+    await expect(other.locator('#status')).toContainText('임시저장본을 불러왔습니다');
     const a=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jz1sAAAAASUVORK5CYII=','base64');
     const b=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==','base64');
     await page.locator('#image').setInputFiles({name:'same.png',mimeType:'image/png',buffer:a});
     await other.locator('#image').setInputFiles({name:'same.png',mimeType:'image/png',buffer:b});
+    // File input dispatch does not await the app's asynchronous image decode.
+    // Establish both assets before testing the ordering of cloud save requests.
+    await expect(page.locator('.asset-row')).toHaveCount(1);
+    await expect(other.locator('.asset-row')).toHaveCount(1);
+    await expect(page.locator('#image')).toHaveValue('');
+    await expect(other.locator('#image')).toHaveValue('');
     let release,started;const hold=new Promise(resolve=>release=resolve);const first=new Promise(resolve=>started=resolve);let calls=0;
     cloud.onSave=()=>{cloud.saveGate=++calls===1?hold:null;started();};
     await page.locator('.draft-save').click();await first;

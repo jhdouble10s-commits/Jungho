@@ -1,10 +1,12 @@
 -- Apply after approval migration. No storage deletion or image rewriting.
+set local lock_timeout = '5s';
+set local statement_timeout = '60s';
 alter table public.epub_drafts add column project_id uuid not null default gen_random_uuid(),
   add column revision bigint not null default 1 check (revision > 0);
 create unique index epub_drafts_project_identity on public.epub_drafts(owner_id, project_id);
 update public.epub_drafts set payload = payload::jsonb || jsonb_build_object('projectId',project_id,'serverRevision',revision);
 -- Old clients must fail closed: unconditional upserts would bypass revision CAS.
-revoke insert, update, delete on public.epub_drafts from authenticated, anon;
+revoke insert, update, delete, truncate on public.epub_drafts from public, authenticated, anon;
 
 create function private.save_epub_project(p_project_id uuid,p_expected_revision bigint,p_payload jsonb)
 returns jsonb language plpgsql security definer set search_path = '' as $$
@@ -50,9 +52,11 @@ revoke all on function private.save_epub_project(uuid,bigint,jsonb), public.save
  private.delete_epub_project(uuid,bigint),public.delete_epub_project(uuid,bigint) from public,anon;
 grant execute on function private.save_epub_project(uuid,bigint,jsonb),public.save_epub_project(uuid,bigint,jsonb),
  private.delete_epub_project(uuid,bigint),public.delete_epub_project(uuid,bigint) to authenticated;
--- Immutable content paths can be inserted/read, never overwritten/deleted by clients.
+-- Protect legacy paths too: stale tabs may upload to those paths BEFORE their
+-- direct draft write fails. Reads/inserts stay subject to existing ownership
+-- and approval policies; obsolete blobs require separate server-side GC.
 create policy "Immutable project images update guard" on storage.objects as restrictive for update to authenticated
- using (bucket_id <> 'epub-assets' or split_part(name,'/',2) <> 'projects')
- with check (bucket_id <> 'epub-assets' or split_part(name,'/',2) <> 'projects');
+ using (bucket_id <> 'epub-assets')
+ with check (bucket_id <> 'epub-assets');
 create policy "Immutable project images delete guard" on storage.objects as restrictive for delete to authenticated
- using (bucket_id <> 'epub-assets' or split_part(name,'/',2) <> 'projects');
+ using (bucket_id <> 'epub-assets');

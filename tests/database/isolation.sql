@@ -52,7 +52,14 @@ do $$ begin
  begin insert into storage.objects(bucket_id,name) values('epub-assets',auth.uid()::text||'/pending'); raise exception 'pending upload'; exception when insufficient_privilege then null; end;
 end $$;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000005',false);
-select set_member_status('00000000-0000-4000-8000-000000000003','pending','approved');
+select set_member_status('00000000-0000-4000-8000-000000000003','pending','rejected');
+do $$ begin
+ begin perform set_member_status('00000000-0000-4000-8000-000000000003','pending','approved'); raise exception 'stale approval allowed'; exception when serialization_failure then null; end;
+end $$;
+select set_member_status('00000000-0000-4000-8000-000000000003','rejected','approved');
+do $$ begin
+ begin perform set_member_status('00000000-0000-4000-8000-000000000003','approved','rejected'); raise exception 'invalid transition allowed'; exception when invalid_parameter_value then null; end;
+end $$;
 select set_member_status('00000000-0000-4000-8000-000000000001','approved','suspended');
 do $$ begin
  begin perform set_member_status(auth.uid(),'approved','suspended'); raise exception 'last admin suspended'; exception when check_violation then null; end;
@@ -69,5 +76,8 @@ select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001'
 select test_assert((select count(*)=1 from epub_drafts),'reapproval retains draft');
 with changed as (update storage.objects set name=name||'-changed' returning *) select test_assert((select count(*)=0 from changed),'immutable image update refused');
 with removed as (delete from storage.objects returning *) select test_assert((select count(*)=0 from removed),'immutable image delete refused');
+select save_epub_project('10000000-0000-4000-8000-000000000088',0,'{"title":"delete fixture","chapters":[]}');
+select delete_epub_project('10000000-0000-4000-8000-000000000088',1);
+select test_assert((select count(*)=0 from epub_drafts where project_id='10000000-0000-4000-8000-000000000088'),'own revision-checked deletion works');
 reset role;
 select 'PASS: signup, ownership, CAS, immutable assets, transitions, last admin and existing-session RLS';

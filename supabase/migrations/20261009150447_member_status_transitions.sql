@@ -1,3 +1,5 @@
+set local lock_timeout = '5s';
+set local statement_timeout = '60s';
 alter table public.user_profiles drop constraint user_profiles_status_check;
 alter table public.user_profiles add constraint user_profiles_status_check check(status in ('pending','approved','rejected','suspended'));
 drop policy "Approved admins can decide pending members" on public.user_profiles;
