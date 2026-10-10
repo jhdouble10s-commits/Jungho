@@ -252,6 +252,40 @@ test('failed image restore preserves manifest through save, blocks export and re
   expect(await zip.file('EPUB/Image/pic.png').async('nodebuffer')).toEqual(firstPng);
 });
 
+test('legacy encoded image path is retried after the hashed compatibility path misses', async ({page}) => {
+  await start(page);
+  await page.locator('#title').fill('이전 서버 이미지');
+  await page.locator('#add').click();
+  if (await page.locator('[data-mode-toggle]').textContent() === 'XHTML편집') await page.locator('[data-mode-toggle]').click();
+  await page.evaluate(() => window.epubMonacoEditor.setValue('<p><img src="../Image/pic.png" alt="pic" /></p>'));
+  await page.locator('#image').setInputFiles({name:'pic.png',mimeType:'image/png',buffer:firstPng});
+  await save(page);
+  const remote = structuredClone(await storedDraft(page, '이전 서버 이미지'));
+  delete remote.assets[0].storagePath;
+  remote.serverRevision++;
+  remote.syncPending = false;
+  remote.updatedAt = new Date(Date.parse(remote.updatedAt) + 1).toISOString();
+  await page.evaluate(async ({ownerId,title}) => {
+    const {default:Dexie} = await import('https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm');
+    const db = new Dexie('epub-builder-projects'); await db.open();
+    try { await db.table('assets').delete([ownerId,title,'pic.png']); }
+    finally { db.close(); }
+  }, {ownerId:approvedUser.id,title:remote.title});
+  const downloads = [];
+  await page.route('**/rest/v1/epub_drafts*', route => route.fulfill({json:[{payload:remote,project_id:remote.projectId,revision:remote.serverRevision,updated_at:remote.updatedAt}]}));
+  await page.route('**/storage/v1/**', route => {
+    if (route.request().method() !== 'GET') return route.fallback();
+    downloads.push(route.request().url());
+    return downloads.length === 1
+      ? route.fulfill({status:404,json:{message:'hashed compatibility path missing'}})
+      : route.fulfill({status:200,contentType:'image/png',body:firstPng});
+  });
+  await page.reload({waitUntil:'domcontentloaded'});
+  await expect.poll(() => downloads.length).toBe(2);
+  await expect(page.locator('.asset-recovery')).toBeHidden();
+  await expect(page.frameLocator('.preview-isolated-frame').locator('img')).toHaveAttribute('src', /^blob:/);
+});
+
 test('newer server asset hash wins over same-name local cache and remains current after save and reload', async ({page}) => {
   await start(page);
   await page.locator('#title').fill('이미지 버전 시험');

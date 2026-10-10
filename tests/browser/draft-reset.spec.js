@@ -52,8 +52,8 @@ test('느린 Tiptap + 복원 원고는 DOM에 중복 잔존하지 않으며 새 
   await page.locator('.side .tab[data-view="editorView"]').click();
   await expect(page.locator('.draft-item')).toHaveCount(1);
   await page.evaluate(() => localStorage.setItem('epub-gemini-api-key-v1','test-preserve-key'));
-  page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button',{name:'삭제할 테스트 원고 삭제',exact:true}).click();
+  await page.getByRole('dialog',{name:'프로젝트 삭제'}).getByRole('button',{name:'삭제'}).click();
   await expect(page.locator('#status')).toContainText('삭제했습니다');
   await expect(page.getByRole('button',{name:'임시저장 전체 삭제',exact:true})).toHaveCount(0);
   await expect(page.locator('.drafts-empty')).toBeVisible();

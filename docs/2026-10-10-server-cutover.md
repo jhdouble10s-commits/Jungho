@@ -1,6 +1,7 @@
 # 기존 서버 전환 사전 점검 — 운영 미적용
 
 대상: `htzojicodwueivybovhy` / sitescout / ap-southeast-1 / PostgreSQL 17.6.1.166. 확인 시각: 2026-10-10 00:38 UTC 전후.
+후속 수정: 삭제 기록·부활 차단·저장 시각 반환과 schema cache 갱신 단계를 위 적용 후보에 통합했다. 아래 과거 검증 기록은 후속 수정의 운영 검증 결과가 아니다. 현재 환경에서는 Supabase 연결과 브라우저 실행이 제한돼 있어 재검증은 대기 중이다.
 로컬: main, `6a36a02aff85448a9743e4f8e703660a837e23b1`. 시작 시 tracked diff 없음. 기존 미추적 파일 보존. 이번 작업은 커밋/푸시/Vercel 배포/운영 쓰기 없음.
 
 ## 1. 읽기 전용 운영 확인
@@ -19,15 +20,15 @@
 
 | 파일 | SHA-256 |
 | --- | --- |
-| 20261009150031_atomic_project_saves.sql | 25b5f2b8f03697200e257a7819c202fdbb9cee363de6364fb96a13b2475a191c |
+| 20261009150031_atomic_project_saves.sql | 10741097843d8a4852c49af6ad9b34a119339f0206e9699a038d5ec4e253aaa2 |
 | 20261009150447_member_status_transitions.sql | e42089d70ecbe543657be115fbc87f50a1bcecbf540c39f57f63d897defd3db0 |
 | functions/account-admin/index.ts (6a36a02 소스 그대로) | a4374f6693c628b1636141e15c1c7dd5f570f5ff7529f8666714c9a650c9d343 |
 
 첫 migration에 이번 사전 점검에서 **로컬 보완**: 모든 기존 epub-assets 경로의 UPDATE/DELETE 차단, 직접 draft TRUNCATE 권한도 회수. 기존 후보는 새 `/projects/` 경로만 보호해 구형 탭의 기존 이미지 overwrite가 로컬 SQL에서 재현됐다. 읽기/새 업로드의 owner·승인 정책은 유지. 두 migration에 lock_timeout 5초/statement_timeout 60초를 두어 장시간 대기 시 실패/중단하도록 함. 원고 내용·이미지 이동/삭제 없음.
 
 - 각 기존 행에 새 UUID project_id, revision=1; 기존 id/owner/title/created_at/updated_at 유지. payload는 projectId/serverRevision 두 필드만 추가. 사용자+project_id UNIQUE 추가, 기존 owner+title UNIQUE 유지.
-- `save_epub_project(p_project_id uuid,p_expected_revision bigint,p_payload jsonb) -> jsonb {revision}`. expected=0 신규, 기존 revision 일치 시 갱신. 소유자·현재 승인 확인, 충돌 SQLSTATE 40001. 클라이언트는 localRevision과 별개로 서버 revision 관리.
-- `delete_epub_project(p_project_id uuid,p_expected_revision bigint) -> void`. 현재 소유자/승인/revision 일치만 삭제. 이미지 삭제 없음.
+- `save_epub_project(p_project_id uuid,p_expected_revision bigint,p_payload jsonb) -> jsonb {revision,saved_at}`. expected=0 신규, 기존 revision 일치 시 갱신. 소유자·현재 승인 확인, 충돌 SQLSTATE 40001. 클라이언트는 localRevision과 별개로 서버 revision 관리.
+- `delete_epub_project(p_project_id uuid,p_expected_revision bigint) -> void`. 현재 소유자/승인/revision 일치만 삭제하고 `epub_project_deletions(owner_id,project_id,revision,deleted_at)`에 명시적으로 기록. 이미지 삭제 없음. 삭제한 ID의 expected=0 재생성도 거부한다. 기록은 본인만 읽고 클라이언트 직접 변경은 차단한다.
 - `set_member_status(p_user_id uuid,p_expected_status text,p_status text) -> jsonb {user_id,status}`. pending→approved/rejected, approved→suspended, rejected/suspended→approved. 현재 관리자 재확인, 동시 상태 변경 직렬화, 마지막 승인 관리자 보호. 역할 변경 API 없음.
 - 일반 클라이언트의 직접 draft DML/TRUNCATE 및 status UPDATE 회수. private definer 함수에서 auth.uid()/현재 DB 상태를 검증하고 public invoker wrapper만 호출. 새로운 영구 관리 계정/토큰/키/권한 추가 없음.
 - 기존 filename과 다른 migration 기록이 있으므로 **전체 db push 또는 history repair 금지**. 승인된 두 SQL만 명시적 대상에 적용. MCP apply_migration을 사용할 경우 도구가 실제 생성한 history version/name/content를 다시 기록하며 원래 파일번호가 그대로 기록됐다고 가정하지 않음.
@@ -61,10 +62,10 @@ CLI --help 확인 완료: backups list, functions deploy(--project-ref/--use-api
 1. 위 탭 보존/접근 수단/백업 승인과 유지보수 시간 합의. 다른 사용자 공지는 사용자가 진행 (메시지 전송 도구 사용 없음).
 2. 재점검: 대상 ref, schema/history/hash가 위와 다르면 중단하고 다시 확인. `operations/20261010_enter_maintenance.sql` 실행 승인 필요: 구형 draft 직접 쓰기·관리자 직접 승인 차단, Storage INSERT/UPDATE/DELETE 임시 차단. 읽기/내보내기/로컬 편집은 유지. 업로드 요청은 실패할 수 있고 이미 진행 중이던 요청이 끝나야 일관된 snapshot 가능.
 3. 이 상태에서 승인된 운영 DB/Storage 백업 및 격리 복원 검증. 실패하면 migration 진행하지 않음. 임시 gate를 임의 해제하거나 구형 쓰기를 재허용하지 않음.
-4. atomic_project_saves → member_status_transitions 적용. 실제 history와 schema/RPC/grants를 확인. 첫 migration commit 이후 새 RPC 쓰기는 가능하므로 사용자 유지보수 중지 안내는 계속 유지; Storage 업로드는 임시 gate로 차단됨.
+4. atomic_project_saves → member_status_transitions 적용. 실제 history와 schema/RPC/grants/RLS 및 삭제 기록을 확인. 첫 migration commit 이후 새 RPC 쓰기는 가능하므로 사용자 유지보수 중지 안내는 계속 유지; Storage 업로드는 임시 gate로 차단됨.
 5. 동일 소스 account-admin 배포 (`verify_jwt=false`는 기존 설정 유지, 내부 getUser+DB admin 검증 필수). 원격 소스/새 버전/설정 확인. 기존 v6을 남긴 중간 상태는 정상 완료 아님.
-6. Edge 배포 확인 후 `20261010_leave_storage_maintenance.sql`로 임시 Storage gate만 해제. 영구 owner/승인/immutable 정책과 구형 DML 차단은 유지. 합성 HTTP 검증 동안 사용자는 계속 유지보수 상태 유지.
-7. 승인받은 합성 계정 A/B/pending/rejected/admin 최대 5개, 프로젝트 최대 4개, 작은 이미지 최대 8개로 HTTP 신규저장·다른 세션 재열기·이미지·충돌·권한·상태 전이 검사. 다른 회원/프로젝트를 목록으로 수집하지 않고 테스트 ID만 명시적으로 사용. 계정 비밀번호/세션은 출력하지 않으며 테스트 외 영구 키/토큰 발급 없음.
+6. Edge 배포 확인 후 `20261010_leave_storage_maintenance.sql`로 RPC signature/EXECUTE 권한과 삭제 기록 테이블을 검사하고 PostgREST schema cache 갱신을 요청한 뒤 임시 Storage gate만 해제. 영구 owner/승인/immutable 정책과 구형 DML 차단은 유지. 합성 HTTP 검증 동안 사용자는 계속 유지보수 상태 유지.
+7. 승인받은 합성 계정 A/B/pending/rejected/admin 최대 5개, 프로젝트 최대 4개, 작은 이미지 최대 8개로 HTTP 신규저장·다른 세션 재열기·이미지·충돌·삭제 기록·revision 0 부활 차단·권한·상태 전이 검사. `PGRST202`가 남으면 연결 ref와 실제 migration history/RPC signature를 다시 대조하고 schema cache 응답을 확인한다. 다른 회원/프로젝트를 목록으로 수집하지 않고 테스트 ID만 명시적으로 사용. 계정 비밀번호/세션은 출력하지 않으며 테스트 외 영구 키/토큰 발급 없음.
 8. 테스트 ID/prefix로만 생성 목록을 기록하여 합성 원고/객체/Auth 계정 정리 (각각 승인 필요). 실제 orphan 정리/기존 회원 데이터 삭제 금지. 마지막 관리자 조건을 만들려고 실제 관리자를 강등하지 않음; 해당 경계는 로컬에서만 검증.
 9. 모든 결과 확인 후 사용자 재접속 허용, 각 사용자 로컬 동기화 대기본을 개별 확인. 기존 탭 강제 새로고침이나 전 사용자 일괄 업로드 없음.
 

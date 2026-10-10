@@ -12,8 +12,22 @@ export function immutableAssetPath(ownerId, projectId, hash) {
   return `${ownerId}/projects/${projectId}/${hash}`;
 }
 
+export function legacyEncodedAssetPath(ownerId, title, name) {
+  if (typeof title !== 'string' || typeof name !== 'string') throw new Error('Invalid legacy asset identity');
+  return `${ownerId}/${encodeURIComponent(title)}/${encodeURIComponent(name)}`;
+}
+
 export async function savedAssetPath(ownerId, draft, asset) {
   if (!asset.storagePath) return cloudAssetPath(ownerId, draft.title, asset.name);
   if (asset.storagePath !== immutableAssetPath(ownerId, draft.projectId, asset.hash)) throw new Error('Invalid asset reference');
   return asset.storagePath;
+}
+
+// Projects saved before the ASCII-key migration used encoded title/name paths.
+// Only read them as a fallback; all writes remain content-addressed paths.
+export async function savedAssetPaths(ownerId, draft, asset) {
+  const current = await savedAssetPath(ownerId, draft, asset);
+  if (asset.storagePath) return [current];
+  const legacy = legacyEncodedAssetPath(ownerId, draft.title, asset.name);
+  return legacy === current ? [current] : [current, legacy];
 }
