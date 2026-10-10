@@ -10,7 +10,10 @@ export function projectCloud() {
       const args=request.postDataJSON(), now=Date.now(), existing=leases.get(args.p_project_id);
       if (existing?.expiresAt > now && existing.clientId !== args.p_client_id && !args.p_takeover)
         return route.fulfill({json:{granted:false,server_now:new Date(now).toISOString(),expires_at:new Date(existing.expiresAt).toISOString()}});
-      const lease={clientId:args.p_client_id,generation:crypto.randomUUID(),expiresAt:now+(args.p_ttl_seconds || 45)*1000};leases.set(args.p_project_id,lease);
+      // Match the server: a claim by the current holder renews its generation.
+      const lease=existing?.expiresAt > now && existing.clientId===args.p_client_id
+        ? existing : {clientId:args.p_client_id,generation:crypto.randomUUID(),expiresAt:0};
+      lease.expiresAt=now+(args.p_ttl_seconds || 45)*1000;leases.set(args.p_project_id,lease);
       return route.fulfill({json:{granted:true,generation:lease.generation,server_now:new Date(now).toISOString(),expires_at:new Date(lease.expiresAt).toISOString()}});
     }
     if (url.pathname.endsWith('/renew_epub_project_edit_lock')) {

@@ -2122,6 +2122,9 @@ export async function initializeApp() {
     const {data,error} = await client.rpc('renew_epub_project_edit_lock',{
       p_project_id:lease.projectId,p_client_id:projectClientId,p_generation:lease.generation,p_ttl_seconds:45,
     });
+    // A delayed renewal for an old generation must not revoke a newer claim
+    // obtained after reconnect or an explicit transfer.
+    if (bookProject.projectId !== lease.projectId || editLease?.generation !== lease.generation) return;
     if (!error && data?.granted) { rememberLease(lease.projectId,data); return; }
     editLease = null; clearInterval(leaseRenewTimer); leaseRenewTimer = null;
     setProjectEditingAccess(false,'편집 권한이 만료되었거나 다른 기기로 이전되었습니다. 로컬 복구본은 유지됩니다.');

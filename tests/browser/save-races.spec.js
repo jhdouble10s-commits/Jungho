@@ -126,10 +126,14 @@ test('server acknowledgement covers only the captured edit and controls the leav
   await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>first</p>'));
   await page.locator('.draft-save').click();await entering;
   await page.evaluate(()=>window.epubMonacoEditor.setValue('<p>newer</p>'));
-  release();await expect(page.locator('.draft-save')).toBeEnabled();
+  let releaseSecond,secondStarted;const secondGate=new Promise(resolve=>releaseSecond=resolve);
+  const secondEntering=new Promise(resolve=>secondStarted=resolve);
+  cloud.onSave=()=>{if(cloud.saveCount===3){cloud.saveGate=secondGate;secondStarted();}};
+  release();await secondEntering;
   expect(await wouldWarnOnLeave(page)).toBe(true);
-  await expect(page.locator('.sync-indicator')).toContainText('로컬에만 저장');
-  cloud.saveGate=null;await save(page,cloud);
+  expect(await page.locator('.sync-indicator').textContent()).not.toContain('서버 저장 완료');
+  releaseSecond();cloud.saveGate=null;
+  await expect(page.locator('.draft-save')).toBeEnabled();
   await expectServerSaved(page);
   expect(await wouldWarnOnLeave(page)).toBe(false);
   await expect(page.locator('.sync-indicator')).toContainText('서버 저장 완료');
@@ -156,6 +160,7 @@ test('lease transfer, expiry, reconnect, and late writes retain local work witho
     await other.addInitScript(clientId=>sessionStorage.setItem('sitescout-project-editor-client-id',clientId),originalLease.clientId);
     await start(other,cloud);await other.locator('.sb-projects .tab').click();
     await other.getByRole('button',{name:'lease manuscript',exact:true}).click();
+    await expect(other.locator('#title')).toHaveValue('lease manuscript');
     await expect(other.getByRole('button',{name:'여기서 편집'})).toBeVisible();
     await expect(other.locator('#title')).toBeDisabled();
     await other.getByRole('button',{name:'여기서 편집'}).click();
@@ -168,11 +173,15 @@ test('lease transfer, expiry, reconnect, and late writes retain local work witho
       method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_project_id:projectId,p_expected_revision:revision,p_client_id:lease.clientId,p_generation:lease.generation,p_payload:{title:'late writer',chapters:[]}})
     }).then(response=>response.status),{projectId,lease:originalLease,revision:2});
     expect(staleSave).toBe(423);
+    // With two contenders, either tab may reclaim an expired lease. Close the
+    // old holder so this specifically tests B's reconnect without a race.
+    await page.close();
     const activeLease=cloud.leases.get(projectId);activeLease.expiresAt=Date.now()-1;
     await other.evaluate(()=>window.dispatchEvent(new Event('offline')));
     await expect(other.locator('#title')).toBeDisabled();
     await other.evaluate(()=>window.dispatchEvent(new Event('online')));
-    await expect(other.locator('#title')).toBeEnabled();
+    await expect(other.locator('#title')).toHaveValue('lease manuscript',{timeout:30000});
+    await expect(other.locator('#title')).toBeEnabled({timeout:30000});
   } finally {await context.close();}
 });
 
