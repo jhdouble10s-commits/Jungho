@@ -32,7 +32,7 @@ async function start(page) {
 async function save(page) {
   await page.locator('.draft-save').click();
   await expect(page.locator('.draft-save')).toBeEnabled();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
 }
 async function storedDraft(page, title) {
   return page.evaluate(async ({ownerId,title}) => {

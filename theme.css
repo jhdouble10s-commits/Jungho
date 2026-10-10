@@ -247,11 +247,6 @@ html:root[data-theme="dark"], html:root.dark:not([data-theme]) {
 .app .editor .visual-read-only-notice { margin:8px 0; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--ui-muted); color:var(--foreground); font-size:12px; line-height:1.5; }
 .app .editor .visual-read-only-notice[hidden] { display:none!important; }
 .app .css-preset-status { color:var(--muted-foreground); font-size:12px; line-height:1.4; }
-.app .draft-recovery { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:0 0 12px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--ui-muted); color:var(--foreground); font-size:12px; }
-.app .draft-recovery[hidden] { display:none; }
-.app .draft-recovery span { flex:1 1 220px; }
-.app .draft-recovery button { border:1px solid var(--border); border-radius:6px; padding:6px 9px; background:var(--background); color:var(--foreground); cursor:pointer; }
-.app .draft-recovery button:hover { border-color:var(--ring); }
 .parent-toc-menu.editor-popover-motion { position:fixed; top:0; left:0; z-index:1200; }
 .chapter-search-panel.editor-popover-motion,
 .editor-tools-search.editor-popover-motion { max-height:calc(100dvh - 96px); overflow:auto; }

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { mockApprovedSession } from './approved-session.js';
-test('Monaco NEW → mode/chapter 전환 → Dexie reload에서 A/B/C 원문 보존', async ({ page }) => {
+import { mockApprovedSession, openSavedServerProject } from './approved-session.js';
+test('Monaco NEW → mode/chapter 전환 → 서버 재열기에서 A/B/C 원문 보존', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await mockApprovedSession(page);
@@ -25,6 +25,7 @@ test('Monaco NEW → mode/chapter 전환 → Dexie reload에서 A/B/C 원문 보
   await page.waitForTimeout(500);
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => Boolean(window.epubMonacoEditor));
+  await openSavedServerProject(page,'독립 저장 테스트');
   await expect(page.locator('#title')).toHaveValue('독립 저장 테스트');
   await page.locator('[data-mode-toggle]').click();
   for (const [name, value] of [['A','>A<'],['B','NEW'],['C','>C<']]) {

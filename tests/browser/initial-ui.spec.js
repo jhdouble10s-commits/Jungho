@@ -88,8 +88,8 @@ for (const [label, options] of [
       await page.locator('#title').fill('부팅 복구 회귀 테스트');
       await page.locator('.ProseMirror').fill('편집 후 저장한 본문');
       await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('편집 후 저장한 본문');
-      await page.getByRole('button', { name: '임시저장', exact: true }).click();
-      await expect(page.locator('#status')).toContainText('로컬');
+      await page.getByRole('button', { name: '저장', exact: true }).click();
+      await expect(page.locator('#status')).toContainText('서버 저장 완료');
       await page.reload();
       await expect(page.locator('.app')).toBeVisible({ timeout: 30000 });
       await expect(page.locator('#title')).toHaveValue('부팅 복구 회귀 테스트');

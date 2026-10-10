@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import JSZip from 'jszip';
-import { mockApprovedSession } from './approved-session.js';
+import { mockApprovedSession, openSavedServerProject } from './approved-session.js';
 
 async function start(page,source) {
   await mockApprovedSession(page);
@@ -124,9 +124,10 @@ test('first-line and paragraph indentation preserve tags/classes/CSS and EPUB ro
   expect(savedCss.startsWith(css)).toBe(true);
   expect(savedCss.match(/\.jh-first-line-indent/g)).toHaveLength(1);
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => window.epubMonacoEditor && document.querySelector('.ProseMirror'));
+  await openSavedServerProject(page,'편집 도구 회귀');
   expect(await source(page)).toContain('jh-first-line-indent');
   await expect(page.locator('#css')).toHaveValue(savedCss);
   const downloading = page.waitForEvent('download'); await page.locator('#export').click();
@@ -135,8 +136,10 @@ test('first-line and paragraph indentation preserve tags/classes/CSS and EPUB ro
   expect(await zip.file('EPUB/styles/book.css').async('string')).toBe(savedCss);
   const xhtml = (await Promise.all(Object.values(zip.files).filter(file => file.name.endsWith('.xhtml')).map(file => file.async('string')))).join('');
   expect(xhtml).toContain('jh-paragraph-indent-1');
-  page.once('dialog',dialog => dialog.accept());
   await page.locator('input[type=file][accept^=".epub"]').setInputFiles(await download.path());
+  const leaveImport=page.getByRole('dialog',{name:'미저장 변경 이탈 확인'});
+  await expect.poll(async () => await leaveImport.isVisible() || (await page.locator('#status').textContent())?.includes('불러왔')).toBe(true);
+  if (await leaveImport.isVisible()) await leaveImport.getByRole('button',{name:'변경 버리고 이동'}).click();
   await expect(page.locator('#status')).toContainText('불러왔');
   await expect(page.locator('#css')).toHaveValue(savedCss);
 });

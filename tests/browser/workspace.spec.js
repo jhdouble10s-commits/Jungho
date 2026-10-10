@@ -71,9 +71,9 @@ test('compact workspace actions, fixed chapter footer, CSS backgrounds, settings
   await expect(page.getByRole('button',{name:'미리보기 갱신',exact:true})).toHaveCount(0);
   await expect(page.locator('.clear-drafts')).toHaveCount(0);
   await expect(page.locator('.rich-toolbar .footnote-insert svg')).toHaveCount(1);
-  await expect(page.locator('.editor > .toolbar .draft-save')).toHaveAttribute('aria-label','임시저장');
+  await expect(page.locator('.editor > .toolbar .draft-save')).toHaveAttribute('aria-label','저장');
   const tools=page.locator('.editor > .toolbar > button');
-  expect(await tools.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label')))).toEqual(['맞춤법 교정','XHTML 자동수정','임시저장']);
+  expect(await tools.evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label')))).toEqual(['맞춤법 교정','XHTML 자동수정','저장']);
   await expect(tools.locator('svg')).toHaveCount(3);
   const a=await tools.nth(0).boundingBox(), b=await tools.nth(1).boundingBox();
   expect(a.y).toBe(b.y);
@@ -123,7 +123,7 @@ test('save and immediate project reopen read latest selected chapter; other chap
     await page.evaluate(name=>window.epubMonacoEditor.setValue(`<p>${name}</p>`),name);
   }
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   await page.locator('.sb-projects .tab').click();
   const original=await record(page,'프로젝트 A');
   const selected=original.selectedChapterId;
@@ -143,13 +143,13 @@ test('save and immediate project reopen read latest selected chapter; other chap
   await page.locator('.ProseMirror').press('ControlOrMeta+End');
   await page.keyboard.type(' 일반편집 저장');
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   await page.locator('.epub-file-actions .new-book').click();
   await page.locator('#title').fill('프로젝트 B');
   await page.locator('#add').click();
   await page.locator('.ProseMirror').fill('다른 프로젝트');
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   const other=await record(page,'프로젝트 B');
   await page.getByRole('button',{name:'프로젝트 A',exact:true}).click();
   await expect(page.frameLocator('.preview-isolated-frame').locator('body')).toContainText('일반편집 저장');

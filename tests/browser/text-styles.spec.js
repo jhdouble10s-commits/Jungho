@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import JSZip from 'jszip';
-import { mockApprovedSession } from './approved-session.js';
+import { mockApprovedSession, openSavedServerProject } from './approved-session.js';
 
 test('스타일 대상·라벨과 공통 CSS 분리, XHTML·저장·프로젝트 격리', async ({ page }) => {
   test.setTimeout(180000);
@@ -92,6 +92,7 @@ test('스타일 대상·라벨과 공통 CSS 분리, XHTML·저장·프로젝트
   await page.waitForTimeout(600);
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => window.epubMonacoEditor && document.querySelector('.ProseMirror'));
+  await openSavedServerProject(page,'스타일 회귀');
   await expect(page.locator('#title')).toHaveValue('스타일 회귀');
   await expect(page.locator('[data-heading] option[value=h1]')).toHaveText('대제목');
   expect(await page.locator('#css').inputValue()).toEqual(css);
@@ -104,26 +105,28 @@ test('스타일 대상·라벨과 공통 CSS 분리, XHTML·저장·프로젝트
   const xhtmlFiles = Object.keys(zip.files).filter(path => path.endsWith('.xhtml'));
   const xhtml = (await Promise.all(xhtmlFiles.map(path => zip.file(path).async('string')))).join('');
   expect(xhtml).toContain('highlight-text'); expect(xhtml).toContain('original quote-box');
-  page.once('dialog', dialog => dialog.accept());
   await page.locator('input[type=file][accept^=".epub"]').setInputFiles(await download.path());
+  const leaveImport=page.getByRole('dialog',{name:'미저장 변경 이탈 확인'});
+  await expect.poll(async () => await leaveImport.isVisible() || (await page.locator('#status').textContent())?.includes('불러왔')).toBe(true);
+  if (await leaveImport.isVisible()) await leaveImport.getByRole('button',{name:'변경 버리고 이동'}).click();
   await expect(page.locator('#status')).toContainText('불러왔');
   await expect(page.locator('[data-heading] option[value=h1]')).toHaveText('제목 1');
   await expect(page.locator('[data-heading] optgroup')).toHaveCount(0);
   expect(await page.locator('#css').inputValue()).toEqual(css);
   await page.locator('.new-book').click();
+  await page.getByRole('dialog',{name:'미저장 변경 이탈 확인'}).getByRole('button',{name:'변경 버리고 이동'}).click();
   await expect(page.locator('[data-heading] option[value=h1]')).toHaveText('제목 1');
   await expect(page.locator('[data-heading] optgroup')).toHaveCount(0);
   await expect(page.locator('#css')).toHaveValue('');
   await expect.poll(() => page.locator('style[data-editor-typography]').textContent()).toBe('');
   await page.locator('#title').fill('다른 스타일 프로젝트');
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
-  await page.locator('.sb-projects .tab').click();
-  await page.getByRole('button', {name:'스타일 회귀', exact:true}).click();
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
+  await openSavedServerProject(page,'스타일 회귀');
   await expect(page.locator('[data-heading] option[value=h1]')).toHaveText('대제목');
   expect(await page.locator('#css').inputValue()).toEqual(css);
   await expect.poll(() => page.locator('style[data-editor-typography]').textContent()).toContain('.highlight-text { color: #d97706; }');
-  await page.getByRole('button', {name:'다른 스타일 프로젝트', exact:true}).click();
+  await openSavedServerProject(page,'다른 스타일 프로젝트');
   await expect(page.locator('[data-heading] option[value=h1]')).toHaveText('제목 1');
   await expect(page.locator('[data-heading] optgroup')).toHaveCount(0);
   await expect.poll(() => page.locator('style[data-editor-typography]').textContent()).toBe('');

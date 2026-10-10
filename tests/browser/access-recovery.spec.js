@@ -56,7 +56,7 @@ test('account switch reloads into the other owner without exposing the previous 
   await page.waitForFunction(() => Boolean(window.epubMonacoEditor));
   await page.locator('#title').fill('첫 계정의 원고');
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   auth.switchUser();
   await page.evaluate(async () => {
     const {client} = await import('/auth-client.js');
@@ -76,7 +76,7 @@ test('a 503 preserves an unsaved recovery copy across reload without replacing t
   if (await page.locator('[data-mode-toggle]').textContent() === 'XHTML편집') await page.locator('[data-mode-toggle]').click();
   await page.evaluate(() => window.epubMonacoEditor.setValue('<p>기존 저장본</p>'));
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   await page.evaluate(() => window.epubMonacoEditor.setValue('<p>503 직전 미저장 원고</p>'));
   auth.setOutage(true);
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));

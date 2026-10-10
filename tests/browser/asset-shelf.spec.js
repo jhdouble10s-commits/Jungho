@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import JSZip from 'jszip';
 import { readFile } from 'node:fs/promises';
 
-import { mockApprovedSession } from './approved-session.js';
+import { mockApprovedSession, openSavedServerProject } from './approved-session.js';
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jz1sAAAAASUVORK5CYII=','base64');
 const row = (page,name) => page.locator('.asset-row').filter({has:page.getByRole('button',{name:`${name} 관리`,exact:true})});
 const source = page => page.evaluate(() => window.epubMonacoEditor.getValue());
@@ -31,7 +31,7 @@ async function rename(page,name,next) {
   await item.getByRole('textbox',{name:'이미지 파일명'}).press('Enter');
   await expect(row(page,next)).toBeVisible();
 }
-async function save(page) { await page.locator('.draft-save').click(); await expect(page.locator('#status')).toContainText('로컬'); }
+async function save(page) { await page.locator('.draft-save').click(); await expect(page.locator('#status')).toContainText('서버 저장 완료'); }
 
 test('inline rename supports Escape, updates both chapters and CSS, preserves selection and survives reload',async ({page}) => {
   await start(page); await upload(page,'a.png'); await upload(page,'unused.png');
@@ -58,6 +58,7 @@ test('inline rename supports Escape, updates both chapters and CSS, preserves se
   await expect(row(page,'unused.png')).toHaveCount(0); expect(dialogs).toBe(0);
   await save(page); await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => window.epubMonacoEditor);
+  await openSavedServerProject(page,'이미지 회귀');
   await page.locator('.left-tab[data-panel="assetsPanel"]').click();
   await expect(row(page,'새 이름.png')).toBeVisible(); await expect(row(page,'a.png')).toHaveCount(0);
   await page.locator('.left-tab[data-panel="chaptersPanel"]').click();
@@ -93,8 +94,8 @@ test('imported EPUB rename/delete updates image entries and manifest while retai
   zip.file('OPS/Text/ch.xhtml',`<html xmlns="http://www.w3.org/1999/xhtml"><head><title>장</title><link rel="stylesheet" href="../Styles/book.css"/></head><body><p id="keep">${'본문 내용입니다. '.repeat(12)}<img src="../Image/a.png" alt="원본" /></p></body></html>`);
   zip.file('OPS/Styles/book.css','/* unchanged */ p { color:red; }'); zip.file('OPS/Image/a.png',png); zip.file('OPS/Other/a.png',png);
   await start(page);
-  page.once('dialog',dialog => dialog.accept());
   await page.locator('input[type=file][accept^=".epub"]').setInputFiles({name:'fixture.epub',mimeType:'application/epub+zip',buffer:await zip.generateAsync({type:'nodebuffer'})});
+  await page.getByRole('dialog',{name:'미저장 변경 이탈 확인'}).getByRole('button',{name:'변경 버리고 이동'}).click();
   await expect(page.locator('#status')).toContainText('불러왔');
   await rename(page,'a.png','b.png');
   await upload(page,'added.png'); await rename(page,'added.png','uploaded.png');
@@ -111,6 +112,7 @@ test('imported EPUB rename/delete updates image entries and manifest while retai
   expect(await result.file('OPS/Styles/book.css').async('string')).toBe('/* unchanged */ p { color:red; }');
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => window.epubMonacoEditor);
+  await openSavedServerProject(page,'가져온 책');
   await page.locator('.left-tab[data-panel="assetsPanel"]').click();
   await expect(row(page,'b.png')).toBeVisible(); await expect(row(page,'uploaded.png')).toBeVisible();
   await expect(row(page,'a-2.png')).toHaveCount(0);
@@ -123,21 +125,21 @@ test('saving asset deletion never removes immutable images from earlier revision
   await page.route('**/htzojicodwueivybovhy.supabase.co/**',async route => {
     const request = route.request(), url = request.url();
     if (request.method() === 'DELETE' && url.includes('/storage/')) { removed.push(url); return route.fulfill({json:[]}); }
-    if (url.includes('/save_epub_project')) { payloads.push(request.postDataJSON()); return route.fallback(); }
+    if (url.includes('/overwrite_epub_project')) { payloads.push(request.postDataJSON()); return route.fallback(); }
     if (url.includes('/storage/') && request.method() === 'POST') { uploads.push({url,upsert:request.headers()['x-upsert']}); return route.fulfill({json:{Key:'fixture'}}); }
     return route.fallback();
   });
   await page.goto('/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => window.epubMonacoEditor && document.querySelector('.ProseMirror'));
   await page.locator('.new-book').click(); await page.locator('#title').fill('이미지 회귀');
-  await upload(page,'unused.png'); await save(page); await expect(page.locator('#status')).toContainText('서버 동기화됨');
+  await upload(page,'unused.png'); await save(page); await expect(page.locator('#status')).toContainText('서버 저장 완료');
   expect(uploads[0].url).toMatch(/\/projects\/[0-9a-f-]+\/[0-9a-f]{64}$/);
   expect(uploads[0].upsert).toBe('false');
   const item = await actions(page,'unused.png'); await item.getByRole('button',{name:'삭제',exact:true}).click();
-  await save(page); await expect(page.locator('#status')).toContainText('서버 동기화됨');
+  await save(page); await expect(page.locator('#status')).toContainText('서버 저장 완료');
   expect(removed).toEqual([]);
   expect(payloads.at(-1).p_payload.assets).toEqual([]);
-  expect(payloads.at(-1).p_expected_revision).toBe(1);
+  expect(payloads.at(-1).p_expected_revision).toBeUndefined();
 });
 
 test('cover deletion warns and preserves chapter IDs and XHTML',async ({page}) => {
@@ -156,6 +158,7 @@ test('cover deletion warns and preserves chapter IDs and XHTML',async ({page}) =
   await expect(page.locator('#list .active')).toHaveAttribute('data-chapter-id',coverId);
   await save(page);
   await page.reload({waitUntil:'domcontentloaded'});
+  await openSavedServerProject(page,'이미지 회귀');
   await expect(page.locator('#list .cover-chapter')).toHaveAttribute('data-chapter-id',coverId);
 });
 
@@ -175,6 +178,7 @@ test('renaming an image in a generated footnote survives note synchronization an
   await rename(page,'note.png','renamed-note.png');
   await save(page); await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => window.epubMonacoEditor);
+  await openSavedServerProject(page,'이미지 회귀');
   await page.locator('.left-tab[data-panel="chaptersPanel"]').click();
   await page.locator('#list .chapter').filter({hasText:'각주 페이지'}).click();
   expect(await source(page)).toContain('../Image/renamed-note.png');

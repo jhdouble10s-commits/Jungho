@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mockApprovedSession } from './approved-session.js';
+import { mockApprovedSession, openSavedServerProject } from './approved-session.js';
 
 test('CSS selection omits the legacy custom option and keeps edited CSS tied to the chosen preset', async ({page}) => {
   await mockApprovedSession(page);
@@ -26,8 +26,9 @@ test('CSS selection omits the legacy custom option and keeps edited CSS tied to 
   await expect(page.locator('#cssPreset')).toHaveValue(selected);
   await expect(page.locator('#cssPresetStatus')).toContainText('수정됨');
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   await page.reload({waitUntil:'domcontentloaded'});
+  await openSavedServerProject(page,'CSS 선택 보존');
   await expect(page.locator('#cssPreset')).toHaveValue(selected);
   await expect(page.locator('#css')).toHaveValue('p { color: blue; }');
   await expect(page.locator('#cssPresetStatus')).toContainText('수정됨');
@@ -44,8 +45,9 @@ test('legacy custom CSS survives reload without pretending to be another preset'
   await page.locator('.left-tab[data-panel="cssPanel"]').click();
   await page.evaluate(() => window.epubCssMonacoEditor.setValue('section { letter-spacing: 2px; }'));
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   await page.reload({waitUntil:'domcontentloaded'});
+  await openSavedServerProject(page,'기존 수동 CSS');
   await expect(page.locator('#css')).toHaveValue('section { letter-spacing: 2px; }');
   await expect(page.locator('#cssPreset')).toHaveValue('');
   await expect(page.locator('#cssPresetStatus')).toContainText('직접 편집');

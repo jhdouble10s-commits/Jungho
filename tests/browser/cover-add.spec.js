@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { loadSemanticEpub } from '../../scripts/lib/epub-semantic.mjs';
-import { approvedUser, mockApprovedSession } from './approved-session.js';
+import { mockApprovedSession, openSavedServerProject, readServerDraft } from './approved-session.js';
 
 async function start(page) {
   await mockApprovedSession(page);
@@ -12,14 +12,9 @@ async function start(page) {
 }
 async function save(page) {
   await page.locator('.draft-save').click();
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   await expect(page.locator('.draft-save')).toBeEnabled();
-  return page.evaluate(async ownerId => {
-    const {default:Dexie} = await import('https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm');
-    const db = new Dexie('epub-builder-projects'); await db.open();
-    try { return (await db.table('projects').get([ownerId,document.querySelector('#title').value]))?.payload; }
-    finally { db.close(); }
-  }, approvedUser.id);
+  return readServerDraft(page,await page.locator('#title').inputValue());
 }
 const rows = page => page.locator('#list .chapter');
 const ids = page => rows(page).evaluateAll(nodes => nodes.map(node => node.dataset.chapterId));
@@ -85,13 +80,14 @@ test('cover missing: first Add restores only cover, second Add is normal; A/B an
   const withImage = await save(page);
   expect(withImage.assets.filter(asset=>asset.isCover)).toHaveLength(1);
   expect(bodyIdentity(withImage)).toEqual(bodyIdentity(before));
-  // E: restored page, ID, image and body snapshots survive Dexie reload.
+  // E: restored page, ID, image and body snapshots survive server reopen.
   await page.reload({waitUntil:'domcontentloaded'});
+  await openSavedServerProject(page,'표지 복구 회귀');
   await expect(page.locator('#list .cover-chapter')).toHaveAttribute('data-chapter-id',coverId);
   await expect(page.locator('#list .active')).toHaveAttribute('data-chapter-id',coverId);
   await expect(page.locator('.cover-read-only-view img')).toBeVisible();
   await expect(page.locator('#preview img')).toBeVisible();
-  expect(bodyIdentity(await save(page))).toEqual(bodyIdentity(before));
+  expect(bodyIdentity(await readServerDraft(page,'표지 복구 회귀'))).toEqual(bodyIdentity(before));
 });
 
 test('empty project Add creates one selected cover and then one normal chapter', async ({page}) => {
@@ -134,8 +130,8 @@ test('read-only cover stays within its 1920×1080 container', async ({page}) => 
 test('imported cover restore reconnects original path/resource/metadata without changing body chapters', async ({page}) => {
   test.setTimeout(180000);
   await start(page);
-  page.once('dialog', dialog => dialog.accept());
   await page.locator('input[type=file][accept^=".epub"]').setInputFiles('기도먼저.epub');
+  await page.getByRole('dialog',{name:'미저장 변경 이탈 확인'}).getByRole('button',{name:'변경 버리고 이동'}).click();
   await expect(page.locator('#status')).toContainText('불러왔', {timeout:30000});
   await page.locator('#list .cover-chapter').click({position:{x:55,y:15}});
   await page.locator('#del').click();
@@ -143,10 +139,11 @@ test('imported cover restore reconnects original path/resource/metadata without 
   expect(deleted.importedSource.coverDeleted).toBe(true);
   const originalOrder = await ids(page);
   await page.reload({waitUntil:'domcontentloaded'});
+  await openSavedServerProject(page,deleted.title);
   await expect(page.locator('#title')).toHaveValue(deleted.title);
   await page.waitForFunction(()=>Boolean(window.epubMonacoEditor));
   await expect(rows(page)).toHaveCount(deleted.chapters.length);
-  const before = await save(page);
+  const before = await readServerDraft(page,deleted.title);
   await page.locator('#add').click();
   await expect(rows(page)).toHaveCount(deleted.chapters.length+1);
   expect((await ids(page)).slice(1)).toEqual(originalOrder);

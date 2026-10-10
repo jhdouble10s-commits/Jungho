@@ -70,7 +70,7 @@ test('sidebar 240/56px, icon labels, persisted layout, themes, and editor resize
   await setTheme(page, 'light');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await page.keyboard.press('ControlOrMeta+s');
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   await page.waitForTimeout(500);
   await page.reload({waitUntil:'domcontentloaded'});
   await expect(page.locator('#app-sidebar')).toHaveAttribute('data-state', 'collapsed');

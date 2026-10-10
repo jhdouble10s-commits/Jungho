@@ -28,17 +28,18 @@ export function projectCloud() {
       if (existing?.clientId===args.p_client_id && existing.generation===args.p_generation) leases.delete(args.p_project_id);
       return route.fulfill({json:null});
     }
-    if (url.pathname.endsWith('/save_epub_project')) {
+    if (url.pathname.endsWith('/save_epub_project') || url.pathname.endsWith('/overwrite_epub_project')) {
       const args = request.postDataJSON(); state.saveCount++; state.onSave?.(args); if (state.saveGate) await state.saveGate;
+      const overwrite=url.pathname.endsWith('/overwrite_epub_project');
       if (state.missingMigration) return route.fulfill({status:404,json:{code:'PGRST202',message:'function absent'}});
       if (state.failSave) return route.fulfill({status:503,json:{message:'database unavailable'}});
       const old = rows.get(args.p_project_id), lease=leases.get(args.p_project_id);
-      if (state.leaseEnabled && (!lease || lease.clientId!==args.p_client_id || lease.generation!==args.p_generation || lease.expiresAt<=Date.now())) return route.fulfill({status:423,json:{code:'PT423',message:'Edit lease expired or transferred'}});
+      if ((state.leaseEnabled || overwrite) && (!lease || lease.clientId!==args.p_client_id || lease.generation!==args.p_generation || lease.expiresAt<=Date.now())) return route.fulfill({status:423,json:{code:'PT423',message:'Edit lease expired or transferred'}});
       if (deletions.has(args.p_project_id)) return route.fulfill({status:409,json:{code:'PT409',message:'Project deleted'}});
       if ([...rows.values()].some(row=>row.project_id!==args.p_project_id && row.payload.title===args.p_payload.title)) return route.fulfill({status:409,json:{code:'PT409',message:'title conflict'}});
-      if ((old?.revision || 0) !== args.p_expected_revision) return route.fulfill({status:409,json:{code:'PT409',message:'conflict'}});
-      const revision = args.p_expected_revision+1, saved_at = new Date().toISOString();
-      rows.set(args.p_project_id,{project_id:args.p_project_id,revision,updated_at:saved_at,payload:{...args.p_payload,serverRevision:revision,syncPending:false}});
+      if (!overwrite && (old?.revision || 0) !== args.p_expected_revision) return route.fulfill({status:409,json:{code:'PT409',message:'conflict'}});
+      const revision = (old?.revision || 0)+1, saved_at = new Date().toISOString();
+      rows.set(args.p_project_id,{project_id:args.p_project_id,title:args.p_payload.title,revision,updated_at:saved_at,payload:{...args.p_payload,serverRevision:revision}});
       return route.fulfill({json:{revision,saved_at}});
     }
     if (url.pathname.endsWith('/delete_epub_project')) {

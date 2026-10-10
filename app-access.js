@@ -7,8 +7,6 @@ let activeUserId = null;
 let accessVerified = false;
 let checkInFlight = null;
 export const isAccessVerified = () => accessVerified;
-let preserveInterruptedDraft = null;
-export const registerAccessRecovery = (handler) => { preserveInterruptedDraft = handler; };
 const appNode = () => document.querySelector('.app');
 const lock = () => {
   const app = appNode();
@@ -49,14 +47,8 @@ async function performAccessCheck() {
     lock();
     if (error.code === 'unavailable') {
       showStartupPhase('error');
-      if (activeUserId && preserveInterruptedDraft) {
-        try {
-          await preserveInterruptedDraft(activeUserId);
-          if (targetRevision === revision) document.querySelector('#accessMessage .startup-description').textContent = '미저장 원고를 이 브라우저에 보관했습니다. 연결을 다시 시도해 주세요.';
-        } catch {
-          if (targetRevision === revision) document.querySelector('#accessMessage .startup-description').textContent = '로컬 초안 저장에 실패했습니다. 이 탭을 닫지 말고 연결을 다시 시도해 주세요.';
-        }
-      }
+      if (activeUserId && targetRevision === revision)
+        document.querySelector('#accessMessage .startup-description').textContent = '미저장 원고는 현재 탭에만 남아 있습니다. 탭을 닫지 말고 연결을 다시 시도해 주세요.';
       if (targetRevision !== revision) return null;
       const retry = document.querySelector('#accessMessage .startup-retry');
       if (retry && activeUserId) {
@@ -85,6 +77,7 @@ function checkAccess() {
 }
 
 export const appAccess = checkAccess();
+export const verifyAccess = checkAccess;
 client.auth.onAuthStateChange((event, session) => {
   if (event === 'INITIAL_SESSION') return;
   const identityChanged = event === 'SIGNED_OUT' || (activeUserId && session?.user?.id !== activeUserId);

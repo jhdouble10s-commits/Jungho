@@ -14,7 +14,7 @@ test('느린 Tiptap + 복원 원고는 DOM에 중복 잔존하지 않으며 새 
   await page.locator('[data-mode-toggle]').click();
   await page.evaluate(() => window.epubMonacoEditor.setValue('<p>이 책을 향한 찬사들 — 잔존 검사 원문</p>'));
   await page.keyboard.press('ControlOrMeta+s');
-  await expect(page.locator('#status')).toContainText('로컬');
+  await expect(page.locator('#status')).toContainText('서버 저장 완료');
   await expect(page.locator('.draft-save')).toBeEnabled();
   expect(await page.evaluate(async () => {
     const {default:Dexie} = await import('https://cdn.jsdelivr.net/npm/dexie@4.4.6/+esm');

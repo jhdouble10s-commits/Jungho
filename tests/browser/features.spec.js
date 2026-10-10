@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { openApiSettings } from './ui-helpers.js';
 import { readFile } from 'node:fs/promises';
 import { loadSemanticEpub } from '../../scripts/lib/epub-semantic.mjs';
-import { mockApprovedSession } from './approved-session.js';
+import { mockApprovedSession, openSavedServerProject } from './approved-session.js';
 async function start(page) {
   await mockApprovedSession(page);
   await page.goto('/', {waitUntil:'domcontentloaded'});
@@ -38,6 +38,7 @@ test('표지 DOM 조건부 렌더 / 기본 표지와 각주 삭제 / reload에�
   await page.keyboard.press('ControlOrMeta+s');
   await expect(page.locator('#status')).toContainText('저장');
   await page.waitForTimeout(400); await page.reload({waitUntil:'domcontentloaded'});
+  await openSavedServerProject(page,'회귀 테스트');
   await expect(page.locator('#title')).toHaveValue('회귀 테스트');
   await expect(page.locator('#list .chapter')).toHaveCount(1);
   await expect(page.locator('.cover-read-only-view')).toHaveCount(0);
@@ -138,9 +139,10 @@ test('같은 문장의 Preview·Tiptap·Monaco 위치 구분 / drag 후 선택 I
 test('실제 EPUB 찬사 본문은 해당 장에만 표시 / 전환·reload·새 책에 잔존 없음 / export 보존', async ({page}) => {
   test.setTimeout(180000);
   await start(page);
-  page.once('dialog', dialog => dialog.accept());
   await page.locator('input[type=file][accept^=".epub"]').setInputFiles('기도먼저.epub');
+  await page.getByRole('dialog',{name:'미저장 변경 이탈 확인'}).getByRole('button',{name:'변경 버리고 이동'}).click();
   await expect(page.locator('#status')).toContainText('불러왔', {timeout:30000});
+  const importedTitle = await page.locator('#title').inputValue();
   // This EPUB's great.xhtml is untitled in the NCX and uses the book title.
   // Resolve its position from the fixture spine, not the visible heading text.
   const source = await loadSemanticEpub(await readFile('기도먼저.epub'));
@@ -157,6 +159,7 @@ test('실제 EPUB 찬사 본문은 해당 장에만 표시 / 전환·reload·새
   await page.keyboard.press('ControlOrMeta+s');
   await expect(page.locator('#status')).toContainText('저장');
   await page.waitForTimeout(500); await page.reload({waitUntil:'domcontentloaded'});
+  await openSavedServerProject(page,importedTitle);
   await expect(page.locator(`#list [data-chapter-id="${selectedId}"]`)).toHaveClass(/active/);
   await expect(page.locator('.ProseMirror')).toBeAttached({timeout:30000});
   await expect.poll(async () => (await page.locator('.ProseMirror').innerText()).replace(/\s+/g,' ').trim()).toBe(textBefore);
