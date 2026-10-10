@@ -1134,6 +1134,37 @@ export async function initializeApp() {
   const footnotes = new Map();
   // 가져온 EPUB은 원본 경로·spine·TOC 정보를 유지해 재내보낼 때 사용한다.
   let importedEpub = null;
+  // Imported EPUB resources are blobs in IndexedDB/Storage, never numeric
+  // arrays in a draft JSON payload.  Image manifest entries continue to use
+  // the normal preview asset store so existing drafts remain compatible.
+  const sourceAssetName = (path) => `__epub_resource__:${path}`;
+  const sourceMediaType = (path) => {
+    const extension = path.split('.').pop()?.toLowerCase();
+    return ({ css:'text/css', xhtml:'application/xhtml+xml', html:'application/xhtml+xml', htm:'application/xhtml+xml',
+      opf:'application/oebps-package+xml', ncx:'application/x-dtbncx+xml', xml:'application/xml',
+      ttf:'font/ttf', otf:'font/otf', woff:'font/woff', woff2:'font/woff2', js:'application/javascript' })[extension] || 'application/octet-stream';
+  };
+  const importedSourcePayload = () => {
+    if (!importedEpub) return null;
+    const { files, resourceManifest = [], resourceHashes, ...meta } = importedEpub;
+    const imagePaths = new Set(Array.from(previewAssets.values(), asset => asset.originalPath).filter(Boolean));
+    const previous = new Map(resourceManifest.map(item => [item.path, item]));
+    const resources = Array.from(files || [], ([path]) => path)
+      .filter(path => !imagePaths.has(path))
+      .map(path => ({ path, name:sourceAssetName(path), type:sourceMediaType(path), ...(previous.get(path) || {}) }));
+    return { ...meta, resources };
+  };
+  const sourceAssetEntries = (draft) => {
+    if (!importedEpub || !draft.importedSource?.resources) return [];
+    return draft.importedSource.resources.map(resource => {
+      const bytes = importedEpub.files.get(resource.path);
+      return [resource.name || sourceAssetName(resource.path), {
+        blob:bytes ? new Blob([bytes], {type:resource.type || sourceMediaType(resource.path)}) : null,
+        type:resource.type || sourceMediaType(resource.path), originalPath:resource.path, hash:resource.hash,
+        storagePath:resource.storagePath, sourceResource:true,
+      }];
+    });
+  };
   const cleanAssetName = (value) => value.trim().replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ');
   const uniqueAssetName = (value, exclude = '') => {
     const cleaned = cleanAssetName(value) || 'image.png';
@@ -1881,6 +1912,35 @@ export async function initializeApp() {
   });
   const persistenceOwnerId = () => supabaseUser?.id || 'local';
   const deletionKey = (ownerId, projectId) => `${ownerId}:${projectId}`;
+  const projectClientId = (() => {
+    const key = 'sitescout-project-editor-client-id';
+    try {
+      const existing = sessionStorage.getItem(key);
+      if (existing) return existing;
+      const created = crypto.randomUUID(); sessionStorage.setItem(key,created); return created;
+    } catch { return crypto.randomUUID(); }
+  })();
+  let editLeaseSupported = null; // null until the new RPC is probed; false keeps pre-migration CAS compatibility.
+  let editLease = null;
+  let leaseRenewTimer = null;
+  const leaseNoticeKeys = new Set();
+  const hasCurrentEditLease = () => editLeaseSupported !== true || Boolean(editLease && editLease.projectId === bookProject.projectId && editLease.expiresAt > Date.now());
+  const rememberLease = (projectId, data) => {
+    // Convert the server-issued interval to a local deadline. We never trust
+    // the device clock as the authority; the RPC still checks server time.
+    const leaseMs = Math.max(0,new Date(data.expires_at).getTime() - new Date(data.server_now).getTime());
+    editLease = {projectId,generation:data.generation,expiresAt:Date.now() + leaseMs};
+    clearInterval(leaseRenewTimer);
+    leaseRenewTimer = setInterval(() => { void renewEditLease(); }, 15000);
+  };
+  const releaseEditLease = async () => {
+    const lease = editLease;
+    editLease = null;
+    clearInterval(leaseRenewTimer); leaseRenewTimer = null;
+    if (editLeaseSupported !== true || !lease || !supabaseUser || !isAccessVerified()) return;
+    const client = await cloudReady;
+    await client?.rpc('release_epub_project_edit_lock',{p_project_id:lease.projectId,p_client_id:projectClientId,p_generation:lease.generation});
+  };
   const rememberWorkspace = (title) => {
     const ownerId = persistenceOwnerId();
     workspaceWrite = workspaceWrite.catch(() => {}).then(async () => {
@@ -1893,10 +1953,16 @@ export async function initializeApp() {
       const existing = await projectDatabase.assets.where('[ownerId+title]').equals([ownerId, title]).toArray();
       const retained = new Set(retainedNames);
       await Promise.all(existing.filter(row => !retained.has(row.name)).map(row => projectDatabase.assets.delete([ownerId, title, row.name])));
-      await projectDatabase.assets.bulkPut(assets.map(([name, asset]) => ({
-        ownerId, title, name, blob:asset.blob, mediaType:asset.type,
-        originalPath:asset.originalPath || '', isCover:Boolean(asset.isCover), hash:asset.hash,
-      })));
+      const writes = [];
+      for (const [name, asset] of assets) {
+        const current = existing.find(row => row.name === name);
+        // IndexedDB writes only changed blobs.  This is important for large
+        // imported EPUBs whose source resources are immutable by hash.
+        if (current?.hash === asset.hash && current.blob?.size === asset.blob?.size) continue;
+        writes.push({ownerId,title,name,blob:asset.blob,mediaType:asset.type,
+          originalPath:asset.originalPath || '',isCover:Boolean(asset.isCover),hash:asset.hash});
+      }
+      if (writes.length) await projectDatabase.assets.bulkPut(writes);
     });
   };
   const loadDraftAssets = async (draft, isCurrent = () => true, recoveryAssets = new Map()) => {
@@ -1924,7 +1990,7 @@ export async function initializeApp() {
         blob,
         url:URL.createObjectURL(blob),
         originalPath:asset.originalPath || '',
-        isCover:Boolean(asset.isCover), storagePath:asset.storagePath, hash:asset.hash || await assetHash(blob),
+        isCover:Boolean(asset.isCover), storagePath:asset.storagePath, hash:asset.hash || await assetHash(blob), serverStoredHash:asset.serverStoredHash,
       });
       else missing.set(asset.name, { ...asset });
     }
@@ -1935,6 +2001,41 @@ export async function initializeApp() {
     renderAssetShelf();
     renderAssetRecovery();
     return true;
+  };
+  const loadImportedSourceFiles = async (draft, recoveryAssets = new Map(), isCurrent = () => true) => {
+    const source = draft.importedSource;
+    if (!source) return null;
+    // Legacy payloads stored the full ZIP as numeric arrays. Read them once,
+    // then the next successful local save writes compact immutable references.
+    if (Array.isArray(source.files)) return {
+      ...source,
+      files:new Map(source.files.map(([path, bytes]) => [path, new Uint8Array(bytes)])),
+    };
+    const files = new Map();
+    const missing = [];
+    const ownerId = persistenceOwnerId();
+    for (const resource of source.resources || []) {
+      const name = resource.name || sourceAssetName(resource.path);
+      const cached = recoveryAssets.get(name)?.blob || (await projectDatabase.assets.get([ownerId,draft.title,name]))?.blob;
+      let blob = cached;
+      if (blob && resource.hash && await assetHash(blob) !== resource.hash) blob = null;
+      if (!blob && supabaseUser && resource.storagePath) {
+        const client = await cloudReady;
+        const { data, error } = await client.storage.from('epub-assets').download(resource.storagePath,{cacheNonce:resource.hash || String(Date.now())});
+        if (!error && data && (!resource.hash || await assetHash(data) === resource.hash)) {
+          blob = data;
+          await projectDatabase.assets.put({ownerId,title:draft.title,name,blob,mediaType:resource.type,originalPath:resource.path,hash:resource.hash});
+        }
+      }
+      if (!blob) { missing.push(resource.path); continue; }
+      files.set(resource.path,new Uint8Array(await blob.arrayBuffer()));
+    }
+    // Image blobs are stored in the image asset manifest, not duplicated in
+    // the source-resource manifest.
+    for (const asset of previewAssets.values()) if (asset.originalPath && asset.blob) files.set(asset.originalPath,new Uint8Array(await asset.blob.arrayBuffer()));
+    if (!isCurrent()) return null;
+    if (missing.length) console.warn('가져온 EPUB 원본 리소스 일부를 복원하지 못했습니다.',missing);
+    return { ...source, files, sourceMissing:missing };
   };
   assetRetryButton.addEventListener('click', async () => {
     const ownerId = persistenceOwnerId();
@@ -1963,31 +2064,112 @@ export async function initializeApp() {
     } catch (error) { setStatus(`이미지 재시도 실패: ${error.message}`, 'error'); }
     finally { assetRetryButton.disabled = false; }
   });
+  const setProjectEditingAccess = (allowed, message = '') => {
+    const locked = editLeaseSupported === true && !allowed;
+    document.documentElement.dataset.projectEditAccess = locked ? 'readonly' : 'editable';
+    takeEditButton.hidden = !locked;
+    takeEditButton.disabled = !locked;
+    // Navigation remains available; content-changing controls are made truly
+    // inert for keyboard users as well as pointer users.
+    for (const selector of ['#title','#author','#language','#ctitle','#clevel','#css','#body','#image','#coverInput','#sigilFileName','.draft-save','.asset-add','.asset-remove','.asset-rename']) {
+      document.querySelectorAll(selector).forEach(element => {
+        if (element === takeEditButton) return;
+        element.disabled = locked;
+        element.setAttribute('aria-readonly',String(locked));
+      });
+    }
+    visualEditor.contentEditable = locked ? 'false' : 'true';
+    window.epubMonacoEditor?.updateOptions({readOnly:locked});
+    if (locked && message) setStatus(message, 'error');
+    updateSyncIndicator();
+  };
+  const leaseUnavailable = error => ['PGRST202','42883'].includes(error?.code) || /function.*(claim|edit_lock).*does not exist/i.test(error?.message || '');
+  const ensureEditLease = async ({ takeover = false, quiet = false } = {}) => {
+    if (!supabaseUser || !isAccessVerified() || !bookProject.projectId) return true;
+    if (!navigator.onLine) { if (editLeaseSupported === true) setProjectEditingAccess(false,'오프라인에서는 편집 권한을 확인할 수 없습니다. 로컬 복구본은 유지됩니다.'); return false; }
+    const client = await cloudReady;
+    const {data,error} = await client.rpc('claim_epub_project_edit_lock',{
+      p_project_id:bookProject.projectId,p_client_id:projectClientId,p_takeover:takeover,p_ttl_seconds:45,
+    });
+    if (leaseUnavailable(error)) { editLeaseSupported = false; setProjectEditingAccess(true); return true; }
+    if (error) {
+      editLeaseSupported = true; setProjectEditingAccess(false,'편집 권한을 확인하지 못했습니다. 통신을 복구한 뒤 다시 확인하세요.');
+      return false;
+    }
+    editLeaseSupported = true;
+    if (!data?.granted) {
+      editLease = null; clearInterval(leaseRenewTimer); leaseRenewTimer = null;
+      setProjectEditingAccess(false, quiet ? '' : '다른 기기에서 편집 중입니다. 내용을 읽거나 “여기서 편집”으로 권한을 가져오세요.');
+      return false;
+    }
+    rememberLease(bookProject.projectId,data);
+    setProjectEditingAccess(true);
+    return true;
+  };
+  const renewEditLease = async () => {
+    const lease = editLease;
+    if (editLeaseSupported !== true || !lease || !supabaseUser || lease.projectId !== bookProject.projectId) return;
+    if (!navigator.onLine) {
+      setProjectEditingAccess(false,'통신이 끊겨 편집 권한을 잠갔습니다. 로컬 복구본은 유지됩니다.');
+      return;
+    }
+    const client = await cloudReady;
+    const {data,error} = await client.rpc('renew_epub_project_edit_lock',{
+      p_project_id:lease.projectId,p_client_id:projectClientId,p_generation:lease.generation,p_ttl_seconds:45,
+    });
+    if (!error && data?.granted) { rememberLease(lease.projectId,data); return; }
+    editLease = null; clearInterval(leaseRenewTimer); leaseRenewTimer = null;
+    setProjectEditingAccess(false,'편집 권한이 만료되었거나 다른 기기로 이전되었습니다. 로컬 복구본은 유지됩니다.');
+    showLeaseNotice?.('권한이 다른 기기로 이전되었거나 만료되었습니다. 최신 저장본을 확인하거나 내 수정본을 새 원고로 보관하세요.');
+  };
   const saveCloudDraft = async (draft, assets, ownerId) => {
     if (deletedProjectIds.has(deletionKey(ownerId,draft.projectId)) || draft.serverDeleted) throw new Error('서버에서 삭제된 프로젝트입니다. 로컬 원고를 새 복사본으로 저장하세요.');
     if (!isAccessVerified()) throw new Error('접근 권한을 다시 확인한 뒤 서버 동기화를 시도하세요.');
     const client = await cloudReady;
     if (!client || !supabaseUser || supabaseUser.id !== ownerId) return false;
-    for (const asset of draft.assets) {
-      if (!isAccessVerified() || persistenceOwnerId() !== ownerId) throw new Error('접근 권한 확인이 필요합니다.');
-      const stored = assets.get(asset.name);
-      if (!stored?.blob) throw new Error(`이미지 “${asset.name}”의 원본 파일을 찾지 못했습니다.`);
-      asset.storagePath = immutableAssetPath(ownerId, draft.projectId, asset.hash);
-      const { error } = await client.storage.from('epub-assets').upload(asset.storagePath, stored.blob,
-        { contentType:asset.type, upsert:false });
-      if (error) {
-        const existing = await client.storage.from('epub-assets').download(asset.storagePath,{cacheNonce:asset.hash});
-        if (existing.error || !existing.data || await assetHash(existing.data) !== asset.hash) throw new Error(`이미지 업로드 실패: ${error.message}`);
-      }
-    }
-    if (!isAccessVerified() || persistenceOwnerId() !== ownerId || deletedProjectIds.has(deletionKey(ownerId,draft.projectId))) throw new Error('접근 권한 또는 프로젝트 삭제 상태를 다시 확인하세요.');
-    const { data, error } = await client.rpc('save_epub_project', {
-      p_project_id:draft.projectId, p_expected_revision:draft.serverRevision || 0,
-      p_payload:{...draft,syncPending:false,syncState:'saved'},
+    if (editLeaseSupported === true && (!editLease || editLease.projectId !== draft.projectId || editLease.expiresAt <= Date.now()))
+      throw new Error('편집 권한이 만료되었거나 다른 기기로 이전되었습니다. 로컬 원고는 보존했습니다.');
+    const cloudAssets = [...(draft.assets || []), ...(draft.importedSource?.resources || [])];
+    // A successful CAS records serverStoredHash. Text-only saves consequently
+    // do not rehash, upload, or download immutable objects.
+    const toUpload = cloudAssets.filter(asset => {
+      asset.storagePath ||= immutableAssetPath(ownerId, draft.projectId, asset.hash);
+      return asset.serverStoredHash !== asset.hash;
     });
+    let next = 0;
+    const uploadOne = async () => {
+      while (next < toUpload.length) {
+        const asset = toUpload[next++];
+        if (!isAccessVerified() || persistenceOwnerId() !== ownerId) throw new Error('접근 권한 확인이 필요합니다.');
+        const stored = assets.get(asset.name);
+        if (!stored?.blob) throw new Error(`${asset.sourceResource ? '원본 EPUB 리소스' : '이미지'} “${asset.originalPath || asset.name}”의 원본 파일을 찾지 못했습니다.`);
+        const { error } = await client.storage.from('epub-assets').upload(asset.storagePath, stored.blob,
+          { contentType:asset.type || 'application/octet-stream', upsert:false });
+        if (error) {
+          // An object can already exist after a prior interrupted upload. Only
+          // this unknown object is downloaded and verified; known hashes never
+          // take this path on a later text-only save.
+          const existing = await client.storage.from('epub-assets').download(asset.storagePath,{cacheNonce:asset.hash});
+          if (existing.error || !existing.data || await assetHash(existing.data) !== asset.hash) throw new Error(`${asset.sourceResource ? '원본 EPUB 리소스' : '이미지'} 업로드 실패: ${error.message}`);
+        }
+      }
+    };
+    await Promise.all(Array.from({length:Math.min(3,toUpload.length)},uploadOne));
+    if (!isAccessVerified() || persistenceOwnerId() !== ownerId || deletedProjectIds.has(deletionKey(ownerId,draft.projectId))) throw new Error('접근 권한 또는 프로젝트 삭제 상태를 다시 확인하세요.');
+    const saveArgs = {p_project_id:draft.projectId,p_expected_revision:draft.serverRevision || 0,p_payload:{...draft,syncPending:false,syncState:'saved'}};
+    if (editLeaseSupported === true) Object.assign(saveArgs,{p_client_id:projectClientId,p_generation:editLease.generation});
+    const { data, error } = await client.rpc('save_epub_project',saveArgs);
     if (error?.code === 'PGRST202') throw new Error('서버 schema cache에 public.save_epub_project(p_expected_revision, p_payload, p_project_id)가 없습니다. 연결 대상의 migration 적용과 RPC 권한·cache 갱신을 확인하세요.');
+    if (error?.code === 'PT423') { void renewEditLease(); throw new Error('편집 권한이 만료되었거나 다른 기기로 이전되었습니다. 로컬 원고는 보존했습니다.'); }
     if (error) throw new Error(['40001','23505','PT409'].includes(error.code) ? '서버 저장 충돌: 최신 원격본을 확인하거나 로컬 복사본으로 보존하세요.' : `서버 조건부 저장을 사용할 수 없습니다. 마이그레이션과 연결을 확인하세요. ${error.message}`);
     if (!Number.isSafeInteger(data?.revision)) throw new Error('서버 조건부 저장 응답이 올바르지 않습니다. 로컬 초안은 유지됩니다.');
+    cloudAssets.forEach(asset => {
+      asset.serverStoredHash = asset.hash;
+      const local = assets.get(asset.name);
+      if (local) local.serverStoredHash = asset.hash;
+      if (!asset.sourceResource && previewAssets.get(asset.name)) previewAssets.get(asset.name).serverStoredHash = asset.hash;
+    });
+    if (importedEpub && draft.importedSource?.resources) importedEpub.resourceManifest = structuredClone(draft.importedSource.resources);
     draft.serverRevision = data.revision;
     draft.lastServerSavedAt = data.saved_at || new Date().toISOString();
     return true;
@@ -1995,7 +2177,11 @@ export async function initializeApp() {
   const deleteCloudDraft = async (draft) => {
     if (!draft.serverRevision) return;
     if (!isAccessVerified()) throw new Error('접근 권한을 다시 확인한 뒤 삭제하세요.');
-    const { error } = await authClient.rpc('delete_epub_project', {p_project_id:draft.projectId,p_expected_revision:draft.serverRevision});
+    if (editLeaseSupported === true && !await ensureEditLease()) throw new Error('편집 권한을 확인하지 못해 삭제하지 않았습니다.');
+    const args = {p_project_id:draft.projectId,p_expected_revision:draft.serverRevision};
+    if (editLeaseSupported === true) Object.assign(args,{p_client_id:projectClientId,p_generation:editLease?.generation});
+    const { error } = await authClient.rpc('delete_epub_project',args);
+    if (error?.code === 'PT423') { void renewEditLease(); throw new Error('편집 권한이 만료되었거나 다른 기기로 이전되었습니다. 삭제하지 않았습니다.'); }
     if (error) throw error;
     // Immutable assets are intentionally retained. Garbage collection is a
     // separate, reference-aware operation, never part of a client save/delete.
@@ -2005,6 +2191,10 @@ export async function initializeApp() {
   draftButton.className = 'secondary';
   draftButton.textContent = '임시저장';
   editorActions.append(draftButton);
+  const takeEditButton = document.createElement('button');
+  takeEditButton.type = 'button'; takeEditButton.className = 'secondary';
+  takeEditButton.textContent = '여기서 편집'; takeEditButton.hidden = true;
+  editorActions.append(takeEditButton);
   const autoFixHtmlButton = document.createElement('button');
   autoFixHtmlButton.type = 'button';
   autoFixHtmlButton.className = 'secondary';
@@ -2430,6 +2620,8 @@ export async function initializeApp() {
     return chapter;
   };
   newBookButton.addEventListener('click', () => {
+    void releaseEditLease();
+    setProjectEditingAccess(true);
     if (!initializingWorkspace) {
       restoreEpoch++;
       void rememberWorkspace(null).catch(() => setStatus('새 책 시작 상태를 저장하지 못했습니다.', 'error'));
@@ -2630,14 +2822,14 @@ export async function initializeApp() {
         return parentIndex >= 0 ? [[index, parentIndex]] : [];
       }),
       coverSource: coverPreview.getAttribute('src') || '',
-      importedSource:importedEpub ? { ...importedEpub, files:Array.from(importedEpub.files, ([path, bytes]) => [path, Array.from(bytes)]) } : null,
+      importedSource:importedSourcePayload(),
       footnotes: Array.from(footnotes.values()).filter(note => chapters.some(chapter => footnoteReferencesIn(chapter.body).some(ref => ref.generated && ref.target === note.id))).map((note) => ({ ...note })),
       assets: [...Array.from(previewAssets.entries()).map(([name, asset]) => ({
         name,
         type:asset.type,
         originalPath:asset.originalPath || '',
         isCover:Boolean(asset.isCover),
-        hash:asset.hash, storagePath:asset.storagePath,
+        hash:asset.hash, storagePath:asset.storagePath, serverStoredHash:asset.serverStoredHash,
       })), ...Array.from(unresolvedAssets, ([name, asset]) => ({ ...asset, name })).filter(asset => !previewAssets.has(asset.name))],
     };
   };
@@ -3050,6 +3242,7 @@ export async function initializeApp() {
   }, true);
   const loadDraft = async (draft, recoveryAssets = new Map()) => {
     if (!Array.isArray(draft?.chapters)) return false;
+    if (editLease?.projectId && editLease.projectId !== draft.projectId) void releaseEditLease();
     const epoch = restoreEpoch;
     const revision = bookProject.revision;
     const ownerId = persistenceOwnerId();
@@ -3063,8 +3256,8 @@ export async function initializeApp() {
     if (epoch !== restoreEpoch || revision !== bookProject.revision || ownerId !== persistenceOwnerId()) return false;
     if (!await loadDraftAssets(draft, () => epoch === restoreEpoch && revision === bookProject.revision, recoveryAssets)) return false;
     activeRecoveryKey = null;
-    importedEpub = null;
-    if (draft.importedSource) importedEpub = { ...draft.importedSource, files:new Map(draft.importedSource.files.map(([path, bytes]) => [path, new Uint8Array(bytes)])) };
+    importedEpub = await loadImportedSourceFiles(draft, recoveryAssets, () => epoch === restoreEpoch && revision === bookProject.revision);
+    if (epoch !== restoreEpoch || revision !== bookProject.revision || ownerId !== persistenceOwnerId()) return false;
     footnotes.clear();
     (draft.footnotes || []).forEach((note) => {
       if (note?.id && note?.referenceId) footnotes.set(note.id, { ...note });
@@ -3105,9 +3298,12 @@ export async function initializeApp() {
     const hydratedRevision = bookProject.revision;
     await rememberWorkspace(draft.title);
     if (epoch === restoreEpoch && hydratedRevision === bookProject.revision) bookProject.dirty = false;
-    setStatus(unresolvedAssets.size
-      ? `“${draft.title}”을(를) 열었지만 이미지 ${unresolvedAssets.size}개를 불러오지 못했습니다. 이미지 다시 불러오기를 사용하세요.`
-      : `“${draft.title}” 임시저장본을 불러왔습니다.`, unresolvedAssets.size ? 'error' : 'ok');
+    // A project can be read without a lease. Claiming without takeover makes
+    // this tab read-only when another device is actively editing it.
+    void ensureEditLease({quiet:true});
+    setStatus(unresolvedAssets.size || importedEpub?.sourceMissing?.length
+      ? `“${draft.title}”을(를) 열었지만 ${unresolvedAssets.size ? `이미지 ${unresolvedAssets.size}개` : `원본 리소스 ${importedEpub.sourceMissing.length}개`}를 불러오지 못했습니다. 원본은 로컬 복구본으로 유지됩니다.`
+      : `“${draft.title}” 임시저장본을 불러왔습니다.`, unresolvedAssets.size || importedEpub?.sourceMissing?.length ? 'error' : 'ok');
     return true;
   };
   const zipText = (bytes) => new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/, '');
@@ -3526,11 +3722,22 @@ export async function initializeApp() {
     const missingAssets = unresolvedAssets.size;
     const assets = Array.from(previewAssets, ([name, asset]) => [name, { ...asset }]);
     for (const [name, asset] of assets) {
-      asset.hash = await assetHash(asset.blob);
+      // Blob identity is immutable until the user replaces the asset. Keep
+      // the confirmed content hash rather than hashing every image on every
+      // text edit.
+      asset.hash ||= await assetHash(asset.blob);
+      if (previewAssets.get(name)) previewAssets.get(name).hash = asset.hash;
       const entry = draft.assets.find(item => item.name === name);
       if (entry) entry.hash = asset.hash;
-
     }
+    const sourceAssets = sourceAssetEntries(draft);
+    for (const [name, asset] of sourceAssets) {
+      if (!asset.blob) throw new Error(`원본 EPUB 리소스 “${asset.originalPath}”을(를) 찾지 못했습니다. 로컬 복구본은 유지됩니다.`);
+      asset.hash ||= await assetHash(asset.blob);
+      const entry = draft.importedSource?.resources?.find(item => (item.name || sourceAssetName(item.path)) === name);
+      if (entry) { entry.name = name; entry.hash = asset.hash; entry.storagePath ||= asset.storagePath; }
+    }
+    const allAssets = new Map([...assets, ...sourceAssets]);
     draft.updatedAt = new Date().toISOString();
     draft.syncPending = true;
     draft.syncState = 'syncing';
@@ -3569,7 +3776,10 @@ export async function initializeApp() {
       // Persist exactly this project and its captured assets together. Saving
       // one project must not rewrite a stale copy of every other project.
       draft = await putLocalProject(projectDatabase, ownerId, draft, async previousTitle => {
-        await saveDraftAssets(draft.title, assets, ownerId, draft.assets.map(asset => asset.name));
+        await saveDraftAssets(draft.title, allAssets, ownerId, [
+          ...draft.assets.map(asset => asset.name),
+          ...(draft.importedSource?.resources || []).map(resource => resource.name || sourceAssetName(resource.path)),
+        ]);
         if (previousTitle && previousTitle !== draft.title) {
           const oldAssets = await projectDatabase.assets.where('[ownerId+title]').equals([ownerId,previousTitle]).toArray();
           for (const row of oldAssets) if (!await projectDatabase.assets.get([ownerId,draft.title,row.name])) await projectDatabase.assets.put({...row,title:draft.title});
@@ -3615,7 +3825,19 @@ export async function initializeApp() {
           if (current()) setStatus(`로컬 저장됨 · 이미지 ${missingAssets}개를 복구한 뒤 서버 동기화를 다시 시도하세요.`, 'error');
           return false;
         }
-        const synced = await saveCloudDraft(draft, new Map(assets), ownerId);
+        // Local persistence happens first. A denied/expired lease therefore
+        // never drops typed work; it only prevents the server write.
+        if (!await ensureEditLease({quiet:true})) {
+          await projectDatabase.transaction('rw',projectDatabase.projects,async () => {
+            const row = await projectDatabase.projects.get([ownerId,draft.title]);
+            if (row?.payload.localRevision === draft.localRevision)
+              await projectDatabase.projects.put({...row,payload:{...row.payload,syncState:'local',syncPending:true}});
+          });
+          await reloadDraftIndex(); renderDrafts();
+          if (current()) setStatus('로컬에 저장됨 · 편집 권한을 확인한 뒤 서버에 저장합니다.', 'error');
+          return false;
+        }
+        const synced = await saveCloudDraft(draft, allAssets, ownerId);
         if (synced) {
           draft.syncPending = false;
           draft.syncState = 'saved';
@@ -3662,6 +3884,31 @@ export async function initializeApp() {
   const copyButton = document.createElement('button'); copyButton.type = 'button'; copyButton.textContent = '로컬 작업을 복사본으로 저장';
   conflictPanel.append(conflictText,remoteButton,copyButton); top.after(conflictPanel);
   const showSaveConflict = () => { conflictPanel.hidden = false; };
+  function showLeaseNotice(message) {
+    const key = `${bookProject.projectId}:lease:${editLease?.generation || 'lost'}`;
+    if (leaseNoticeKeys.has(key)) return;
+    leaseNoticeKeys.add(key);
+    conflictText.textContent = message;
+    showSaveConflict();
+  }
+  const leaseTransferDialog = document.createElement('dialog');
+  leaseTransferDialog.className = 'gemini-settings-dialog draft-delete-dialog';
+  leaseTransferDialog.setAttribute('aria-label','편집 권한 가져오기');
+  leaseTransferDialog.innerHTML = '<div class="gemini-dialog-head"><h2>여기서 편집할까요?</h2></div><p class="delete-dialog-copy">다른 기기의 편집 권한이 이 탭으로 이전됩니다. 다른 기기에 저장되지 않은 내용은 그 기기의 로컬 복구본으로 남습니다.</p><form method="dialog" class="gemini-dialog-footer"><button type="submit" value="cancel" class="secondary" data-close>취소</button><button type="submit" value="take" class="primary">여기서 편집</button></form>';
+  document.body.append(leaseTransferDialog);
+  takeEditButton.addEventListener('click', () => {
+    leaseTransferDialog.returnValue = '';
+    leaseTransferDialog.addEventListener('close', async () => {
+      if (leaseTransferDialog.returnValue !== 'take') return;
+      const granted = await ensureEditLease({takeover:true});
+      if (!granted) return;
+      setStatus('이 탭으로 편집 권한을 가져왔습니다.');
+      // The latest revision is deliberately fetched before the next write;
+      // local unsynced work remains a recovery copy if it conflicts.
+      await restoreCloudDrafts();
+    },{once:true});
+    openModal(leaseTransferDialog,leaseTransferDialog.querySelector('[data-close]'));
+  });
   remoteButton.addEventListener('click', async () => {
     const ownerId = persistenceOwnerId(), instance = bookProject.instanceId, id = bookProject.projectId;
     try {
@@ -3698,17 +3945,38 @@ export async function initializeApp() {
     conflictPanel.hidden = true; await saveCurrentDraft();
   });
   let saveInFlight = null;
+  let saveQueued = false;
+  let autoSaveTimer = null;
   const saveCurrentDraft = (options = {}) => {
-    if (saveInFlight) {
-      setStatus('저장 중입니다. 현재 저장이 끝난 뒤 다시 시도하세요.');
-      return saveInFlight;
-    }
+    saveQueued = true;
+    if (saveInFlight) return saveInFlight;
     draftButton.disabled = true;
     setEditorActionIcon(draftButton,'LoaderCircle','저장 중...');
-    saveInFlight = performSaveCurrentDraft(options)
-      .catch(error => { setStatus(`저장 실패: ${error.message}`, 'error'); return false; })
-      .finally(() => { saveInFlight = null; draftButton.disabled = false; setEditorActionIcon(draftButton,'Save','임시저장'); });
+    saveInFlight = (async () => {
+      let result = true;
+      // One request at a time. Edits made while it is in flight cause a fresh
+      // snapshot and a second CAS request, never a false "saved" acknowledgement.
+      while (saveQueued) {
+        saveQueued = false;
+        const revision = bookProject.revision;
+        result = await performSaveCurrentDraft(options);
+        if (bookProject.revision !== revision) saveQueued = true;
+        options = {auto:true};
+      }
+      return result;
+    })().catch(error => { setStatus(`저장 실패: ${error.message}`, 'error'); return false; })
+      .finally(() => {
+        saveInFlight = null;
+        draftButton.disabled = editLeaseSupported === true && !hasCurrentEditLease();
+        setEditorActionIcon(draftButton,'Save','임시저장');
+      });
     return saveInFlight;
+  };
+  const scheduleAutoSave = () => {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+      if (bookProject.dirty && !(editLeaseSupported === true && !hasCurrentEditLease())) void saveCurrentDraft({auto:true});
+    },700);
   };
   draftButton.addEventListener('click', () => { void saveCurrentDraft(); });
   document.addEventListener('keydown', (event) => {
@@ -4871,9 +5139,11 @@ export async function initializeApp() {
   bookProject.dirty = false;
   const preserveLocalSnapshot = async (ownerId,payload,entries) => {
     const projectKey = `${payload.projectId}:${crypto.randomUUID()}`;
+    const completeEntries = [...entries, ...sourceAssetEntries(payload)];
     await projectDatabase.transaction('rw',projectDatabase.recoveries,projectDatabase.recoveryAssets,async () => {
       await projectDatabase.recoveries.put({ownerId,projectKey,payload,updatedAt:new Date().toISOString()});
-      await projectDatabase.recoveryAssets.bulkPut(entries.map(([name,asset]) => ({ownerId,projectKey,name,blob:asset.blob})));
+      await projectDatabase.recoveryAssets.bulkPut(completeEntries.filter(([,asset]) => asset?.blob)
+        .map(([name,asset]) => ({ownerId,projectKey,name,blob:asset.blob})));
     });
   };
   ['title','author','language','ctitle','clevel'].forEach(id => document.getElementById(id).addEventListener('input', () => {
@@ -4884,7 +5154,8 @@ export async function initializeApp() {
     if (ownerId !== persistenceOwnerId()) return;
     const payload = collectDraft();
     const projectKey = recoveryProjectKey(payload);
-    const assets = Array.from(previewAssets, ([name, asset]) => ({ownerId, projectKey, name, blob:asset.blob}));
+    const assets = [...Array.from(previewAssets, ([name, asset]) => ({ownerId, projectKey, name, blob:asset.blob})),
+      ...sourceAssetEntries(payload).filter(([,asset]) => asset?.blob).map(([name,asset]) => ({ownerId,projectKey,name,blob:asset.blob}))];
     await projectDatabase.transaction('rw', projectDatabase.recoveries, projectDatabase.recoveryAssets, async () => {
       if (epoch !== restoreEpoch || ownerId !== persistenceOwnerId()) return;
       await projectDatabase.recoveryAssets.where('[ownerId+projectKey]').equals([ownerId, projectKey]).delete();
@@ -4901,7 +5172,8 @@ export async function initializeApp() {
     const projectKey = recoveryProjectKey(payload);
     if (deletedProjectIds.has(deletionKey(ownerId,payload.projectId))) payload.serverDeleted = true;
     const revision = bookProject.revision;
-    const assets = Array.from(previewAssets,([name,asset]) => ({ownerId,projectKey,name,blob:asset.blob}));
+    const assets = [...Array.from(previewAssets,([name,asset]) => ({ownerId,projectKey,name,blob:asset.blob})),
+      ...sourceAssetEntries(payload).filter(([,asset]) => asset?.blob).map(([name,asset]) => ({ownerId,projectKey,name,blob:asset.blob}))];
     await projectDatabase.transaction('rw',projectDatabase.recoveries,projectDatabase.recoveryAssets,async () => {
       if (!bookProject.dirty || bookProject.revision !== revision || bookProject.projectId !== payload.projectId || persistenceOwnerId() !== ownerId) return;
       await projectDatabase.recoveryAssets.where('[ownerId+projectKey]').equals([ownerId,projectKey]).delete();
@@ -4916,6 +5188,7 @@ export async function initializeApp() {
     observedRevision = bookProject.revision;
     clearTimeout(workingCopyTimer);
     workingCopyTimer = setTimeout(() => { void preserveWorkingCopy().catch(error => console.warn('로컬 복구본 저장 실패',error)); }, 350);
+    scheduleAutoSave();
   }, 200);
   window.addEventListener('beforeunload', event => {
     const active = draftIndex.find(draft => draft.projectId === bookProject.projectId);
@@ -4924,10 +5197,11 @@ export async function initializeApp() {
     event.preventDefault();
     event.returnValue = '';
   });
-  window.addEventListener('online', () => { void restoreCloudDrafts(); });
-  window.addEventListener('focus', () => { void restoreCloudDrafts(); });
+  window.addEventListener('online', () => { void (async () => { await restoreCloudDrafts(); await ensureEditLease({quiet:true}); })(); });
+  window.addEventListener('offline', () => { if (editLeaseSupported === true) setProjectEditingAccess(false,'통신이 끊겨 편집 권한을 잠갔습니다. 로컬 복구본은 유지됩니다.'); });
+  window.addEventListener('focus', () => { void (async () => { await restoreCloudDrafts(); await ensureEditLease({quiet:true}); })(); });
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') void restoreCloudDrafts();
+    if (document.visibilityState === 'visible') { void (async () => { await restoreCloudDrafts(); await ensureEditLease({quiet:true}); })(); }
     else if (bookProject.dirty) void preserveWorkingCopy().catch(error => console.warn('로컬 복구본 저장 실패',error));
   });
   void hydrateDrafts();
